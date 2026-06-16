@@ -570,9 +570,11 @@ window.det = async function(id){
   const m=all.find(x=>x.id===id);if(!m)return;
   document.getElementById('dtit').textContent='Machine '+m.code_machine;
 
-  // Charger historique depuis Firebase
-  let histoHTML = '<div style="color:var(--t2);font-size:13px;padding:10px">Chargement...</div>';
   document.getElementById('dbody').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="bn bp" onclick="window.copierHistorique('${id}')" style="flex:1;font-size:13px;padding:10px">&#128203; Copier l'historique</button>
+      <button class="bn bv" onclick="window.imprimerFiche('${id}')" style="flex:1;font-size:13px;padding:10px">&#128438; Exporter PDF</button>
+    </div>
     <div class="dg">
       <div class="di"><div class="dl">Code</div><div class="dv">${m.code_machine||''}</div></div>
       <div class="di"><div class="dl">Pays</div><div class="dv">${PN[m.pays_id]||m.pays_id||''}</div></div>
@@ -586,17 +588,11 @@ window.det = async function(id){
       <div class="di"><div class="dl">Chantier</div><div class="dv">${m.chantier||'-'}</div></div>
       <div class="di"><div class="dl">Modifi&eacute; par</div><div class="dv">${m.modifie_par||'-'}</div></div>
       <div class="di"><div class="dl">Le</div><div class="dv">${(m.modifie_le||'').slice(0,16)}</div></div>
-      ${m.detail_statut?`<div class="di" style="grid-column:1/-1;background:#EFF6FF;border-left:3px solid #3B82F6"><div class="dl" style="color:#1D4ED8">D&eacute;tail statut actuel</div><div class="dv" style="color:#1E40AF">${m.detail_statut}</div></div>`:''}
-      ${m.commentaire?`<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">${m.commentaire}</div></div>`:''}
+      ${m.detail_statut?'<div class="di" style="grid-column:1/-1;background:#EFF6FF;border-left:3px solid #3B82F6"><div class="dl" style="color:#1D4ED8">Detail statut actuel</div><div class="dv" style="color:#1E40AF">'+m.detail_statut+'</div></div>':''}
+      ${m.commentaire?'<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">'+m.commentaire+'</div></div>':''}
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
-      <h4 style="font-size:14px;font-weight:700;color:var(--te)">&#128203; Historique complet</h4>
-      <div style="display:flex;gap:8px">
-        <button class="bn bs bp" onclick="window.copierHistorique('${id}')" style="font-size:12px;padding:6px 12px" title="Copier tout l'historique">&#128203; Copier</button>
-        <button class="bn bs bv" onclick="window.imprimerFiche('${id}')" style="font-size:12px;padding:6px 12px" title="Imprimer / Exporter PDF">&#128438; PDF</button>
-      </div>
-    </div>
-    <div id="histo-machine-${id}">Chargement...</div>`;
+    <div style="margin:16px 0 10px;font-size:14px;font-weight:700;color:var(--te)">Historique des modifications</div>
+    <div id="histo-machine-${id}" style="font-size:13px;color:var(--t2)">Chargement...</div>`;
 
   oM('mod');
 
