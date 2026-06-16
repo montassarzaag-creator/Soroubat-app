@@ -150,7 +150,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
         <div style="overflow-x:auto">
           <table><thead><tr>
             <th>Code</th><th id="cpays" style="display:none">Pays</th>
-            <th>Famille / Type</th><th>Marque</th><th>Statut</th><th>Chantier</th><th>N&#176; S&#233;rie</th><th>Actions</th>
+            <th>Famille / Type</th><th>Marque</th><th>Statut</th><th>D&eacute;tail statut</th><th>Chantier</th><th>N&#176; S&#233;rie</th><th>Actions</th>
           </tr></thead><tbody id="tb2"></tbody></table>
         </div>
         <div id="em" class="em" style="display:none">Aucune machine trouv&#233;e</div>
@@ -205,6 +205,8 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
         <select id="mst"><option>Fonctionnelle</option><option>En panne</option>
           <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
         </select></div>
+      <div class="fg fu"><label>D&eacute;tail du statut <span style="font-size:10px;color:var(--t2);font-weight:400">(visible dans l&#39;historique)</span></label>
+        <textarea id="mdetail" rows="2" placeholder="Ex: Moteur HS, attente pi&#232;ce ref. XYZ — Panne hydraulique bras gauche..."></textarea></div>
       <div class="fg"><label>Chantier / Site</label>
         <select id="mcs" onchange="togCh()"><option value="">--</option></select>
         <input type="text" id="mct" style="display:none;margin-top:6px" placeholder="Nouveau site"></div>
@@ -350,7 +352,9 @@ function ren(){
   tb.innerHTML=sl.map(m=>{
     const pc=ses.admin?`<td>${PN[m.pays_id]||m.pays_id||''}</td>`:'';
     const ab=ses.admin?`<button class="bn bs bp" onclick="window.edt('${m.id}')" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" onclick="window.del('${m.id}')">&#128465;</button>`:'';
-    return`<tr><td><strong>${m.code_machine||''}</strong></td>${pc}<td>${m.famille||'-'}<br><small style="color:var(--t2)">${m.sous_famille||''}</small></td><td>${m.marque||'-'}</td><td>${badge(m.statut)}</td><td>${m.chantier||'-'}</td><td style="font-size:11px;color:var(--t2)">${m.numero_serie||'-'}</td><td style="white-space:nowrap"><button class="bn bs bp" onclick="window.det('${m.id}')" style="margin-right:3px">&#128065;</button>${ab}</td></tr>`;
+    const dernierDetail = m.detail_statut||'';
+    const detailCourt = dernierDetail.length > 30 ? dernierDetail.slice(0,30)+'...' : dernierDetail;
+    return`<tr><td><strong>${m.code_machine||''}</strong></td>${pc}<td>${m.famille||'-'}<br><small style="color:var(--t2)">${m.sous_famille||''}</small></td><td>${m.marque||'-'}</td><td>${badge(m.statut)}</td><td style="font-size:12px;color:var(--te);max-width:160px"><span title="${dernierDetail}">${detailCourt||'<span style=color:var(--t2)>—</span>'}</span></td><td>${m.chantier||'-'}</td><td style="font-size:11px;color:var(--t2)">${m.numero_serie||'-'}</td><td style="white-space:nowrap"><button class="bn bs bp" onclick="window.det('${m.id}')" style="margin-right:3px">&#128065;</button>${ab}</td></tr>`;
   }).join('');
   if(tp<=1){document.getElementById('pag').innerHTML='';return;}
   const fr=Math.max(1,pg-2),to=Math.min(tp,pg+2);
@@ -416,7 +420,7 @@ function stat(){
 
 window.openAdd = function(){
   document.getElementById('mtit').textContent='Ajouter une machine';document.getElementById('eid').value='';
-  ['mc','msf','mmo','mse','mim','mct','mmqt','mco'].forEach(i=>document.getElementById(i).value='');
+  ['mc','msf','mmo','mse','mim','mct','mmqt','mco','mdetail'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('mmqt').style.display='none';document.getElementById('mct').style.display='none';
   document.getElementById('mf').value='';document.getElementById('mmq').value='';
   document.getElementById('mst').value='Fonctionnelle';document.getElementById('man').value='';
@@ -430,7 +434,8 @@ window.edt = function(id){
   document.getElementById('msf').value=m.sous_famille||'';document.getElementById('mmo').value=m.modele||'';
   document.getElementById('mse').value=m.numero_serie||'';document.getElementById('mim').value=m.immatriculation||'';
   document.getElementById('man').value=m.annee_fabrication||'';document.getElementById('mst').value=m.statut||'Fonctionnelle';
-  document.getElementById('mco').value=m.commentaire||'';document.getElementById('mpays').value=m.pays_id||'cotedivoire';
+  document.getElementById('mco').value=m.commentaire||'';
+  document.getElementById('mdetail').value=''; // Nouveau détail vide — l'ancien est dans l'historiquedocument.getElementById('mpays').value=m.pays_id||'cotedivoire';
   const mqs=['Caterpillar','Komatsu','Volvo','Hyundai','JCB','Case','Bomag','Hamm','Sinotruk','Iveco','Saic-Iveco','Liebherr','Doosan','Vogele','Shantui','Atlas Copco','Ermont','Fiori','Renault','Manitou'];
   if(m.marque&&mqs.includes(m.marque)){document.getElementById('mmq').value=m.marque;document.getElementById('mmqt').style.display='none';}
   else if(m.marque){document.getElementById('mmq').value='X';document.getElementById('mmqt').value=m.marque;document.getElementById('mmqt').style.display='block';}
@@ -453,17 +458,35 @@ window.sauver = async function(){
   const ch=cs==='X'?document.getElementById('mct').value.trim():cs;
   const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',modifie_par:ses.user,modifie_le:new Date().toISOString()};
   try{
+    const detail = document.getElementById('mdetail').value.trim();
+    if(detail) mc.detail_statut = detail;
     if(eid){
       const old=all.find(m=>m.id===eid);
       mc.cree_par=old?old.cree_par:ses.user;mc.cree_le=old?old.cree_le:new Date().toISOString();
+      // Garder ancien detail si pas de nouveau saisi
+      if(!detail && old && old.detail_statut) mc.detail_statut = old.detail_statut;
       await setDoc(doc(db,'machines',eid),mc);
-      if(old&&old.statut!==stat){
-        await addDoc(collection(db,'historique'),{machine_id:eid,code_machine:code,pays_id:pid,ancien_statut:old.statut,nouveau_statut:stat,modifie_par:ses.user,modifie_le:new Date().toISOString()});
+      // Enregistrer historique si statut changé OU si detail renseigné
+      if(old && (old.statut!==stat || detail)){
+        await addDoc(collection(db,'historique'),{
+          machine_id:eid, code_machine:code, pays_id:pid,
+          ancien_statut:old.statut, nouveau_statut:stat,
+          detail_statut:detail||'',
+          modifie_par:ses.user, modifie_le:new Date().toISOString()
+        });
       }
       toast('Mis a jour ✓','ok');
     }else{
       mc.cree_par=ses.user;mc.cree_le=new Date().toISOString();
       await addDoc(collection(db,'machines'),mc);
+      if(detail){
+        await addDoc(collection(db,'historique'),{
+          machine_id:mc.id||'', code_machine:code, pays_id:pid,
+          ancien_statut:'', nouveau_statut:stat,
+          detail_statut:detail,
+          modifie_par:ses.user, modifie_le:new Date().toISOString()
+        });
+      }
       toast('Machine ajoutee ✓','ok');
     }
     cM('mom');
@@ -479,7 +502,23 @@ window.del = async function(id){
 window.det = function(id){
   const m=all.find(x=>x.id===id);if(!m)return;
   document.getElementById('dtit').textContent='Machine '+m.code_machine;
-  document.getElementById('dbody').innerHTML=`<div class="dg"><div class="di"><div class="dl">Code</div><div class="dv">${m.code_machine||''}</div></div><div class="di"><div class="dl">Pays</div><div class="dv">${PN[m.pays_id]||m.pays_id||''}</div></div><div class="di"><div class="dl">Famille</div><div class="dv">${m.famille||'-'}</div></div><div class="di"><div class="dl">Type</div><div class="dv">${m.sous_famille||'-'}</div></div><div class="di"><div class="dl">Marque</div><div class="dv">${m.marque||'-'}</div></div><div class="di"><div class="dl">Modele</div><div class="dv">${m.modele||'-'}</div></div><div class="di"><div class="dl">N serie</div><div class="dv">${m.numero_serie||'-'}</div></div><div class="di"><div class="dl">Immat.</div><div class="dv">${m.immatriculation||'-'}</div></div><div class="di"><div class="dl">Statut</div><div class="dv">${badge(m.statut)}</div></div><div class="di"><div class="dl">Chantier</div><div class="dv">${m.chantier||'-'}</div></div><div class="di"><div class="dl">Modifie par</div><div class="dv">${m.modifie_par||'-'}</div></div><div class="di"><div class="dl">Le</div><div class="dv">${(m.modifie_le||'').slice(0,16)}</div></div>${m.commentaire?`<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">${m.commentaire}</div></div>`:''}</div>`;
+  document.getElementById('dbody').innerHTML=`
+    <div class="dg">
+      <div class="di"><div class="dl">Code</div><div class="dv">${m.code_machine||''}</div></div>
+      <div class="di"><div class="dl">Pays</div><div class="dv">${PN[m.pays_id]||m.pays_id||''}</div></div>
+      <div class="di"><div class="dl">Famille</div><div class="dv">${m.famille||'-'}</div></div>
+      <div class="di"><div class="dl">Type</div><div class="dv">${m.sous_famille||'-'}</div></div>
+      <div class="di"><div class="dl">Marque</div><div class="dv">${m.marque||'-'}</div></div>
+      <div class="di"><div class="dl">Mod&egrave;le</div><div class="dv">${m.modele||'-'}</div></div>
+      <div class="di"><div class="dl">N&deg; s&eacute;rie</div><div class="dv">${m.numero_serie||'-'}</div></div>
+      <div class="di"><div class="dl">Immat.</div><div class="dv">${m.immatriculation||'-'}</div></div>
+      <div class="di"><div class="dl">Statut actuel</div><div class="dv">${badge(m.statut)}</div></div>
+      <div class="di"><div class="dl">Chantier</div><div class="dv">${m.chantier||'-'}</div></div>
+      <div class="di"><div class="dl">Modifi&eacute; par</div><div class="dv">${m.modifie_par||'-'}</div></div>
+      <div class="di"><div class="dl">Le</div><div class="dv">${(m.modifie_le||'').slice(0,16)}</div></div>
+      ${m.detail_statut?`<div class="di" style="grid-column:1/-1;background:#EFF6FF;border-left:3px solid #3B82F6"><div class="dl" style="color:#1D4ED8">D&eacute;tail statut actuel</div><div class="dv" style="color:#1E40AF">${m.detail_statut}</div></div>`:''}
+      ${m.commentaire?`<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">${m.commentaire}</div></div>`:''}
+    </div>`;
   oM('mod');
 };
 
