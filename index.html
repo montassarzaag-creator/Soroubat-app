@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- SOROUBAT v3.2 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -206,7 +206,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
           <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
         </select></div>
       <div class="fg fu"><label>D&eacute;tail du statut <span style="font-size:10px;color:var(--t2);font-weight:400">(visible dans l&#39;historique)</span></label>
-        <textarea id="mdetail" rows="2" placeholder="Ex: Moteur HS, attente pi&#232;ce ref. XYZ — Panne hydraulique bras gauche..."></textarea></div>
+        <textarea id="mdetail" rows="2" placeholder="Ex: Moteur HS, attente pi&#232;ce ref. XYZ &mdash; Panne hydraulique bras gauche..."></textarea></div>
       <div class="fg"><label>Chantier / Site</label>
         <select id="mcs" onchange="togCh()"><option value="">--</option></select>
         <input type="text" id="mct" style="display:none;margin-top:6px" placeholder="Nouveau site"></div>
@@ -241,7 +241,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
     </div>
     <div class="fg fu">
       <label>Nouveau d&eacute;tail <span style="font-size:11px;color:var(--t2)">(sera conserv&eacute; dans l&#39;historique)</span></label>
-      <textarea id="sd-txt" rows="4" placeholder="Ex: Moteur HS — attente pi&egrave;ce ref. XYZ&#10;Panne hydraulique bras gauche&#10;Intervention pr&eacute;vue le..." style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical"></textarea>
+      <textarea id="sd-txt" rows="4" placeholder="Ex: Moteur HS &mdash; attente pi&egrave;ce ref. XYZ&#10;Panne hydraulique bras gauche&#10;Intervention pr&eacute;vue le..." style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical"></textarea>
     </div>
   </div>
   <div class="mf">
@@ -254,6 +254,16 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query, orderBy, addDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+window.onerror = function(msg, src, line, col, err) {
+  document.body.innerHTML = '<div style="padding:20px;font-family:Arial;background:#FEE2E2;color:#991B1B;border-radius:10px;margin:20px">' +
+    '<h3>Erreur technique</h3>' +
+    '<p><strong>Message:</strong> ' + msg + '</p>' +
+    '<p><strong>Ligne:</strong> ' + line + '</p>' +
+    '<p>Veuillez contacter l\'administrateur ou rafraichir la page.</p>' +
+    '</div>';
+  return false;
+};
 
 const FC = {
   apiKey:"AIzaSyBqlW_7dlxNETpHA8C0FOEdqcvV5cXXwmY",
@@ -383,7 +393,7 @@ function ren(){
       :`<button class="bn bs" onclick="window.saisirDetail('${m.id}')" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B" title="Renseigner le d&eacute;tail du statut">&#128203; D&eacute;tail</button>`;
     const dernierDetail = m.detail_statut||'';
     const detailCourt = dernierDetail.length > 30 ? dernierDetail.slice(0,30)+'...' : dernierDetail;
-    return`<tr><td><strong>${m.code_machine||''}</strong></td>${pc}<td>${m.famille||'-'}<br><small style="color:var(--t2)">${m.sous_famille||''}</small></td><td>${m.marque||'-'}</td><td>${badge(m.statut)}</td><td style="font-size:12px;color:var(--te);max-width:160px"><span title="${dernierDetail}">${detailCourt||'<span style=color:var(--t2)>—</span>'}</span></td><td>${m.chantier||'-'}</td><td style="font-size:11px;color:var(--t2)">${m.numero_serie||'-'}</td><td style="white-space:nowrap"><button class="bn bs bp" onclick="window.det('${m.id}')" style="margin-right:3px">&#128065;</button>${ab}</td></tr>`;
+    return`<tr><td><strong>${m.code_machine||''}</strong></td>${pc}<td>${m.famille||'-'}<br><small style="color:var(--t2)">${m.sous_famille||''}</small></td><td>${m.marque||'-'}</td><td>${badge(m.statut)}</td><td style="font-size:12px;color:var(--te);max-width:160px"><span title="${dernierDetail}">${detailCourt||'<span style=color:var(--t2)>&mdash;</span>'}</span></td><td>${m.chantier||'-'}</td><td style="font-size:11px;color:var(--t2)">${m.numero_serie||'-'}</td><td style="white-space:nowrap"><button class="bn bs bp" onclick="window.det('${m.id}')" style="margin-right:3px">&#128065;</button>${ab}</td></tr>`;
   }).join('');
   if(tp<=1){document.getElementById('pag').innerHTML='';return;}
   const fr=Math.max(1,pg-2),to=Math.min(tp,pg+2);
@@ -407,16 +417,16 @@ function stat(){
     const s=m.statut;
     if(s==='Fonctionnelle')f++;
     else if(s==='En panne')pa++;
-    else if(s==='En réparation')rep++;
+    else if(s==='En r&eacute;paration')rep++;
     else if(s==='En Att. PDR')pdr++;
-    else if(s==='Réformé')ref++;
-    else if(s==='Transféré')tra++;
+    else if(s==='R&eacute;form&eacute;')ref++;
+    else if(s==='Transf&eacute;r&eacute;')tra++;
   });
-  // Parc actif = total - réformés
+  // Parc actif = total - r&eacute;form&eacute;s
   const parc = t - ref;
-  // Taux disponibilité = (fonctionnelles + transférées) / parc actif
+  // Taux disponibilit&eacute; = (fonctionnelles + transf&eacute;r&eacute;es) / parc actif
   const tx_dispo = pct(f + tra, parc);
-  // Taux panne = (panne + réparation + PDR) / parc actif
+  // Taux panne = (panne + r&eacute;paration + PDR) / parc actif
   const tx_panne = pct(pa + rep + pdr, parc);
   document.getElementById('sg').innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">
@@ -464,7 +474,7 @@ window.edt = function(id){
   document.getElementById('mse').value=m.numero_serie||'';document.getElementById('mim').value=m.immatriculation||'';
   document.getElementById('man').value=m.annee_fabrication||'';document.getElementById('mst').value=m.statut||'Fonctionnelle';
   document.getElementById('mco').value=m.commentaire||'';
-  document.getElementById('mdetail').value=''; // Nouveau détail vide — l'ancien est dans l'historiquedocument.getElementById('mpays').value=m.pays_id||'cotedivoire';
+  document.getElementById('mdetail').value=''; // Nouveau d&eacute;tail vide &mdash; l'ancien est dans l'historiquedocument.getElementById('mpays').value=m.pays_id||'cotedivoire';
   const mqs=['Caterpillar','Komatsu','Volvo','Hyundai','JCB','Case','Bomag','Hamm','Sinotruk','Iveco','Saic-Iveco','Liebherr','Doosan','Vogele','Shantui','Atlas Copco','Ermont','Fiori','Renault','Manitou'];
   if(m.marque&&mqs.includes(m.marque)){document.getElementById('mmq').value=m.marque;document.getElementById('mmqt').style.display='none';}
   else if(m.marque){document.getElementById('mmq').value='X';document.getElementById('mmqt').value=m.marque;document.getElementById('mmqt').style.display='block';}
@@ -494,7 +504,7 @@ window.sauver = async function(){
       // Si pas de nouveau detail, conserver l'ancien
       if(!detail && old && old.detail_statut) mc.detail_statut = old.detail_statut;
       await setDoc(doc(db,'machines',eid),mc);
-      // Enregistrer historique si statut changé OU si detail renseigné
+      // Enregistrer historique si statut chang&eacute; OU si detail renseign&eacute;
       if(old && (old.statut!==stat || detail)){
         await addDoc(collection(db,'historique'),{
           machine_id:eid, code_machine:code, pays_id:pid,
@@ -503,7 +513,7 @@ window.sauver = async function(){
           modifie_par:ses.user, modifie_le:new Date().toISOString()
         });
       }
-      toast('Mis a jour ✓','ok');
+      toast('Mis a jour !','ok');
     }else{
       mc.cree_par=ses.user;mc.cree_le=new Date().toISOString();
       await addDoc(collection(db,'machines'),mc);
@@ -515,7 +525,7 @@ window.sauver = async function(){
           modifie_par:ses.user, modifie_le:new Date().toISOString()
         });
       }
-      toast('Machine ajoutee ✓','ok');
+      toast('Machine ajoutee !','ok');
     }
     cM('mom');
   }catch(e){toast('Erreur: '+e.message,'ko');}
@@ -529,9 +539,9 @@ window.del = async function(id){
 
 window.saisirDetail = function(id){
   const m=all.find(x=>x.id===id);if(!m)return;
-  document.getElementById('sdtitle').textContent='Détail statut — '+m.code_machine;
+  document.getElementById('sdtitle').textContent='D&eacute;tail statut &mdash; '+m.code_machine;
   document.getElementById('sd-statut').innerHTML=badge(m.statut);
-  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun détail saisi';
+  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun d&eacute;tail saisi';
   document.getElementById('sd-txt').value='';
   document.getElementById('sd-mid').value=id;
   oM('mod-detail');
@@ -540,7 +550,7 @@ window.saisirDetail = function(id){
 window.sauverDetail = async function(){
   const id=document.getElementById('sd-mid').value;
   const txt=document.getElementById('sd-txt').value.trim();
-  if(!txt){toast('Veuillez saisir un détail','ko');return;}
+  if(!txt){toast('Veuillez saisir un d&eacute;tail','ko');return;}
   const m=all.find(x=>x.id===id);if(!m)return;
   try{
     const updates={...m, detail_statut:txt, modifie_par:ses.user, modifie_le:new Date().toISOString()};
@@ -552,14 +562,17 @@ window.sauverDetail = async function(){
       detail_statut:txt, modifie_par:ses.user, modifie_le:new Date().toISOString()
     });
     cM('mod-detail');
-    toast('Détail enregistré ✓','ok');
+    toast('D&eacute;tail enregistr&eacute; !','ok');
   }catch(e){toast('Erreur: '+e.message,'ko');}
 };
 
-window.det = function(id){
+window.det = async function(id){
   const m=all.find(x=>x.id===id);if(!m)return;
   document.getElementById('dtit').textContent='Machine '+m.code_machine;
-  document.getElementById('dbody').innerHTML=`
+
+  // Charger historique depuis Firebase
+  let histoHTML = '<div style="color:var(--t2);font-size:13px;padding:10px">Chargement...</div>';
+  document.getElementById('dbody').innerHTML = `
     <div class="dg">
       <div class="di"><div class="dl">Code</div><div class="dv">${m.code_machine||''}</div></div>
       <div class="di"><div class="dl">Pays</div><div class="dv">${PN[m.pays_id]||m.pays_id||''}</div></div>
@@ -575,8 +588,145 @@ window.det = function(id){
       <div class="di"><div class="dl">Le</div><div class="dv">${(m.modifie_le||'').slice(0,16)}</div></div>
       ${m.detail_statut?`<div class="di" style="grid-column:1/-1;background:#EFF6FF;border-left:3px solid #3B82F6"><div class="dl" style="color:#1D4ED8">D&eacute;tail statut actuel</div><div class="dv" style="color:#1E40AF">${m.detail_statut}</div></div>`:''}
       ${m.commentaire?`<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">${m.commentaire}</div></div>`:''}
-    </div>`;
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
+      <h4 style="font-size:14px;font-weight:700;color:var(--te)">&#128203; Historique complet</h4>
+      <div style="display:flex;gap:8px">
+        <button class="bn bs bp" onclick="window.copierHistorique('${id}')" style="font-size:12px;padding:6px 12px" title="Copier tout l'historique">&#128203; Copier</button>
+        <button class="bn bs bv" onclick="window.imprimerFiche('${id}')" style="font-size:12px;padding:6px 12px" title="Imprimer / Exporter PDF">&#128438; PDF</button>
+      </div>
+    </div>
+    <div id="histo-machine-${id}">Chargement...</div>`;
+
   oM('mod');
+
+  // Charger historique depuis Firebase
+  try{
+    const snap = await getDocs(collection(db,'historique'));
+    const items = [];
+    snap.forEach(d=>{const data=d.data();if(data.machine_id===id)items.push(data);});
+    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
+
+    const hEl = document.getElementById('histo-machine-'+id);
+    if(!hEl) return;
+    if(!items.length){
+      hEl.innerHTML='<div style="color:var(--t2);font-size:13px;padding:10px 0">Aucune modification enregistr&eacute;e</div>';
+      return;
+    }
+    hEl.innerHTML = items.map((h,i)=>`
+      <div class="hi" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:11px;color:var(--t2)">${(h.modifie_le||'').slice(0,16).replace('T',' ')} &mdash; par <strong>${h.modifie_par}</strong></div>
+            <div style="margin-top:5px">${h.ancien_statut?badge(h.ancien_statut)+' &rarr; ':''} ${badge(h.nouveau_statut)}</div>
+            ${h.detail_statut?`<div style="margin-top:6px;font-size:12px;color:#1E40AF;background:#EFF6FF;padding:6px 10px;border-radius:5px;border-left:3px solid #3B82F6">&#128203; ${h.detail_statut}</div>`:''}
+          </div>
+          <span style="font-size:10px;color:var(--t2);white-space:nowrap;margin-left:8px">#${items.length-i}</span>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    const hEl=document.getElementById('histo-machine-'+id);
+    if(hEl) hEl.innerHTML='<div style="color:var(--ro)">Erreur chargement historique</div>';
+  }
+};
+
+window.copierHistorique = async function(id){
+  const m=all.find(x=>x.id===id);if(!m)return;
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const items=[];
+    snap.forEach(d=>{const data=d.data();if(data.machine_id===id)items.push(data);});
+    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
+
+    let txt = 'HISTORIQUE MACHINE : ' + m.code_machine + '\n';
+    txt += 'Pays : ' + (PN[m.pays_id]||m.pays_id) + '\n';
+    txt += 'Marque : ' + (m.marque||'-') + ' ' + (m.modele||'') + '\n';
+    txt += 'Statut actuel : ' + m.statut + '\n';
+    if(m.detail_statut) txt += 'Detail actuel : ' + m.detail_statut + '\n';
+    txt += '==================================================\n\n';
+
+    if(!items.length){
+      txt += 'Aucune modification enregistree.\n';
+    } else {
+      items.forEach(function(h,i){
+        txt += '[' + (h.modifie_le||'').slice(0,16).replace('T',' ') + '] Par: ' + h.modifie_par + '\n';
+        if(h.ancien_statut) txt += '  Statut: ' + h.ancien_statut + ' => ' + h.nouveau_statut + '\n';
+        else txt += '  Statut: ' + h.nouveau_statut + '\n';
+        if(h.detail_statut) txt += '  Detail: ' + h.detail_statut + '\n';
+        txt += '\n';
+      });
+    }
+
+    await navigator.clipboard.writeText(txt);
+    toast('Historique copie dans le presse-papier !','ok');
+  }catch(e){toast('Erreur copie: '+e.message,'ko');}
+};
+
+window.imprimerFiche = async function(id){
+  const m=all.find(x=>x.id===id);if(!m)return;
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const items=[];
+    snap.forEach(d=>{const data=d.data();if(data.machine_id===id)items.push(data);});
+    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
+
+    const statColors={'Fonctionnelle':'#065F46','En panne':'#991B1B','En r&eacute;paration':'#92400E','En Att. PDR':'#1E40AF','R&eacute;form&eacute;':'#374151','Transf&eacute;r&eacute;':'#5B21B6'};
+    const statBg={'Fonctionnelle':'#D1FAE5','En panne':'#FEE2E2','En r&eacute;paration':'#FEF3C7','En Att. PDR':'#DBEAFE','R&eacute;form&eacute;':'#F3F4F6','Transf&eacute;r&eacute;':'#EDE9FE'};
+
+    const win = window.open('','_blank');
+    win.document.write(`<!DOCTYPE html><!-- SOROUBAT v3.2 --><html><head><meta charset="UTF-8">
+    <title>Fiche Machine - SOROUBAT</title>
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:24px;color:#1A1F2E;font-size:13px;}
+      .header{background:#1B4F8C;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+      .header h1{margin:0;font-size:20px;letter-spacing:1px;}
+      .header .sub{font-size:12px;opacity:.8;margin-top:4px;}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+      .cell{padding:10px;background:#F4F5F7;border-radius:6px;}
+      .label{font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;}
+      .val{font-size:14px;font-weight:600;}
+      .statut{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+      .detail-box{padding:12px;background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:0 6px 6px 0;margin-bottom:20px;}
+      .histo-title{font-size:15px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #1B4F8C;color:#1B4F8C;}
+      .histo-item{padding:10px 14px;border-left:3px solid #1B4F8C;margin-bottom:8px;background:#F4F5F7;border-radius:0 6px 6px 0;}
+      .histo-date{font-size:11px;color:#6B7280;}
+      .histo-detail{font-size:12px;color:#1E40AF;background:#EFF6FF;padding:5px 8px;border-radius:4px;margin-top:5px;border-left:2px solid #3B82F6;}
+      .footer{margin-top:30px;font-size:10px;color:#9CA3AF;text-align:center;border-top:1px solid #DDE1E7;padding-top:10px;}
+      @media print{body{padding:0;} button{display:none;}}
+    </style></head><body>
+    <div class="header">
+      <div>
+        <h1>SOROUBAT &mdash; Fiche Machine</h1>
+        <div class="sub">Document genere le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:22px;font-weight:800">${m.code_machine}</div>
+        <div style="font-size:12px;opacity:.8">${PN[m.pays_id]||m.pays_id}</div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="cell"><div class="label">Famille</div><div class="val">${m.famille||'-'}</div></div>
+      <div class="cell"><div class="label">Sous-famille</div><div class="val">${m.sous_famille||'-'}</div></div>
+      <div class="cell"><div class="label">Marque</div><div class="val">${m.marque||'-'}</div></div>
+      <div class="cell"><div class="label">Mod&egrave;le</div><div class="val">${m.modele||'-'}</div></div>
+      <div class="cell"><div class="label">N&deg; s&eacute;rie</div><div class="val">${m.numero_serie||'-'}</div></div>
+      <div class="cell"><div class="label">Immatriculation</div><div class="val">${m.immatriculation||'-'}</div></div>
+      <div class="cell"><div class="label">Chantier</div><div class="val">${m.chantier||'-'}</div></div>
+      <div class="cell"><div class="label">Statut actuel</div><div class="val"><span class="statut" style="background:${statBg[m.statut]||'#F3F4F6'};color:${statColors[m.statut]||'#374151'}">${m.statut}</span></div></div>
+    </div>
+    ${m.detail_statut?`<div class="detail-box"><div class="label" style="color:#1D4ED8">D&eacute;tail statut actuel</div><div style="margin-top:4px;font-size:13px;color:#1E40AF">${m.detail_statut}</div></div>`:''}
+    <div class="histo-title">Historique des modifications (${items.length} entr&eacute;e${items.length>1?'s':''})</div>
+    ${items.length?items.map((h,i)=>`
+      <div class="histo-item">
+        <div class="histo-date">#${items.length-i} &mdash; ${(h.modifie_le||'').slice(0,16).replace('T',' ')} &mdash; Par : <strong>${h.modifie_par}</strong></div>
+        <div style="margin-top:4px;font-size:12px">${h.ancien_statut?`<span style="background:${statBg[h.ancien_statut]||'#F3F4F6'};color:${statColors[h.ancien_statut]||'#374151'};padding:2px 8px;border-radius:10px;font-weight:700">${h.ancien_statut}</span> &rarr; `:''}<span style="background:${statBg[h.nouveau_statut]||'#F3F4F6'};color:${statColors[h.nouveau_statut]||'#374151'};padding:2px 8px;border-radius:10px;font-weight:700">${h.nouveau_statut}</span></div>
+        ${h.detail_statut?`<div class="histo-detail">&#128203; ${h.detail_statut}</div>`:''}
+      </div>`).join(''):'<div style="color:#9CA3AF">Aucune modification enregistree</div>'}
+    <div class="footer">SOROUBAT International &mdash; Gestion du Parc Mat&eacute;riel &mdash; ${PN[m.pays_id]||m.pays_id}</div>
+    <scr'+'ipt>window.onload=()=>window.print();<\/scr'+'ipt>
+    </body></html>`);
+    win.document.close();
+  }catch(e){toast('Erreur PDF: '+e.message,'ko');}
 };
 
 window.affH = async function(){
@@ -598,10 +748,10 @@ window.affD = function(){
     const tot2=ml.length;
     const f=ml.filter(m=>m.statut==='Fonctionnelle').length;
     const pa=ml.filter(m=>m.statut==='En panne').length;
-    const rep2=ml.filter(m=>m.statut==='En réparation').length;
+    const rep2=ml.filter(m=>m.statut==='En r&eacute;paration').length;
     const pdr2=ml.filter(m=>m.statut==='En Att. PDR').length;
-    const ref2=ml.filter(m=>m.statut==='Réformé').length;
-    const tra2=ml.filter(m=>m.statut==='Transféré').length;
+    const ref2=ml.filter(m=>m.statut==='R&eacute;form&eacute;').length;
+    const tra2=ml.filter(m=>m.statut==='Transf&eacute;r&eacute;').length;
     const parc2=tot2-ref2;
     const txD=parc2>0?Math.round((f+tra2)/parc2*100):0;
     const txP=parc2>0?Math.round((pa+rep2+pdr2)/parc2*100):0;
@@ -626,7 +776,7 @@ window.affD = function(){
       </div>
     </div>`;
   }).join('');
-  const sts=['Fonctionnelle','En panne','En réparation','En Att. PDR','Transféré','Réformé'],tot=all.length;
+  const sts=['Fonctionnelle','En panne','En r&eacute;paration','En Att. PDR','Transf&eacute;r&eacute;','R&eacute;form&eacute;'],tot=all.length;
   document.getElementById('dstat').innerHTML=sts.map(s=>{
     const n=all.filter(m=>m.statut===s).length,pct=tot?Math.round(n/tot*100):0;
     return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div style="width:140px">${badge(s)}</div><div style="flex:1;background:var(--gr);border-radius:20px;height:10px"><div style="width:${pct}%;background:var(--bl);height:10px;border-radius:20px"></div></div><div style="width:70px;text-align:right;font-size:13px;font-weight:700">${n} (${pct}%)</div></div>`;
@@ -661,7 +811,7 @@ window.goT=function(t,b){
 window.oM=id=>document.getElementById(id).classList.add('op');
 window.cM=id=>document.getElementById(id).classList.remove('op');
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('op');}));
-function badge(s){const mp={'Fonctionnelle':'gv','En panne':'gr2','En réparation':'go','En Att. PDR':'gb','Transféré':'gp','Réformé':'gg'};return s?`<span class="bg ${mp[s]||'gg'}">${s}</span>`:'-';}
+function badge(s){const mp={'Fonctionnelle':'gv','En panne':'gr2','En r&eacute;paration':'go','En Att. PDR':'gb','Transf&eacute;r&eacute;':'gp','R&eacute;form&eacute;':'gg'};return s?`<span class="bg ${mp[s]||'gg'}">${s}</span>`:'-';}
 function toast(m,t){const el=document.getElementById('toast');el.innerHTML=m;el.className='sh '+(t||'ok');setTimeout(()=>el.className='',3500);}
 document.getElementById('p').addEventListener('keydown',e=>{if(e.key==='Enter')window.login();});
 document.getElementById('u').addEventListener('keydown',e=>{if(e.key==='Enter')window.login();});
