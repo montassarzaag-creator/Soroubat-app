@@ -114,8 +114,36 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
     <button class="ta ac" onclick="goT('machines',this)">&#128668; Machines</button>
     <button class="ta" onclick="goT('historique',this)">&#128203; Historique</button>
     <button class="ta" id="tdash" onclick="goT('dashboard',this)">&#128202; Dashboard</button>
+    <button class="ta" onclick="goT('alertes',this)" id="tab-alertes" style="display:none">
+      &#128276; Alertes <span id="badge-alertes" style="background:#E24B4A;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;display:none">0</span>
+    </button>
   </div>
   <div class="mn">
+    <!-- BANDEAU ALERTES -->
+    <div id="bandeau-alertes" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:var(--r);padding:14px 18px;margin-bottom:16px;cursor:pointer" onclick="goTabAlerte()">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">&#128680;</span>
+          <div>
+            <div style="font-weight:700;color:#991B1B;font-size:14px" id="bandeau-titre">Alertes actives</div>
+            <div style="font-size:12px;color:#DC2626" id="bandeau-detail"></div>
+          </div>
+        </div>
+        <span style="font-size:12px;color:#991B1B;font-weight:600">Voir les alertes &rarr;</span>
+      </div>
+    </div>
+
+    <!-- ONGLET ALERTES -->
+    <div id="t-alertes" style="display:none">
+      <div class="tw" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:15px;font-weight:700">&#128680; Alertes actives</h3>
+          <button class="bn" style="background:var(--gr);font-size:12px" onclick="chargerAlertes()">&#8635; Actualiser</button>
+        </div>
+        <div id="alertes-content"><div class="em">Chargement...</div></div>
+      </div>
+    </div>
+
     <div id="t-machines">
       <div class="sg" id="sg"></div>
       <div class="fi">
@@ -367,6 +395,10 @@ function start(){
     document.getElementById('badd').style.display='none';
   }
   filt(); stat();
+  // V&eacute;rifier les alertes au d&eacute;marrage
+  setTimeout(function(){ verifierAlertes(); }, 2000);
+  // Rev&eacute;rifier toutes les 5 minutes
+  setInterval(function(){ verifierAlertes(); }, 300000);
 }
 
 window.filt = function(){
@@ -418,10 +450,10 @@ function stat(){
     if(s==='Fonctionnelle')fonc++;
     else if(s==='Disponible')dispo++;
     else if(s==='En panne')pa++;
-    else if(s==='En réparation')rep++;
+    else if(s==='En r&eacute;paration')rep++;
     else if(s==='En Att. PDR')pdr++;
-    else if(s==='Réformé')ref++;
-    else if(s==='Transféré')tra++;
+    else if(s==='R&eacute;form&eacute;')ref++;
+    else if(s==='Transf&eacute;r&eacute;')tra++;
   });
   const parc = t - ref;
   const tx_dispo = pct(fonc + dispo + tra, parc);
@@ -778,6 +810,148 @@ window.affD = function(){
   }).join('');
 };
 
+// ============================================================
+// SYSTEME D'ALERTES
+// ============================================================
+const SEUIL_PDR_JOURS = 30; // Alerte si En Att. PDR depuis plus de 30 jours
+
+async function verifierAlertes(){
+  if(!ses) return;
+  // R&eacute;cup&eacute;rer historique pour calculer anciennet&eacute; des statuts
+  try{
+    const snap = await getDocs(collection(db,'historique'));
+    const histoParMachine = {};
+    snap.forEach(d=>{
+      const data = d.data();
+      if(!histoParMachine[data.machine_id]) histoParMachine[data.machine_id] = [];
+      histoParMachine[data.machine_id].push(data);
+    });
+
+    const alertes = [];
+    const now = new Date();
+
+    all.forEach(function(m){
+      if(!ses.admin && m.pays_id !== ses.pays) return;
+
+      // Alerte 1 : Machine en panne
+      if(m.statut === 'En panne'){
+        // Chercher depuis quand
+        const histo = (histoParMachine[m.id]||[]).sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
+        const dernier = histo.find(h=>h.nouveau_statut==='En panne');
+        const depuis = dernier ? Math.floor((now-new Date(dernier.modifie_le))/86400000) : null;
+        alertes.push({
+          type:'panne', machine:m,
+          msg: depuis!==null ? 'En panne depuis '+depuis+' jour'+(depuis>1?'s':'') : 'En panne',
+          niveau:'rouge'
+        });
+      }
+
+      // Alerte 2 : En Att. PDR depuis trop longtemps
+      if(m.statut === 'En Att. PDR'){
+        const histo = (histoParMachine[m.id]||[]).sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
+        const dernier = histo.find(h=>h.nouveau_statut==='En Att. PDR');
+        const depuis = dernier ? Math.floor((now-new Date(dernier.modifie_le))/86400000) : 0;
+        if(depuis >= SEUIL_PDR_JOURS){
+          alertes.push({
+            type:'pdr', machine:m,
+            msg: 'En attente de pi&egrave;ces depuis '+depuis+' jours',
+            niveau:'orange'
+          });
+        }
+      }
+
+      // Alerte 3 : Transfert r&eacute;cent (moins de 7 jours)
+      if(m.statut === 'Transf&eacute;r&eacute;'){
+        const histo = (histoParMachine[m.id]||[]).sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
+        const dernier = histo.find(h=>h.nouveau_statut==='Transf&eacute;r&eacute;');
+        const depuis = dernier ? Math.floor((now-new Date(dernier.modifie_le))/86400000) : 999;
+        if(depuis <= 7){
+          alertes.push({
+            type:'transfert', machine:m,
+            msg: 'Transf&eacute;r&eacute;e il y a '+depuis+' jour'+(depuis>1?'s':''),
+            niveau:'bleu'
+          });
+        }
+      }
+    });
+
+    // Mettre &agrave; jour le bandeau
+    const bandeau = document.getElementById('bandeau-alertes');
+    const badge = document.getElementById('badge-alertes');
+    const tabBtn = document.getElementById('tab-alertes');
+
+    if(alertes.length > 0){
+      bandeau.style.display = 'block';
+      tabBtn.style.display = '';
+      badge.style.display = '';
+      badge.textContent = alertes.length;
+
+      const pannes = alertes.filter(a=>a.type==='panne').length;
+      const pdrs = alertes.filter(a=>a.type==='pdr').length;
+      const transferts = alertes.filter(a=>a.type==='transfert').length;
+
+      document.getElementById('bandeau-titre').textContent = alertes.length+' alerte'+(alertes.length>1?'s':'')+' active'+(alertes.length>1?'s':'');
+      let details = [];
+      if(pannes) details.push(pannes+' machine'+(pannes>1?'s':'')+' en panne');
+      if(pdrs) details.push(pdrs+' en attente PDR >'+SEUIL_PDR_JOURS+'j');
+      if(transferts) details.push(transferts+' transfert'+(transferts>1?'s':'')+' r&eacute;cent'+(transferts>1?'s':''));
+      document.getElementById('bandeau-detail').textContent = details.join(' &mdash; ');
+    } else {
+      bandeau.style.display = 'none';
+      badge.style.display = 'none';
+    }
+
+    // Stocker pour l'onglet
+    window._alertes = alertes;
+  }catch(e){console.error('Erreur alertes:',e);}
+}
+
+function chargerAlertes(){
+  const cont = document.getElementById('alertes-content');
+  if(!window._alertes){
+    cont.innerHTML='<div class="em">Chargement...</div>';
+    verifierAlertes().then(()=>afficherAlertes());
+    return;
+  }
+  afficherAlertes();
+}
+
+function afficherAlertes(){
+  const cont = document.getElementById('alertes-content');
+  const alertes = window._alertes || [];
+  if(!alertes.length){
+    cont.innerHTML='<div class="em" style="color:#1D9E75">&#10003; Aucune alerte active</div>';
+    return;
+  }
+
+  const couleurs = {
+    rouge: {bg:'#FEE2E2',bord:'#E24B4A',txt:'#991B1B',ic:'&#128308;'},
+    orange:{bg:'#FEF3C7',bord:'#F59E0B',txt:'#92400E',ic:'&#128993;'},
+    bleu:  {bg:'#DBEAFE',bord:'#3B82F6',txt:'#1E40AF',ic:'&#128309;'}
+  };
+
+  const types = {panne:'En panne', pdr:'Att. PDR', transfert:'Transfert'};
+
+  cont.innerHTML = alertes.map(function(a){
+    const c = couleurs[a.niveau];
+    const m = a.machine;
+    return '<div style="background:'+c.bg+';border-left:4px solid '+c.bord+';border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:10px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+      '<span style="font-size:18px">'+c.ic+'</span>'+
+      '<div>'+
+      '<div style="font-weight:700;color:'+c.txt+';font-size:14px">'+m.code_machine+' &mdash; '+(PN[m.pays_id]||m.pays_id)+'</div>'+
+      '<div style="font-size:12px;color:'+c.txt+';margin-top:2px">'+a.msg+'</div>'+
+      '<div style="font-size:11px;color:var(--t2);margin-top:3px">'+
+        (m.famille||'')+(m.sous_famille?' &mdash; '+m.sous_famille:'')+(m.marque?' &mdash; '+m.marque:'')+(m.chantier?' &mdash; '+m.chantier:'')+
+      '</div>'+
+      (m.detail_statut?'<div style="font-size:12px;color:#1E40AF;background:#EFF6FF;padding:4px 8px;border-radius:4px;margin-top:5px">'+m.detail_statut+'</div>':'')+
+      '</div></div>'+
+      '<span style="font-size:11px;font-weight:700;background:'+c.bord+';color:#fff;padding:3px 10px;border-radius:20px">'+types[a.type]+'</span>'+
+      '</div></div>';
+  }).join('');
+}
+
 window.expCSV = function(){
   if(!fi.length){toast('Aucune donnee','ko');return;}
   const cols=['Code','Pays','Famille','Type','Marque','Modele','N Serie','Immat','Statut','Chantier'];
@@ -799,10 +973,19 @@ window.togCh=()=>{const v=document.getElementById('mcs').value;document.getEleme
 window.togMq=()=>{const v=document.getElementById('mmq').value;document.getElementById('mmqt').style.display=v==='X'?'block':'none';};
 window.goT=function(t,b){
   document.querySelectorAll('.ta').forEach(x=>x.classList.remove('ac'));b.classList.add('ac');
-  ['machines','historique','dashboard'].forEach(x=>document.getElementById('t-'+x).style.display=x===t?'':'none');
+  ['machines','historique','dashboard','alertes'].forEach(x=>{
+    const el=document.getElementById('t-'+x);
+    if(el) el.style.display=x===t?'':'none';
+  });
   if(t==='historique')window.affH();
   if(t==='dashboard'&&ses.admin)window.affD();
+  if(t==='alertes')chargerAlertes();
 };
+
+function goTabAlerte(){
+  const btn=document.getElementById('tab-alertes');
+  if(btn) window.goT('alertes',btn);
+}
 window.oM=id=>document.getElementById(id).classList.add('op');
 window.cM=id=>document.getElementById(id).classList.remove('op');
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('op');}));
