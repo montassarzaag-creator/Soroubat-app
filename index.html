@@ -815,7 +815,7 @@ window.affD = function(){
 // ============================================================
 const SEUIL_PDR_JOURS = 30; // Alerte si En Att. PDR depuis plus de 30 jours
 
-async function verifierAlertes(){
+window.verifierAlertes = async function(){
   if(!ses) return;
   // R&eacute;cup&eacute;rer historique pour calculer anciennet&eacute; des statuts
   try{
@@ -906,7 +906,7 @@ async function verifierAlertes(){
   }catch(e){console.error('Erreur alertes:',e);}
 }
 
-function chargerAlertes(){
+window.chargerAlertes = function(){
   const cont = document.getElementById('alertes-content');
   if(!window._alertes){
     cont.innerHTML='<div class="em">Chargement...</div>';
@@ -916,7 +916,7 @@ function chargerAlertes(){
   afficherAlertes();
 }
 
-function afficherAlertes(){
+window.afficherAlertes = function(){
   const cont = document.getElementById('alertes-content');
   const alertes = window._alertes || [];
   if(!alertes.length){
@@ -982,7 +982,7 @@ window.goT=function(t,b){
   if(t==='alertes')chargerAlertes();
 };
 
-function goTabAlerte(){
+window.goTabAlerte = function(){
   const btn=document.getElementById('tab-alertes');
   if(btn) window.goT('alertes',btn);
 }
