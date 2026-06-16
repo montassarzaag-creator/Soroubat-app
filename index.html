@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOROUBAT</title>
+<style>
+:root{--bl:#1B4F8C;--bl2:#2E6CB8;--blp:#E8F0FB;--ve:#1D9E75;--ro:#E24B4A;--or:#F59E0B;--gr:#F4F5F7;--bo:#DDE1E7;--te:#1A1F2E;--t2:#6B7280;--om:0 2px 12px rgba(0,0,0,.08);--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#EEF2F7;color:var(--te);font-size:14px;}
+#lg{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0D2B5E,#1B4F8C 60%,#2E6CB8);}
+.lb{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.lt{font-size:26px;font-weight:800;color:var(--bl);letter-spacing:2px;text-align:center;}
+.ls{font-size:11px;color:var(--t2);letter-spacing:1px;text-transform:uppercase;margin:4px 0 28px;text-align:center;}
+.lb label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;}
+.lb input{width:100%;padding:11px 14px;border:1.5px solid var(--bo);border-radius:8px;font-size:14px;outline:none;margin-bottom:14px;}
+.lb input:focus{border-color:var(--bl);}
+.blg{width:100%;padding:13px;background:var(--bl);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;}
+#le{color:var(--ro);font-size:13px;margin-top:10px;text-align:center;display:none;}
+#lm{color:var(--bl);font-size:13px;margin-top:10px;text-align:center;display:none;}
+#ap{display:none;min-height:100vh;}
+.hd{background:var(--bl);color:#fff;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.hb{font-size:17px;font-weight:800;letter-spacing:1.5px;}
+.hp{background:rgba(255,255,255,.15);border-radius:20px;padding:3px 13px;font-size:12px;font-weight:600;}
+.hdrt{display:flex;align-items:center;gap:10px;}
+.dot{width:8px;height:8px;background:#4ade80;border-radius:50%;animation:pulse 2s infinite;display:inline-block;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync{font-size:11px;color:rgba(255,255,255,.7);}
+#dc{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:13px;}
+.tb{background:#fff;border-bottom:1px solid var(--bo);padding:0 20px;display:flex;gap:4px;overflow-x:auto;}
+.ta{padding:13px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--t2);border-bottom:3px solid transparent;white-space:nowrap;}
+.ta.ac{color:var(--bl);border-bottom-color:var(--bl);}
+.mn{padding:20px;max-width:1400px;margin:0 auto;}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.sc{background:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:var(--om);border-left:4px solid var(--bl);}
+.sc.v{border-left-color:var(--ve);}.sc.r{border-left-color:var(--ro);}.sc.o{border-left-color:var(--or);}.sc.g{border-left-color:#94a3b8;}
+.sn{font-size:26px;font-weight:800;}.sl{font-size:12px;color:var(--t2);margin-top:2px;}
+.fi{background:#fff;border-radius:var(--r);padding:14px 18px;box-shadow:var(--om);margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+.fg{display:flex;flex-direction:column;gap:4px;min-width:140px;}
+.fg label{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;}
+.fg select,.fg input{padding:8px 10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;outline:none;background:var(--gr);}
+.bn{padding:8px 16px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;}
+.bp{background:var(--bl);color:#fff;}.bv{background:var(--ve);color:#fff;}.bd{background:var(--ro);color:#fff;}
+.bs{padding:4px 10px;font-size:12px;border-radius:5px;}
+.tw{background:#fff;border-radius:var(--r);box-shadow:var(--om);overflow:hidden;}
+.th{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bo);}
+.tt{font-size:15px;font-weight:700;}.tc{font-size:12px;color:var(--t2);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--gr);padding:10px 13px;text-align:left;font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;border-bottom:1px solid var(--bo);white-space:nowrap;}
+td{padding:11px 13px;border-bottom:1px solid var(--bo);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
+.bg{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.gv{background:#D1FAE5;color:#065F46;}.gr2{background:#FEE2E2;color:#991B1B;}
+.go{background:#FEF3C7;color:#92400E;}.gb{background:#DBEAFE;color:#1E40AF;}
+.gg{background:#F3F4F6;color:#374151;}.gp{background:#EDE9FE;color:#5B21B6;}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;}
+.mo.op{display:flex;}
+.md{background:#fff;border-radius:14px;width:620px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.mh{padding:18px 22px;border-bottom:1px solid var(--bo);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;border-radius:14px 14px 0 0;}
+.mh h3{font-size:15px;font-weight:700;}.mx{background:none;border:none;font-size:22px;cursor:pointer;color:var(--t2);}
+.mb{padding:22px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g2 .fg{min-width:0;}.g2 .fu{grid-column:1/-1;}
+.fg textarea{padding:9px 10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;outline:none;background:var(--gr);resize:vertical;min-height:65px;width:100%;}
+.mf{padding:14px 22px;border-top:1px solid var(--bo);display:flex;justify-content:flex-end;gap:10px;}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.di{padding:11px;background:var(--gr);border-radius:8px;}
+.dl{font-size:11px;color:var(--t2);font-weight:600;text-transform:uppercase;margin-bottom:3px;}
+.dv{font-size:14px;font-weight:600;}
+.hi{padding:11px 14px;border-left:3px solid var(--bl);margin-bottom:8px;background:var(--gr);border-radius:0 7px 7px 0;}
+.pgr{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:20px;}
+.pc{background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--om);}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.pt{font-size:15px;font-weight:700;}
+.ms{display:flex;gap:8px;flex-wrap:wrap;}
+.mi{text-align:center;padding:8px 10px;border-radius:7px;background:var(--gr);flex:1;min-width:55px;}
+.mn2{font-size:18px;font-weight:800;}.ml{font-size:10px;color:var(--t2);}
+#toast{position:fixed;bottom:22px;right:22px;background:#1a1a2e;color:#fff;padding:13px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;}
+#toast.sh{transform:translateY(0);opacity:1;}
+#toast.ok{border-left:4px solid var(--ve);}#toast.ko{border-left:4px solid var(--ro);}#toast.inf{border-left:4px solid var(--or);}
+.em{text-align:center;padding:50px 20px;color:var(--t2);}
+.pg2{display:flex;align-items:center;gap:8px;padding:14px 18px;border-top:1px solid var(--bo);justify-content:space-between;flex-wrap:wrap;}
+.pi{font-size:12px;color:var(--t2);}.pb{display:flex;gap:6px;}
+.pp{padding:5px 12px;border:1.5px solid var(--bo);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;}
+.pp.ac{background:var(--bl);color:#fff;border-color:var(--bl);}.pp:disabled{opacity:.4;cursor:default;}
+@media(max-width:768px){.mn{padding:12px;}.sg{grid-template-columns:repeat(2,1fr);}.g2{grid-template-columns:1fr;}.dg{grid-template-columns:1fr;}.fi{flex-direction:column;}.fg{width:100%;}}
+</style>
+</head>
+<body>
+<div id="lg">
+  <div class="lb">
+    <div class="lt">SOROUBAT</div>
+    <div class="ls">Gestion du Mat&#233;riel &#8212; 7 pays</div>
+    <label>Identifiant</label>
+    <input type="text" id="u" placeholder="ex: admin" autocomplete="username">
+    <label>Mot de passe</label>
+    <input type="password" id="p" autocomplete="current-password">
+    <button class="blg" onclick="login()">Se connecter</button>
+    <div id="le">Identifiant ou mot de passe incorrect</div>
+    <div id="lm">&#9203; Connexion en cours...</div>
+  </div>
+</div>
+<div id="ap">
+  <div class="hd">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="hb">SOROUBAT</div><div class="hp" id="lp"></div>
+    </div>
+    <div class="hdrt">
+      <div class="dot"></div><span class="sync">Temps r&#233;el</span>
+      <button id="dc" onclick="logout()">D&#233;connexion</button>
+    </div>
+  </div>
+  <div class="tb">
+    <button class="ta ac" onclick="goT('machines',this)">&#128668; Machines</button>
+    <button class="ta" onclick="goT('historique',this)">&#128203; Historique</button>
+    <button class="ta" id="tdash" onclick="goT('dashboard',this)">&#128202; Dashboard</button>
+  </div>
+  <div class="mn">
+    <div id="t-machines">
+      <div class="sg" id="sg"></div>
+      <div class="fi">
+        <div class="fg"><label>Recherche</label><input type="text" id="fr" placeholder="Code, marque, chantier..." oninput="filt()"></div>
+        <div class="fg" id="fpw" style="display:none"><label>Pays</label>
+          <select id="fp" onchange="filt()">
+            <option value="">Tous</option>
+            <option value="benin">B&#233;nin</option><option value="burkina">Burkina Faso</option>
+            <option value="cameroun">Cameroun</option><option value="cotedivoire">C&#244;te d&#39;Ivoire</option>
+            <option value="niger">Niger</option><option value="togo">Togo</option>
+          </select></div>
+        <div class="fg"><label>Statut</label>
+          <select id="fs" onchange="filt()">
+            <option value="">Tous</option><option>Fonctionnelle</option><option>En panne</option>
+            <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
+          </select></div>
+        <div class="fg"><label>Famille</label>
+          <select id="ff" onchange="filt()">
+            <option value="">Toutes</option>
+            <option>Engins de terrassement</option><option>Engins de compactage</option>
+            <option>Engins de levage</option><option>Camions et vehicules</option>
+            <option>Materiels de production</option><option>Attelages et remorques</option><option>Materiels divers</option>
+          </select></div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <button class="bn bp" id="badd" onclick="openAdd()" style="display:none">+ Ajouter</button>
+          <button class="bn bv" onclick="expCSV()">&#11015; CSV</button>
+          <button class="bn" style="background:var(--gr)" onclick="window.reloadData()">&#8635; Actualiser</button>
+        </div>
+      </div>
+      <div class="tw">
+        <div class="th"><div class="tt">Liste des machines</div><div class="tc" id="tc2"></div></div>
+        <div style="overflow-x:auto">
+          <table><thead><tr>
+            <th>Code</th><th id="cpays" style="display:none">Pays</th>
+            <th>Famille / Type</th><th>Marque</th><th>Statut</th><th>Chantier</th><th>N&#176; S&#233;rie</th><th>Actions</th>
+          </tr></thead><tbody id="tb2"></tbody></table>
+        </div>
+        <div id="em" class="em" style="display:none">Aucune machine trouv&#233;e</div>
+        <div class="pg2" id="pag"></div>
+      </div>
+    </div>
+    <div id="t-historique" style="display:none">
+      <div class="tw" style="padding:20px">
+        <h3 style="margin-bottom:14px">&#128203; Historique</h3>
+        <div id="hc"><div class="em">Aucune modification</div></div>
+      </div>
+    </div>
+    <div id="t-dashboard" style="display:none">
+      <div class="pgr" id="pgrid"></div>
+      <div class="tw" style="padding:20px"><h3 style="margin-bottom:14px">R&#233;partition par statut</h3><div id="dstat"></div></div>
+    </div>
+  </div>
+</div>
+<div class="mo" id="mom"><div class="md">
+  <div class="mh"><h3 id="mtit">Ajouter</h3><button class="mx" onclick="cM('mom')">&#215;</button></div>
+  <div class="mb"><input type="hidden" id="eid">
+    <div class="g2">
+      <div class="fg" id="mpw" style="display:none"><label>Pays</label>
+        <select id="mpays" onchange="majCh(this.value)">
+          <option value="benin">B&#233;nin</option><option value="burkina">Burkina Faso</option>
+          <option value="cameroun">Cameroun</option><option value="cotedivoire">C&#244;te d&#39;Ivoire</option>
+          <option value="niger">Niger</option><option value="togo">Togo</option>
+        </select></div>
+      <div class="fg"><label>Code *</label><input type="text" id="mc"></div>
+      <div class="fg"><label>Famille</label>
+        <select id="mf"><option value="">--</option>
+          <option>Engins de terrassement</option><option>Engins de compactage</option>
+          <option>Engins de levage</option><option>Camions et vehicules</option>
+          <option>Materiels de production</option><option>Attelages et remorques</option><option>Materiels divers</option>
+        </select></div>
+      <div class="fg"><label>Sous-famille</label><input type="text" id="msf"></div>
+      <div class="fg"><label>Marque</label>
+        <select id="mmq" onchange="togMq()"><option value="">--</option>
+          <option>Caterpillar</option><option>Komatsu</option><option>Volvo</option><option>Hyundai</option>
+          <option>JCB</option><option>Case</option><option>Bomag</option><option>Hamm</option>
+          <option>Sinotruk</option><option>Iveco</option><option>Saic-Iveco</option><option>Liebherr</option>
+          <option>Doosan</option><option>Vogele</option><option>Shantui</option><option>Atlas Copco</option>
+          <option>Ermont</option><option>Fiori</option><option>Renault</option><option>Manitou</option>
+          <option value="X">Autre marque...</option>
+        </select>
+        <input type="text" id="mmqt" style="display:none;margin-top:6px" placeholder="Saisir la marque"></div>
+      <div class="fg"><label>Mod&#232;le</label><input type="text" id="mmo"></div>
+      <div class="fg"><label>N&#176; serie</label><input type="text" id="mse"></div>
+      <div class="fg"><label>Immatriculation</label><input type="text" id="mim"></div>
+      <div class="fg"><label>Ann&#233;e</label><input type="number" id="man" min="1980" max="2030"></div>
+      <div class="fg"><label>Statut</label>
+        <select id="mst"><option>Fonctionnelle</option><option>En panne</option>
+          <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
+        </select></div>
+      <div class="fg"><label>Chantier / Site</label>
+        <select id="mcs" onchange="togCh()"><option value="">--</option></select>
+        <input type="text" id="mct" style="display:none;margin-top:6px" placeholder="Nouveau site"></div>
+      <div class="fg fu"><label>Commentaire</label><textarea id="mco"></textarea></div>
+    </div>
+  </div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" onclick="cM('mom')">Annuler</button>
+    <button class="bn bp" onclick="sauver()">&#128190; Enregistrer</button>
+  </div>
+</div></div>
+<div class="mo" id="mod"><div class="md">
+  <div class="mh"><h3 id="dtit">D&#233;tail</h3><button class="mx" onclick="cM('mod')">&#215;</button></div>
+  <div class="mb" id="dbody"></div>
+</div></div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query, orderBy, addDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const FC = {
+  apiKey:"AIzaSyBqlW_7dlxNETpHA8C0FOEdqcvV5cXXwmY",
+  authDomain:"parc-soroubat-inter.firebaseapp.com",
+  projectId:"parc-soroubat-inter",
+  storageBucket:"parc-soroubat-inter.firebasestorage.app",
+  messagingSenderId:"435862891203",
+  appId:"1:435862891203:web:b59dd40565185762165076"
+};
+
+const app = initializeApp(FC);
+const db = getFirestore(app);
+
+const USERS={admin:{m:"SOROUBAT@Admin2024",l:"Admin - Tous les pays",a:true},benin:{m:"SOROUBAT@Benin2024",l:"Benin",a:false},burkina:{m:"SOROUBAT@Burkina2024",l:"Burkina Faso",a:false},cameroun:{m:"SOROUBAT@Cam2024",l:"Cameroun",a:false},cotedivoire:{m:"SOROUBAT@CdI2024",l:"Cote Ivoire",a:false},niger:{m:"SOROUBAT@Niger2024",l:"Niger",a:false},togo:{m:"SOROUBAT@Togo2024",l:"Togo",a:false}};
+const PN={benin:"Benin",burkina:"Burkina Faso",cameroun:"Cameroun",cotedivoire:"Cote Ivoire",niger:"Niger",togo:"Togo"};
+const CH={"benin":["BANIKOARA","COTONOU","MALANVILLE","PARAKOU","TCHAOUROU"],"burkina":["BOBO - BANFORA","CARRIERE NIAOGHO","CARRIERE ZINIARE","DAPELOGO-Central Enr","DIABO - Gounghin FADA","KONGOUSSI-DJIBO","NAGRIN - OUAGA2000","PARC CENTRAL OUAGA","SCE TRANSPORT OUAGA","SIEGE SOROUBAT BF","TENKODOGO-OUARGAYE","YAGMA - OUAGA","Carriere BADJA","LOGEMENT - OUAGA"],"cameroun":["ADM DOUALA","ADM YAOUNDE","CHANTIER FOUMBAN","CHANTIER GAROUA","CHANTIER NGAOUNDERE","CHANTIER YAOUNDE","KUMBA","PARC FOUMBAN","Parc KPEME"],"cotedivoire":["ABIDJAN","BATIMENT BROFODOUME","COGIMEX","FC SAN PEDRO","FERME YOBOUEBO","GUINEE CONACRY","P. BATIMENT ABIDJAN","P. BATIMENT BROFODOUME","SOROUBAT CI","TAABO","TOULEPLEU","YAGMA - OUAGA","ZOO","BASE VIE","LOT 2","LOT 6","PK27"],"niger":["KANDADJI","NIAMEY"],"togo":["ADM LOME","Carriere SOKODE","Chantier RN2","Chantier SOKODE","LOT 2","LOT 6","Parc KPEME","SECURITE","100% BETON"]};
+
+let ses=null, all=[], fi=[], pg=1, PP=50, unsub=null;
+
+window.login = async function(){
+  const u=document.getElementById('u').value.trim().toLowerCase();
+  const p=document.getElementById('p').value.trim();
+  document.getElementById('le').style.display='none';
+  if(!USERS[u]||USERS[u].m!==p){document.getElementById('le').style.display='block';return;}
+  ses={user:u,pays:u==='admin'?'admin':u,label:USERS[u].l,admin:USERS[u].a};
+  document.getElementById('lm').style.display='block';
+  try {
+    const snap = await getDocs(collection(db,'machines'));
+    all = [];
+    snap.forEach(d=>{
+      const data = {id:d.id,...d.data()};
+      if(ses.admin || data.pays_id === ses.pays) all.push(data);
+    });
+    all.sort((a,b)=>(a.code_machine||'').localeCompare(b.code_machine||''));
+    console.log('Machines chargees:', all.length, 'pour pays:', ses.pays);
+  } catch(e) {
+    console.error('Erreur Firebase:', e);
+    document.getElementById('le').textContent = 'Erreur Firebase: ' + e.message;
+    document.getElementById('le').style.display='block';
+    document.getElementById('lm').style.display='none';
+    return;
+  }
+  document.getElementById('lm').style.display='none';
+  start();
+  abonner();
+};
+
+function abonner(){
+  // Pas d'abonnement temps reel sur 2700+ docs - trop lourd
+  // On utilise le rechargement manuel ou auto toutes les 60s
+  setInterval(async ()=>{
+    if(!ses) return;
+    const snap = await getDocs(collection(db,'machines'));
+    const newAll = [];
+    snap.forEach(d=>{
+      const data={id:d.id,...d.data()};
+      if(ses.admin||data.pays_id===ses.pays) newAll.push(data);
+    });
+    newAll.sort((a,b)=>(a.code_machine||'').localeCompare(b.code_machine||''));
+    if(newAll.length !== all.length){
+      all = newAll;
+      filt(); stat();
+      toast('Mise a jour detectee','inf');
+    }
+  }, 15000); // verifier toutes les 15 secondes
+}
+
+window.reloadData = async function(){
+  toast('Actualisation...','inf');
+  const snap = await getDocs(collection(db,'machines'));
+  all = [];
+  snap.forEach(d=>{
+    const data={id:d.id,...d.data()};
+    if(ses.admin||data.pays_id===ses.pays) all.push(data);
+  });
+  all.sort((a,b)=>(a.code_machine||'').localeCompare(b.code_machine||''));
+  filt(); stat();
+  toast('Actualise','ok');
+};
+
+window.logout = function(){
+  if(unsub){unsub();unsub=null;}
+  ses=null;
+  document.getElementById('ap').style.display='none';
+  document.getElementById('lg').style.display='flex';
+  document.getElementById('u').value='';document.getElementById('p').value='';
+};
+
+function start(){
+  document.getElementById('lg').style.display='none';
+  document.getElementById('ap').style.display='block';
+  document.getElementById('lp').textContent=ses.label;
+  if(ses.admin){
+    document.getElementById('fpw').style.display='flex';
+    document.getElementById('mpw').style.display='flex';
+    document.getElementById('cpays').style.display='';
+    document.getElementById('tdash').style.display='';
+    document.getElementById('badd').style.display='';
+  }else{
+    document.getElementById('tdash').style.display='none';
+    document.getElementById('badd').style.display='none';
+  }
+  filt(); stat();
+}
+
+window.filt = function(){
+  const r=document.getElementById('fr').value.toLowerCase();
+  const s=document.getElementById('fs').value;
+  const f=document.getElementById('ff').value;
+  const py=ses.admin?document.getElementById('fp').value:ses.pays;
+  fi=all.filter(m=>{
+    const t=((m.code_machine||'')+(m.marque||'')+(m.chantier||'')+(m.sous_famille||'')+(m.numero_serie||'')).toLowerCase();
+    return(!r||t.includes(r))&&(!s||m.statut===s)&&(!f||m.famille===f)&&(!py||m.pays_id===py);
+  });
+  pg=1; ren(); stat();
+};
+
+function ren(){
+  const tb=document.getElementById('tb2'),tot=fi.length,tp=Math.ceil(tot/PP)||1,st=(pg-1)*PP,sl=fi.slice(st,st+PP);
+  document.getElementById('tc2').textContent=tot+' machine(s)';
+  if(!tot){tb.innerHTML='';document.getElementById('em').style.display='block';document.getElementById('pag').innerHTML='';return;}
+  document.getElementById('em').style.display='none';
+  tb.innerHTML=sl.map(m=>{
+    const pc=ses.admin?`<td>${PN[m.pays_id]||m.pays_id||''}</td>`:'';
+    const ab=ses.admin?`<button class="bn bs bp" onclick="window.edt('${m.id}')" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" onclick="window.del('${m.id}')">&#128465;</button>`:'';
+    return`<tr><td><strong>${m.code_machine||''}</strong></td>${pc}<td>${m.famille||'-'}<br><small style="color:var(--t2)">${m.sous_famille||''}</small></td><td>${m.marque||'-'}</td><td>${badge(m.statut)}</td><td>${m.chantier||'-'}</td><td style="font-size:11px;color:var(--t2)">${m.numero_serie||'-'}</td><td style="white-space:nowrap"><button class="bn bs bp" onclick="window.det('${m.id}')" style="margin-right:3px">&#128065;</button>${ab}</td></tr>`;
+  }).join('');
+  if(tp<=1){document.getElementById('pag').innerHTML='';return;}
+  const fr=Math.max(1,pg-2),to=Math.min(tp,pg+2);
+  let bt=`<span class="pi">Page ${pg}/${tp} &mdash; ${st+1}&agrave;${Math.min(st+PP,tot)} / ${tot}</span><div class="pb">`;
+  bt+=`<button class="pp" onclick="window.goP(1)"${pg===1?' disabled':''}>&laquo;</button>`;
+  bt+=`<button class="pp" onclick="window.goP(${pg-1})"${pg===1?' disabled':''}>&lsaquo;</button>`;
+  for(let i=fr;i<=to;i++)bt+=`<button class="pp${i===pg?' ac':''}" onclick="window.goP(${i})">${i}</button>`;
+  bt+=`<button class="pp" onclick="window.goP(${pg+1})"${pg===tp?' disabled':''}>&rsaquo;</button>`;
+  bt+=`<button class="pp" onclick="window.goP(${tp})"${pg===tp?' disabled':''}>&raquo;</button></div>`;
+  document.getElementById('pag').innerHTML=bt;
+}
+
+window.goP = p=>{pg=p;ren();window.scrollTo(0,200);};
+
+function pct(n,t){return t>0?Math.round(n/t*100):0;}
+function stat(){
+  const src=fi.length?fi:all;
+  const t=src.length;
+  let f=0,pa=0,rep=0,pdr=0,ref=0,tra=0;
+  src.forEach(m=>{
+    const s=m.statut;
+    if(s==='Fonctionnelle')f++;
+    else if(s==='En panne')pa++;
+    else if(s==='En réparation')rep++;
+    else if(s==='En Att. PDR')pdr++;
+    else if(s==='Réformé')ref++;
+    else if(s==='Transféré')tra++;
+  });
+  // Parc actif = total - réformés
+  const parc = t - ref;
+  // Taux disponibilité = (fonctionnelles + transférées) / parc actif
+  const tx_dispo = pct(f + tra, parc);
+  // Taux panne = (panne + réparation + PDR) / parc actif
+  const tx_panne = pct(pa + rep + pdr, parc);
+  document.getElementById('sg').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">
+      <div class="sc"><div class="sn">${t}</div><div class="sl">Total machines</div></div>
+      <div class="sc" style="border-left-color:#0EA5E9"><div class="sn" style="color:#0EA5E9">${parc}</div><div class="sl">Parc actif (hors r&eacute;form&eacute;s)</div></div>
+      <div class="sc v"><div class="sn">${f} <span style="font-size:13px;color:var(--ve)">${pct(f,parc)}%</span></div><div class="sl">Fonctionnelles</div></div>
+      <div class="sc" style="border-left-color:#8B5CF6"><div class="sn">${tra} <span style="font-size:13px;color:#8B5CF6">${pct(tra,parc)}%</span></div><div class="sl">Transf&eacute;r&eacute;es</div></div>
+      <div class="sc r"><div class="sn">${pa} <span style="font-size:13px;color:var(--ro)">${pct(pa,parc)}%</span></div><div class="sl">En panne</div></div>
+      <div class="sc o"><div class="sn">${rep} <span style="font-size:13px;color:var(--or)">${pct(rep,parc)}%</span></div><div class="sl">En r&eacute;paration</div></div>
+      <div class="sc" style="border-left-color:#3B82F6"><div class="sn">${pdr} <span style="font-size:13px;color:#3B82F6">${pct(pdr,parc)}%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>
+      <div class="sc g"><div class="sn">${ref} <span style="font-size:13px;color:#94a3b8">${pct(ref,t)}%</span></div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">
+      <div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
+        <div>
+          <div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Taux de disponibilit&eacute;</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Fonctionnelles + Transf&eacute;r&eacute;es / Parc actif</div>
+        </div>
+        <div style="font-size:42px;font-weight:800;color:#fff">${tx_dispo}<span style="font-size:22px">%</span></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
+        <div>
+          <div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Taux de panne</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Panne + R&eacute;paration + PDR / Parc actif</div>
+        </div>
+        <div style="font-size:42px;font-weight:800;color:#fff">${tx_panne}<span style="font-size:22px">%</span></div>
+      </div>
+    </div>`;
+}
+
+window.openAdd = function(){
+  document.getElementById('mtit').textContent='Ajouter une machine';document.getElementById('eid').value='';
+  ['mc','msf','mmo','mse','mim','mct','mmqt','mco'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('mmqt').style.display='none';document.getElementById('mct').style.display='none';
+  document.getElementById('mf').value='';document.getElementById('mmq').value='';
+  document.getElementById('mst').value='Fonctionnelle';document.getElementById('man').value='';
+  document.getElementById('mpays').value='cotedivoire';majCh('cotedivoire');oM('mom');
+};
+
+window.edt = function(id){
+  const m=all.find(x=>x.id===id);if(!m)return;
+  document.getElementById('mtit').textContent='Modifier';document.getElementById('eid').value=id;
+  document.getElementById('mc').value=m.code_machine||'';document.getElementById('mf').value=m.famille||'';
+  document.getElementById('msf').value=m.sous_famille||'';document.getElementById('mmo').value=m.modele||'';
+  document.getElementById('mse').value=m.numero_serie||'';document.getElementById('mim').value=m.immatriculation||'';
+  document.getElementById('man').value=m.annee_fabrication||'';document.getElementById('mst').value=m.statut||'Fonctionnelle';
+  document.getElementById('mco').value=m.commentaire||'';document.getElementById('mpays').value=m.pays_id||'cotedivoire';
+  const mqs=['Caterpillar','Komatsu','Volvo','Hyundai','JCB','Case','Bomag','Hamm','Sinotruk','Iveco','Saic-Iveco','Liebherr','Doosan','Vogele','Shantui','Atlas Copco','Ermont','Fiori','Renault','Manitou'];
+  if(m.marque&&mqs.includes(m.marque)){document.getElementById('mmq').value=m.marque;document.getElementById('mmqt').style.display='none';}
+  else if(m.marque){document.getElementById('mmq').value='X';document.getElementById('mmqt').value=m.marque;document.getElementById('mmqt').style.display='block';}
+  else document.getElementById('mmq').value='';
+  majCh(m.pays_id||'cotedivoire');
+  const sites=CH[m.pays_id]||[];
+  if(m.chantier&&sites.includes(m.chantier)){document.getElementById('mcs').value=m.chantier;document.getElementById('mct').style.display='none';}
+  else if(m.chantier){document.getElementById('mcs').value='X';document.getElementById('mct').value=m.chantier;document.getElementById('mct').style.display='block';}
+  oM('mom');
+};
+
+window.sauver = async function(){
+  const code=document.getElementById('mc').value.trim();
+  if(!code){toast('Code obligatoire','ko');return;}
+  const pid=ses.admin?document.getElementById('mpays').value:ses.pays;
+  const eid=document.getElementById('eid').value;
+  const stat=document.getElementById('mst').value;
+  const mq=document.getElementById('mmq').value==='X'?document.getElementById('mmqt').value.trim():document.getElementById('mmq').value;
+  const cs=document.getElementById('mcs').value;
+  const ch=cs==='X'?document.getElementById('mct').value.trim():cs;
+  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',modifie_par:ses.user,modifie_le:new Date().toISOString()};
+  try{
+    if(eid){
+      const old=all.find(m=>m.id===eid);
+      mc.cree_par=old?old.cree_par:ses.user;mc.cree_le=old?old.cree_le:new Date().toISOString();
+      await setDoc(doc(db,'machines',eid),mc);
+      if(old&&old.statut!==stat){
+        await addDoc(collection(db,'historique'),{machine_id:eid,code_machine:code,pays_id:pid,ancien_statut:old.statut,nouveau_statut:stat,modifie_par:ses.user,modifie_le:new Date().toISOString()});
+      }
+      toast('Mis a jour ✓','ok');
+    }else{
+      mc.cree_par=ses.user;mc.cree_le=new Date().toISOString();
+      await addDoc(collection(db,'machines'),mc);
+      toast('Machine ajoutee ✓','ok');
+    }
+    cM('mom');
+  }catch(e){toast('Erreur: '+e.message,'ko');}
+};
+
+window.del = async function(id){
+  if(!confirm('Supprimer cette machine ?'))return;
+  try{await deleteDoc(doc(db,'machines',id));toast('Supprimee','ok');}
+  catch(e){toast('Erreur','ko');}
+};
+
+window.det = function(id){
+  const m=all.find(x=>x.id===id);if(!m)return;
+  document.getElementById('dtit').textContent='Machine '+m.code_machine;
+  document.getElementById('dbody').innerHTML=`<div class="dg"><div class="di"><div class="dl">Code</div><div class="dv">${m.code_machine||''}</div></div><div class="di"><div class="dl">Pays</div><div class="dv">${PN[m.pays_id]||m.pays_id||''}</div></div><div class="di"><div class="dl">Famille</div><div class="dv">${m.famille||'-'}</div></div><div class="di"><div class="dl">Type</div><div class="dv">${m.sous_famille||'-'}</div></div><div class="di"><div class="dl">Marque</div><div class="dv">${m.marque||'-'}</div></div><div class="di"><div class="dl">Modele</div><div class="dv">${m.modele||'-'}</div></div><div class="di"><div class="dl">N serie</div><div class="dv">${m.numero_serie||'-'}</div></div><div class="di"><div class="dl">Immat.</div><div class="dv">${m.immatriculation||'-'}</div></div><div class="di"><div class="dl">Statut</div><div class="dv">${badge(m.statut)}</div></div><div class="di"><div class="dl">Chantier</div><div class="dv">${m.chantier||'-'}</div></div><div class="di"><div class="dl">Modifie par</div><div class="dv">${m.modifie_par||'-'}</div></div><div class="di"><div class="dl">Le</div><div class="dv">${(m.modifie_le||'').slice(0,16)}</div></div>${m.commentaire?`<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">${m.commentaire}</div></div>`:''}</div>`;
+  oM('mod');
+};
+
+window.affH = async function(){
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const items=[];
+    snap.forEach(d=>{const data=d.data();if(ses.admin||data.pays_id===ses.pays)items.push(data);});
+    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
+    document.getElementById('hc').innerHTML=items.length
+      ?items.map(h=>`<div class="hi"><div style="font-size:11px;color:var(--t2)">${(h.modifie_le||'').slice(0,16)} &mdash; <strong>${h.code_machine}</strong>${ses.admin?' ('+PN[h.pays_id]+')':''} par ${h.modifie_par}</div><div style="margin-top:3px">${badge(h.ancien_statut)} &rarr; ${badge(h.nouveau_statut)}</div></div>`).join('')
+      :'<div class="em">Aucune modification</div>';
+  }catch(e){document.getElementById('hc').innerHTML='<div class="em">Erreur</div>';}
+};
+
+window.affD = function(){
+  const pays=['benin','burkina','cameroun','cotedivoire','niger','togo'];
+  document.getElementById('pgrid').innerHTML=pays.map(p=>{
+    const ml=all.filter(m=>m.pays_id===p);
+    const tot2=ml.length;
+    const f=ml.filter(m=>m.statut==='Fonctionnelle').length;
+    const pa=ml.filter(m=>m.statut==='En panne').length;
+    const rep2=ml.filter(m=>m.statut==='En réparation').length;
+    const pdr2=ml.filter(m=>m.statut==='En Att. PDR').length;
+    const ref2=ml.filter(m=>m.statut==='Réformé').length;
+    const tra2=ml.filter(m=>m.statut==='Transféré').length;
+    const parc2=tot2-ref2;
+    const txD=parc2>0?Math.round((f+tra2)/parc2*100):0;
+    const txP=parc2>0?Math.round((pa+rep2+pdr2)/parc2*100):0;
+    return`<div class="pc">
+      <div class="ph"><div class="pt">${PN[p]||p}</div><span class="bg gb">${tot2} machines</span></div>
+      <div class="ms">
+        <div class="mi"><div class="mn2" style="color:var(--ve)">${f}</div><div class="ml">Fonct.</div></div>
+        <div class="mi"><div class="mn2" style="color:var(--ro)">${pa}</div><div class="ml">Panne</div></div>
+        <div class="mi"><div class="mn2" style="color:var(--or)">${rep2}</div><div class="ml">R&eacute;par.</div></div>
+        <div class="mi"><div class="mn2" style="color:#3B82F6">${pdr2}</div><div class="ml">PDR</div></div>
+        <div class="mi"><div class="mn2" style="color:#94a3b8">${ref2}</div><div class="ml">R&eacute;form.</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <div style="flex:1;background:#D1FAE5;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#059669">${txD}%</div>
+          <div style="font-size:10px;color:#065F46;font-weight:600">Taux disponibilit&eacute;</div>
+        </div>
+        <div style="flex:1;background:#FEE2E2;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#DC2626">${txP}%</div>
+          <div style="font-size:10px;color:#991B1B;font-weight:600">Taux de panne</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  const sts=['Fonctionnelle','En panne','En réparation','En Att. PDR','Transféré','Réformé'],tot=all.length;
+  document.getElementById('dstat').innerHTML=sts.map(s=>{
+    const n=all.filter(m=>m.statut===s).length,pct=tot?Math.round(n/tot*100):0;
+    return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div style="width:140px">${badge(s)}</div><div style="flex:1;background:var(--gr);border-radius:20px;height:10px"><div style="width:${pct}%;background:var(--bl);height:10px;border-radius:20px"></div></div><div style="width:70px;text-align:right;font-size:13px;font-weight:700">${n} (${pct}%)</div></div>`;
+  }).join('');
+};
+
+window.expCSV = function(){
+  if(!fi.length){toast('Aucune donnee','ko');return;}
+  const cols=['Code','Pays','Famille','Type','Marque','Modele','N Serie','Immat','Statut','Chantier'];
+  const rows=fi.map(m=>[m.code_machine,PN[m.pays_id]||m.pays_id,m.famille||'',m.sous_famille||'',m.marque||'',m.modele||'',m.numero_serie||'',m.immatriculation||'',m.statut||'',m.chantier||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';'));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+[cols.join(';'),...rows].join('\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='SOROUBAT_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  toast('CSV exporte','ok');
+};
+
+window.majCh = function(p){
+  const s=document.getElementById('mcs'),sites=CH[p]||[];
+  let o='<option value="">--</option>';
+  sites.forEach(x=>o+=`<option>${x}</option>`);
+  o+='<option value="X">Nouveau site...</option>';
+  s.innerHTML=o;document.getElementById('mct').style.display='none';
+};
+window.togCh=()=>{const v=document.getElementById('mcs').value;document.getElementById('mct').style.display=v==='X'?'block':'none';};
+window.togMq=()=>{const v=document.getElementById('mmq').value;document.getElementById('mmqt').style.display=v==='X'?'block':'none';};
+window.goT=function(t,b){
+  document.querySelectorAll('.ta').forEach(x=>x.classList.remove('ac'));b.classList.add('ac');
+  ['machines','historique','dashboard'].forEach(x=>document.getElementById('t-'+x).style.display=x===t?'':'none');
+  if(t==='historique')window.affH();
+  if(t==='dashboard'&&ses.admin)window.affD();
+};
+window.oM=id=>document.getElementById(id).classList.add('op');
+window.cM=id=>document.getElementById(id).classList.remove('op');
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('op');}));
+function badge(s){const mp={'Fonctionnelle':'gv','En panne':'gr2','En réparation':'go','En Att. PDR':'gb','Transféré':'gp','Réformé':'gg'};return s?`<span class="bg ${mp[s]||'gg'}">${s}</span>`:'-';}
+function toast(m,t){const el=document.getElementById('toast');el.innerHTML=m;el.className='sh '+(t||'ok');setTimeout(()=>el.className='',3500);}
+document.getElementById('p').addEventListener('keydown',e=>{if(e.key==='Enter')window.login();});
+document.getElementById('u').addEventListener('keydown',e=>{if(e.key==='Enter')window.login();});
+</script>
+</body>
+</html>
