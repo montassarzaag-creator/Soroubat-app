@@ -412,21 +412,19 @@ function pct(n,t){return t>0?Math.round(n/t*100):0;}
 function stat(){
   const src=fi.length?fi:all;
   const t=src.length;
-  let f=0,pa=0,rep=0,pdr=0,ref=0,tra=0;
-  src.forEach(m=>{
+  let fonc=0,dispo=0,pa=0,rep=0,pdr=0,ref=0,tra=0;
+  src.forEach(function(m){
     const s=m.statut;
-    if(s==='Fonctionnelle')f++;
+    if(s==='Fonctionnelle')fonc++;
+    else if(s==='Disponible')dispo++;
     else if(s==='En panne')pa++;
-    else if(s==='En r&eacute;paration')rep++;
+    else if(s==='En réparation')rep++;
     else if(s==='En Att. PDR')pdr++;
-    else if(s==='R&eacute;form&eacute;')ref++;
-    else if(s==='Transf&eacute;r&eacute;')tra++;
+    else if(s==='Réformé')ref++;
+    else if(s==='Transféré')tra++;
   });
-  // Parc actif = total - r&eacute;form&eacute;s
   const parc = t - ref;
-  // Taux disponibilit&eacute; = (fonctionnelles + transf&eacute;r&eacute;es) / parc actif
-  const tx_dispo = pct(f + tra, parc); // f inclut Fonctionnelle + Disponible
-  // Taux panne = (panne + r&eacute;paration + PDR) / parc actif
+  const tx_dispo = pct(fonc + dispo + tra, parc);
   const tx_panne = pct(pa + rep + pdr, parc);
   document.getElementById('sg').innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">
