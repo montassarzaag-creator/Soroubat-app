@@ -222,6 +222,33 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
   <div class="mh"><h3 id="dtit">D&#233;tail</h3><button class="mx" onclick="cM('mod')">&#215;</button></div>
   <div class="mb" id="dbody"></div>
 </div></div>
+
+<!-- MODAL SAISIE DETAIL PAYS -->
+<div class="mo" id="mod-detail"><div class="md" style="max-width:480px">
+  <div class="mh">
+    <h3 id="sdtitle">Renseigner le d&eacute;tail</h3>
+    <button class="mx" onclick="cM('mod-detail')">&#215;</button>
+  </div>
+  <div class="mb">
+    <input type="hidden" id="sd-mid">
+    <div style="margin-bottom:14px">
+      <div class="dl">Statut actuel</div>
+      <div style="margin-top:6px" id="sd-statut"></div>
+    </div>
+    <div style="margin-bottom:14px;padding:12px;background:#FEF3C7;border-radius:8px;border-left:3px solid #F59E0B">
+      <div class="dl" style="color:#92400E">Dernier d&eacute;tail enregistr&eacute;</div>
+      <div style="margin-top:5px;font-size:13px;color:#78350F" id="sd-ancien"></div>
+    </div>
+    <div class="fg fu">
+      <label>Nouveau d&eacute;tail <span style="font-size:11px;color:var(--t2)">(sera conserv&eacute; dans l&#39;historique)</span></label>
+      <textarea id="sd-txt" rows="4" placeholder="Ex: Moteur HS — attente pi&egrave;ce ref. XYZ&#10;Panne hydraulique bras gauche&#10;Intervention pr&eacute;vue le..." style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical"></textarea>
+    </div>
+  </div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" onclick="cM('mod-detail')">Annuler</button>
+    <button class="bn bp" onclick="window.sauverDetail()">&#128190; Enregistrer le d&eacute;tail</button>
+  </div>
+</div></div>
 <div id="toast"></div>
 
 <script type="module">
@@ -351,7 +378,9 @@ function ren(){
   document.getElementById('em').style.display='none';
   tb.innerHTML=sl.map(m=>{
     const pc=ses.admin?`<td>${PN[m.pays_id]||m.pays_id||''}</td>`:'';
-    const ab=ses.admin?`<button class="bn bs bp" onclick="window.edt('${m.id}')" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" onclick="window.del('${m.id}')">&#128465;</button>`:'';
+    const ab=ses.admin
+      ?`<button class="bn bs bp" onclick="window.edt('${m.id}')" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" onclick="window.del('${m.id}')">&#128465;</button>`
+      :`<button class="bn bs" onclick="window.saisirDetail('${m.id}')" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B" title="Renseigner le d&eacute;tail du statut">&#128203; D&eacute;tail</button>`;
     const dernierDetail = m.detail_statut||'';
     const detailCourt = dernierDetail.length > 30 ? dernierDetail.slice(0,30)+'...' : dernierDetail;
     return`<tr><td><strong>${m.code_machine||''}</strong></td>${pc}<td>${m.famille||'-'}<br><small style="color:var(--t2)">${m.sous_famille||''}</small></td><td>${m.marque||'-'}</td><td>${badge(m.statut)}</td><td style="font-size:12px;color:var(--te);max-width:160px"><span title="${dernierDetail}">${detailCourt||'<span style=color:var(--t2)>—</span>'}</span></td><td>${m.chantier||'-'}</td><td style="font-size:11px;color:var(--t2)">${m.numero_serie||'-'}</td><td style="white-space:nowrap"><button class="bn bs bp" onclick="window.det('${m.id}')" style="margin-right:3px">&#128065;</button>${ab}</td></tr>`;
@@ -456,14 +485,13 @@ window.sauver = async function(){
   const mq=document.getElementById('mmq').value==='X'?document.getElementById('mmqt').value.trim():document.getElementById('mmq').value;
   const cs=document.getElementById('mcs').value;
   const ch=cs==='X'?document.getElementById('mct').value.trim():cs;
-  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',modifie_par:ses.user,modifie_le:new Date().toISOString()};
+  const detail = document.getElementById('mdetail').value.trim();
+  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',detail_statut:detail||'',modifie_par:ses.user,modifie_le:new Date().toISOString()};
   try{
-    const detail = document.getElementById('mdetail').value.trim();
-    if(detail) mc.detail_statut = detail;
     if(eid){
       const old=all.find(m=>m.id===eid);
       mc.cree_par=old?old.cree_par:ses.user;mc.cree_le=old?old.cree_le:new Date().toISOString();
-      // Garder ancien detail si pas de nouveau saisi
+      // Si pas de nouveau detail, conserver l'ancien
       if(!detail && old && old.detail_statut) mc.detail_statut = old.detail_statut;
       await setDoc(doc(db,'machines',eid),mc);
       // Enregistrer historique si statut changé OU si detail renseigné
@@ -497,6 +525,35 @@ window.del = async function(id){
   if(!confirm('Supprimer cette machine ?'))return;
   try{await deleteDoc(doc(db,'machines',id));toast('Supprimee','ok');}
   catch(e){toast('Erreur','ko');}
+};
+
+window.saisirDetail = function(id){
+  const m=all.find(x=>x.id===id);if(!m)return;
+  document.getElementById('sdtitle').textContent='Détail statut — '+m.code_machine;
+  document.getElementById('sd-statut').innerHTML=badge(m.statut);
+  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun détail saisi';
+  document.getElementById('sd-txt').value='';
+  document.getElementById('sd-mid').value=id;
+  oM('mod-detail');
+};
+
+window.sauverDetail = async function(){
+  const id=document.getElementById('sd-mid').value;
+  const txt=document.getElementById('sd-txt').value.trim();
+  if(!txt){toast('Veuillez saisir un détail','ko');return;}
+  const m=all.find(x=>x.id===id);if(!m)return;
+  try{
+    const updates={...m, detail_statut:txt, modifie_par:ses.user, modifie_le:new Date().toISOString()};
+    delete updates.id;
+    await setDoc(doc(db,'machines',id),updates);
+    await addDoc(collection(db,'historique'),{
+      machine_id:id, code_machine:m.code_machine, pays_id:m.pays_id,
+      ancien_statut:m.statut, nouveau_statut:m.statut,
+      detail_statut:txt, modifie_par:ses.user, modifie_le:new Date().toISOString()
+    });
+    cM('mod-detail');
+    toast('Détail enregistré ✓','ok');
+  }catch(e){toast('Erreur: '+e.message,'ko');}
 };
 
 window.det = function(id){
