@@ -129,7 +129,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
           </select></div>
         <div class="fg"><label>Statut</label>
           <select id="fs" onchange="filt()">
-            <option value="">Tous</option><option>Fonctionnelle</option><option>En panne</option>
+            <option value="">Tous</option><option>Fonctionnelle</option><option>Disponible</option><option>En panne</option>
             <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
           </select></div>
         <div class="fg"><label>Famille</label>
@@ -202,7 +202,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
       <div class="fg"><label>Immatriculation</label><input type="text" id="mim"></div>
       <div class="fg"><label>Ann&#233;e</label><input type="number" id="man" min="1980" max="2030"></div>
       <div class="fg"><label>Statut</label>
-        <select id="mst"><option>Fonctionnelle</option><option>En panne</option>
+        <select id="mst"><option>Fonctionnelle</option><option>Disponible</option><option>En panne</option>
           <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
         </select></div>
       <div class="fg fu"><label>D&eacute;tail du statut <span style="font-size:10px;color:var(--t2);font-weight:400">(visible dans l&#39;historique)</span></label>
@@ -425,19 +425,20 @@ function stat(){
   // Parc actif = total - r&eacute;form&eacute;s
   const parc = t - ref;
   // Taux disponibilit&eacute; = (fonctionnelles + transf&eacute;r&eacute;es) / parc actif
-  const tx_dispo = pct(f + tra, parc);
+  const tx_dispo = pct(f + tra, parc); // f inclut Fonctionnelle + Disponible
   // Taux panne = (panne + r&eacute;paration + PDR) / parc actif
   const tx_panne = pct(pa + rep + pdr, parc);
   document.getElementById('sg').innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">
       <div class="sc"><div class="sn">${t}</div><div class="sl">Total machines</div></div>
       <div class="sc" style="border-left-color:#0EA5E9"><div class="sn" style="color:#0EA5E9">${parc}</div><div class="sl">Parc actif (hors r&eacute;form&eacute;s)</div></div>
-      <div class="sc v"><div class="sn">${f} <span style="font-size:13px;color:var(--ve)">${pct(f,parc)}%</span></div><div class="sl">Fonctionnelles</div></div>
+      <div class="sc v"><div class="sn">${fonc} <span style="font-size:13px;color:var(--ve)">${pct(fonc,parc)}%</span></div><div class="sl">Fonctionnelles</div></div>
+      <div class="sc v"><div class="sn">${dispo} <span style="font-size:13px;color:var(--ve)">${pct(dispo,parc)}%</span></div><div class="sl">Disponibles</div></div>
       <div class="sc" style="border-left-color:#8B5CF6"><div class="sn">${tra} <span style="font-size:13px;color:#8B5CF6">${pct(tra,parc)}%</span></div><div class="sl">Transf&eacute;r&eacute;es</div></div>
       <div class="sc r"><div class="sn">${pa} <span style="font-size:13px;color:var(--ro)">${pct(pa,parc)}%</span></div><div class="sl">En panne</div></div>
       <div class="sc o"><div class="sn">${rep} <span style="font-size:13px;color:var(--or)">${pct(rep,parc)}%</span></div><div class="sl">En r&eacute;paration</div></div>
       <div class="sc" style="border-left-color:#3B82F6"><div class="sn">${pdr} <span style="font-size:13px;color:#3B82F6">${pct(pdr,parc)}%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>
-      <div class="sc g"><div class="sn">${ref}</div><div class="sl">R&eacute;form&eacute;s (exclus du calcul)</div></div>
+      <div class="sc g"><div class="sn">${ref}</div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">
       <div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
