@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- SOROUBAT v3.2 -->
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -22,7 +22,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#EEF2F7;color:var(--te);
 .hd{background:var(--bl);color:#fff;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
 .hb{font-size:17px;font-weight:800;letter-spacing:1.5px;}
 .hp{background:rgba(255,255,255,.15);border-radius:20px;padding:3px 13px;font-size:12px;font-weight:600;}
-.hdrt{display:flex;align-items:center;gap:10px;}
 .dot{width:8px;height:8px;background:#4ade80;border-radius:50%;animation:pulse 2s infinite;display:inline-block;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .sync{font-size:11px;color:rgba(255,255,255,.7);}
@@ -39,6 +38,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#EEF2F7;color:var(--te);
 .fg{display:flex;flex-direction:column;gap:4px;min-width:140px;}
 .fg label{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;}
 .fg select,.fg input{padding:8px 10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;outline:none;background:var(--gr);}
+.fg textarea{padding:9px 10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;outline:none;background:var(--gr);resize:vertical;min-height:65px;width:100%;}
 .bn{padding:8px 16px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;}
 .bp{background:var(--bl);color:#fff;}.bv{background:var(--ve);color:#fff;}.bd{background:var(--ro);color:#fff;}
 .bs{padding:4px 10px;font-size:12px;border-radius:5px;}
@@ -53,6 +53,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
 .gv{background:#D1FAE5;color:#065F46;}.gr2{background:#FEE2E2;color:#991B1B;}
 .go{background:#FEF3C7;color:#92400E;}.gb{background:#DBEAFE;color:#1E40AF;}
 .gg{background:#F3F4F6;color:#374151;}.gp{background:#EDE9FE;color:#5B21B6;}
+.gd{background:#E0F2FE;color:#0369A1;}
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;}
 .mo.op{display:flex;}
 .md{background:#fff;border-radius:14px;width:620px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
@@ -61,7 +62,6 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
 .mb{padding:22px;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g2 .fg{min-width:0;}.g2 .fu{grid-column:1/-1;}
-.fg textarea{padding:9px 10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;outline:none;background:var(--gr);resize:vertical;min-height:65px;width:100%;}
 .mf{padding:14px 22px;border-top:1px solid var(--bo);display:flex;justify-content:flex-end;gap:10px;}
 .dg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
 .di{padding:11px;background:var(--gr);border-radius:8px;}
@@ -95,30 +95,33 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
     <input type="text" id="u" placeholder="ex: admin" autocomplete="username">
     <label>Mot de passe</label>
     <input type="password" id="p" autocomplete="current-password">
-    <button class="blg" onclick="login()">Se connecter</button>
+    <button class="blg" id="btn-login">Se connecter</button>
     <div id="le">Identifiant ou mot de passe incorrect</div>
     <div id="lm">&#9203; Connexion en cours...</div>
   </div>
 </div>
+
 <div id="ap">
   <div class="hd">
     <div style="display:flex;align-items:center;gap:12px">
       <div class="hb">SOROUBAT</div><div class="hp" id="lp"></div>
     </div>
-    <div class="hdrt">
+    <div style="display:flex;align-items:center;gap:10px">
       <div class="dot"></div><span class="sync">Temps r&#233;el</span>
-      <button id="dc" onclick="logout()">D&#233;connexion</button>
+      <button id="dc">D&#233;connexion</button>
     </div>
   </div>
   <div class="tb">
-    <button class="ta ac" onclick="goT('machines',this)">&#128668; Machines</button>
-    <button class="ta" onclick="goT('historique',this)">&#128203; Historique</button>
-    <button class="ta" id="tdash" onclick="goT('dashboard',this)">&#128202; Dashboard</button>
-    <button class="ta" onclick="goT('alertes',this)" id="tab-alertes" style="display:none">
+    <button class="ta ac" id="tab-machines">&#128668; Machines</button>
+    <button class="ta" id="tab-interventions">&#128295; Interventions</button>
+    <button class="ta" id="tab-historique">&#128203; Historique</button>
+    <button class="ta" id="tdash">&#128202; Dashboard</button>
+    <button class="ta" id="tab-alertes" style="display:none">
       &#128276; Alertes <span id="badge-alertes" style="background:#E24B4A;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;display:none">0</span>
     </button>
   </div>
   <div class="mn">
+
     <!-- BANDEAU ALERTES -->
     <div id="bandeau-alertes" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:var(--r);padding:14px 18px;margin-bottom:16px;cursor:pointer">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -129,8 +132,89 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
             <div style="font-size:12px;color:#DC2626" id="bandeau-detail"></div>
           </div>
         </div>
-        <span style="font-size:12px;color:#991B1B;font-weight:600">Voir les alertes &rarr;</span>
+        <span style="font-size:12px;color:#991B1B;font-weight:600">Voir les alertes &#8594;</span>
       </div>
+    </div>
+
+    <!-- ONGLET MACHINES -->
+    <div id="t-machines">
+      <div class="sg" id="sg"></div>
+      <div class="fi">
+        <div class="fg"><label>Recherche</label><input type="text" id="fr" placeholder="Code, marque, chantier..."></div>
+        <div class="fg" id="fpw" style="display:none"><label>Pays</label>
+          <select id="fp">
+            <option value="">Tous</option>
+            <option value="benin">B&#233;nin</option><option value="burkina">Burkina Faso</option>
+            <option value="cameroun">Cameroun</option><option value="cotedivoire">C&#244;te d&#39;Ivoire</option>
+            <option value="niger">Niger</option><option value="togo">Togo</option>
+          </select></div>
+        <div class="fg"><label>Statut</label>
+          <select id="fs">
+            <option value="">Tous</option><option>Fonctionnelle</option><option>Disponible</option>
+            <option>En panne</option><option>En r&#233;paration</option>
+            <option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
+          </select></div>
+        <div class="fg"><label>Famille</label>
+          <select id="ff">
+            <option value="">Toutes</option>
+            <option>Engins de terrassement</option><option>Engins de compactage</option>
+            <option>Engins de levage</option><option>Camions et vehicules</option>
+            <option>Materiels de production</option><option>Attelages et remorques</option>
+            <option>Materiels divers</option>
+          </select></div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <button class="bn bp" id="badd" style="display:none">+ Ajouter</button>
+          <button class="bn bv" id="btn-csv">&#11015; CSV</button>
+          <button class="bn" style="background:var(--gr)" id="btn-reload">&#8635; Actualiser</button>
+        </div>
+      </div>
+      <div class="tw">
+        <div class="th"><div class="tt">Liste des machines</div><div class="tc" id="tc2"></div></div>
+        <div style="overflow-x:auto">
+          <table><thead><tr>
+            <th>Code</th><th id="cpays" style="display:none">Pays</th>
+            <th>Famille / Type</th><th>Marque</th><th>Statut</th>
+            <th>D&#233;tail statut</th><th>Chantier</th><th>N&#176; S&#233;rie</th><th>Actions</th>
+          </tr></thead><tbody id="tb2"></tbody></table>
+        </div>
+        <div id="em" class="em" style="display:none">Aucune machine trouv&#233;e</div>
+        <div class="pg2" id="pag"></div>
+      </div>
+    </div>
+
+    <!-- ONGLET INTERVENTIONS -->
+    <div id="t-interventions" style="display:none">
+      <div class="tw" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <h3 style="font-size:15px;font-weight:700">&#128295; Interventions</h3>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="fg" id="filtre-pays-interv" style="display:none;min-width:160px">
+              <select id="fp-interv">
+                <option value="">Tous les pays</option>
+                <option value="benin">B&#233;nin</option><option value="burkina">Burkina Faso</option>
+                <option value="cameroun">Cameroun</option><option value="cotedivoire">C&#244;te d&#39;Ivoire</option>
+                <option value="niger">Niger</option><option value="togo">Togo</option>
+              </select>
+            </div>
+            <button class="bn bp" id="btn-nouvelle-interv">+ Nouvelle intervention</button>
+          </div>
+        </div>
+        <div id="interv-list"><div class="em">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- ONGLET HISTORIQUE -->
+    <div id="t-historique" style="display:none">
+      <div class="tw" style="padding:20px">
+        <h3 style="margin-bottom:14px">&#128203; Historique des modifications</h3>
+        <div id="hc"><div class="em">Aucune modification</div></div>
+      </div>
+    </div>
+
+    <!-- ONGLET DASHBOARD -->
+    <div id="t-dashboard" style="display:none">
+      <div class="pgr" id="pgrid"></div>
+      <div class="tw" style="padding:20px"><h3 style="margin-bottom:14px">R&#233;partition par statut</h3><div id="dstat"></div></div>
     </div>
 
     <!-- ONGLET ALERTES -->
@@ -144,65 +228,16 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
       </div>
     </div>
 
-    <div id="t-machines">
-      <div class="sg" id="sg"></div>
-      <div class="fi">
-        <div class="fg"><label>Recherche</label><input type="text" id="fr" placeholder="Code, marque, chantier..." oninput="filt()"></div>
-        <div class="fg" id="fpw" style="display:none"><label>Pays</label>
-          <select id="fp" onchange="filt()">
-            <option value="">Tous</option>
-            <option value="benin">B&#233;nin</option><option value="burkina">Burkina Faso</option>
-            <option value="cameroun">Cameroun</option><option value="cotedivoire">C&#244;te d&#39;Ivoire</option>
-            <option value="niger">Niger</option><option value="togo">Togo</option>
-          </select></div>
-        <div class="fg"><label>Statut</label>
-          <select id="fs" onchange="filt()">
-            <option value="">Tous</option><option>Fonctionnelle</option><option>Disponible</option><option>En panne</option>
-            <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
-          </select></div>
-        <div class="fg"><label>Famille</label>
-          <select id="ff" onchange="filt()">
-            <option value="">Toutes</option>
-            <option>Engins de terrassement</option><option>Engins de compactage</option>
-            <option>Engins de levage</option><option>Camions et vehicules</option>
-            <option>Materiels de production</option><option>Attelages et remorques</option><option>Materiels divers</option>
-          </select></div>
-        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-          <button class="bn bp" id="badd" onclick="openAdd()" style="display:none">+ Ajouter</button>
-          <button class="bn bv" onclick="expCSV()">&#11015; CSV</button>
-          <button class="bn" style="background:var(--gr)" onclick="window.reloadData()">&#8635; Actualiser</button>
-        </div>
-      </div>
-      <div class="tw">
-        <div class="th"><div class="tt">Liste des machines</div><div class="tc" id="tc2"></div></div>
-        <div style="overflow-x:auto">
-          <table><thead><tr>
-            <th>Code</th><th id="cpays" style="display:none">Pays</th>
-            <th>Famille / Type</th><th>Marque</th><th>Statut</th><th>D&eacute;tail statut</th><th>Chantier</th><th>N&#176; S&#233;rie</th><th>Actions</th>
-          </tr></thead><tbody id="tb2"></tbody></table>
-        </div>
-        <div id="em" class="em" style="display:none">Aucune machine trouv&#233;e</div>
-        <div class="pg2" id="pag"></div>
-      </div>
-    </div>
-    <div id="t-historique" style="display:none">
-      <div class="tw" style="padding:20px">
-        <h3 style="margin-bottom:14px">&#128203; Historique</h3>
-        <div id="hc"><div class="em">Aucune modification</div></div>
-      </div>
-    </div>
-    <div id="t-dashboard" style="display:none">
-      <div class="pgr" id="pgrid"></div>
-      <div class="tw" style="padding:20px"><h3 style="margin-bottom:14px">R&#233;partition par statut</h3><div id="dstat"></div></div>
-    </div>
   </div>
 </div>
+
+<!-- MODAL MODIFIER/AJOUTER -->
 <div class="mo" id="mom"><div class="md">
-  <div class="mh"><h3 id="mtit">Ajouter</h3><button class="mx" onclick="cM('mom')">&#215;</button></div>
+  <div class="mh"><h3 id="mtit">Ajouter</h3><button class="mx" id="close-mom">&#215;</button></div>
   <div class="mb"><input type="hidden" id="eid">
     <div class="g2">
       <div class="fg" id="mpw" style="display:none"><label>Pays</label>
-        <select id="mpays" onchange="majCh(this.value)">
+        <select id="mpays">
           <option value="benin">B&#233;nin</option><option value="burkina">Burkina Faso</option>
           <option value="cameroun">Cameroun</option><option value="cotedivoire">C&#244;te d&#39;Ivoire</option>
           <option value="niger">Niger</option><option value="togo">Togo</option>
@@ -212,17 +247,19 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
         <select id="mf"><option value="">--</option>
           <option>Engins de terrassement</option><option>Engins de compactage</option>
           <option>Engins de levage</option><option>Camions et vehicules</option>
-          <option>Materiels de production</option><option>Attelages et remorques</option><option>Materiels divers</option>
+          <option>Materiels de production</option><option>Attelages et remorques</option>
+          <option>Materiels divers</option>
         </select></div>
       <div class="fg"><label>Sous-famille</label><input type="text" id="msf"></div>
       <div class="fg"><label>Marque</label>
-        <select id="mmq" onchange="togMq()"><option value="">--</option>
-          <option>Caterpillar</option><option>Komatsu</option><option>Volvo</option><option>Hyundai</option>
-          <option>JCB</option><option>Case</option><option>Bomag</option><option>Hamm</option>
-          <option>Sinotruk</option><option>Iveco</option><option>Saic-Iveco</option><option>Liebherr</option>
-          <option>Doosan</option><option>Vogele</option><option>Shantui</option><option>Atlas Copco</option>
-          <option>Ermont</option><option>Fiori</option><option>Renault</option><option>Manitou</option>
-          <option value="X">Autre marque...</option>
+        <select id="mmq"><option value="">--</option>
+          <option>Caterpillar</option><option>Komatsu</option><option>Volvo</option>
+          <option>Hyundai</option><option>JCB</option><option>Case</option>
+          <option>Bomag</option><option>Hamm</option><option>Sinotruk</option>
+          <option>Iveco</option><option>Saic-Iveco</option><option>Liebherr</option>
+          <option>Doosan</option><option>Vogele</option><option>Shantui</option>
+          <option>Atlas Copco</option><option>Ermont</option><option>Fiori</option>
+          <option>Renault</option><option>Manitou</option><option value="X">Autre marque...</option>
         </select>
         <input type="text" id="mmqt" style="display:none;margin-top:6px" placeholder="Saisir la marque"></div>
       <div class="fg"><label>Mod&#232;le</label><input type="text" id="mmo"></div>
@@ -230,32 +267,36 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
       <div class="fg"><label>Immatriculation</label><input type="text" id="mim"></div>
       <div class="fg"><label>Ann&#233;e</label><input type="number" id="man" min="1980" max="2030"></div>
       <div class="fg"><label>Statut</label>
-        <select id="mst"><option>Fonctionnelle</option><option>Disponible</option><option>En panne</option>
-          <option>En r&#233;paration</option><option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
+        <select id="mst">
+          <option>Fonctionnelle</option><option>Disponible</option><option>En panne</option>
+          <option>En r&#233;paration</option><option>En Att. PDR</option>
+          <option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
         </select></div>
-      <div class="fg fu"><label>D&eacute;tail du statut <span style="font-size:10px;color:var(--t2);font-weight:400">(visible dans l&#39;historique)</span></label>
-        <textarea id="mdetail" rows="2" placeholder="Ex: Moteur HS, attente pi&#232;ce ref. XYZ &mdash; Panne hydraulique bras gauche..."></textarea></div>
       <div class="fg"><label>Chantier / Site</label>
-        <select id="mcs" onchange="togCh()"><option value="">--</option></select>
+        <select id="mcs"><option value="">--</option></select>
         <input type="text" id="mct" style="display:none;margin-top:6px" placeholder="Nouveau site"></div>
+      <div class="fg fu"><label>D&#233;tail du statut</label>
+        <textarea id="mdetail" rows="2" placeholder="Ex: Moteur HS, attente piece ref. XYZ..."></textarea></div>
       <div class="fg fu"><label>Commentaire</label><textarea id="mco"></textarea></div>
     </div>
   </div>
   <div class="mf">
-    <button class="bn" style="background:var(--gr)" onclick="cM('mom')">Annuler</button>
-    <button class="bn bp" onclick="sauver()">&#128190; Enregistrer</button>
+    <button class="bn" style="background:var(--gr)" id="cancel-mom">Annuler</button>
+    <button class="bn bp" id="btn-sauver">&#128190; Enregistrer</button>
   </div>
 </div></div>
+
+<!-- MODAL DETAIL MACHINE -->
 <div class="mo" id="mod"><div class="md">
-  <div class="mh"><h3 id="dtit">D&#233;tail</h3><button class="mx" onclick="cM('mod')">&#215;</button></div>
+  <div class="mh"><h3 id="dtit">D&#233;tail</h3><button class="mx" id="close-mod">&#215;</button></div>
   <div class="mb" id="dbody"></div>
 </div></div>
 
-<!-- MODAL SAISIE DETAIL PAYS -->
+<!-- MODAL DETAIL PAYS -->
 <div class="mo" id="mod-detail"><div class="md" style="max-width:480px">
   <div class="mh">
-    <h3 id="sdtitle">Renseigner le d&eacute;tail</h3>
-    <button class="mx" onclick="cM('mod-detail')">&#215;</button>
+    <h3 id="sdtitle">Renseigner le d&#233;tail</h3>
+    <button class="mx" id="close-mod-detail">&#215;</button>
   </div>
   <div class="mb">
     <input type="hidden" id="sd-mid">
@@ -264,24 +305,70 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
       <div style="margin-top:6px" id="sd-statut"></div>
     </div>
     <div style="margin-bottom:14px;padding:12px;background:#FEF3C7;border-radius:8px;border-left:3px solid #F59E0B">
-      <div class="dl" style="color:#92400E">Dernier d&eacute;tail enregistr&eacute;</div>
+      <div class="dl" style="color:#92400E">Dernier d&#233;tail enregistr&#233;</div>
       <div style="margin-top:5px;font-size:13px;color:#78350F" id="sd-ancien"></div>
     </div>
     <div class="fg fu">
-      <label>Nouveau d&eacute;tail <span style="font-size:11px;color:var(--t2)">(sera conserv&eacute; dans l&#39;historique)</span></label>
-      <textarea id="sd-txt" rows="4" placeholder="Ex: Moteur HS &mdash; attente pi&egrave;ce ref. XYZ&#10;Panne hydraulique bras gauche&#10;Intervention pr&eacute;vue le..." style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical"></textarea>
+      <label>Nouveau d&#233;tail</label>
+      <textarea id="sd-txt" rows="4" style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical"></textarea>
     </div>
   </div>
   <div class="mf">
-    <button class="bn" style="background:var(--gr)" onclick="cM('mod-detail')">Annuler</button>
-    <button class="bn bp" onclick="window.sauverDetail()">&#128190; Enregistrer le d&eacute;tail</button>
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-detail">Annuler</button>
+    <button class="bn bp" id="btn-sauver-detail">&#128190; Enregistrer le d&#233;tail</button>
   </div>
 </div></div>
+
+<!-- MODAL INTERVENTION -->
+<div class="mo" id="mod-interv"><div class="md" style="max-width:680px">
+  <div class="mh">
+    <h3 id="interv-titre">Nouvelle intervention</h3>
+    <button class="mx" id="close-mod-interv">&#215;</button>
+  </div>
+  <div class="mb">
+    <input type="hidden" id="interv-id">
+    <input type="hidden" id="interv-machine-id">
+    <div class="g2">
+      <div class="fg fu" style="background:#F4F5F7;padding:12px;border-radius:8px">
+        <div class="dl">Machine</div>
+        <div class="dv" id="interv-machine-label" style="margin-top:4px">-</div>
+      </div>
+      <div class="fg"><label>Date *</label><input type="date" id="interv-date"></div>
+      <div class="fg"><label>Technicien *</label><input type="text" id="interv-tech" placeholder="Nom du technicien"></div>
+      <div class="fg"><label>Dur&#233;e (heures)</label><input type="number" id="interv-duree" min="0" step="0.5" placeholder="Ex: 4.5"></div>
+      <div class="fg"><label>Co&#251;t (FCFA)</label><input type="number" id="interv-cout" min="0" placeholder="Ex: 150000"></div>
+      <div class="fg"><label>Statut avant</label>
+        <select id="interv-avant">
+          <option value="">--</option><option>Fonctionnelle</option><option>Disponible</option>
+          <option>En panne</option><option>En r&#233;paration</option>
+          <option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
+        </select></div>
+      <div class="fg"><label>Statut apr&#232;s</label>
+        <select id="interv-apres">
+          <option value="">--</option><option>Fonctionnelle</option><option>Disponible</option>
+          <option>En panne</option><option>En r&#233;paration</option>
+          <option>En Att. PDR</option><option>Transf&#233;r&#233;</option><option>R&#233;form&#233;</option>
+        </select></div>
+      <div class="fg fu"><label>Description *</label>
+        <textarea id="interv-desc" rows="3" placeholder="D&#233;crivez les travaux effectu&#233;s..."></textarea></div>
+      <div class="fg fu"><label>Pi&#232;ces utilis&#233;es</label>
+        <textarea id="interv-pieces" rows="2" placeholder="R&#233;f&#233;rences et quantit&#233;s..."></textarea></div>
+      <div class="fg fu"><label>Observations</label>
+        <textarea id="interv-obs" rows="2" placeholder="Recommandations, prochain entretien..."></textarea></div>
+    </div>
+  </div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-interv">Annuler</button>
+    <button class="bn bp" id="btn-sauver-interv">&#128190; Enregistrer l&#39;intervention</button>
+  </div>
+</div></div>
+
 <div id="toast"></div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query, orderBy, addDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FC = {
   apiKey:"AIzaSyBqlW_7dlxNETpHA8C0FOEdqcvV5cXXwmY",
@@ -291,84 +378,89 @@ const FC = {
   messagingSenderId:"435862891203",
   appId:"1:435862891203:web:b59dd40565185762165076"
 };
-
 const app = initializeApp(FC);
 const db = getFirestore(app);
 
-const USERS={admin:{m:"SOROUBAT@Admin2024",l:"Admin - Tous les pays",a:true},benin:{m:"SOROUBAT@Benin2024",l:"Benin",a:false},burkina:{m:"SOROUBAT@Burkina2024",l:"Burkina Faso",a:false},cameroun:{m:"SOROUBAT@Cam2024",l:"Cameroun",a:false},cotedivoire:{m:"SOROUBAT@CdI2024",l:"Cote Ivoire",a:false},niger:{m:"SOROUBAT@Niger2024",l:"Niger",a:false},togo:{m:"SOROUBAT@Togo2024",l:"Togo",a:false}};
-const PN={benin:"Benin",burkina:"Burkina Faso",cameroun:"Cameroun",cotedivoire:"Cote Ivoire",niger:"Niger",togo:"Togo"};
-const CH={"benin":["BANIKOARA","COTONOU","MALANVILLE","PARAKOU","TCHAOUROU"],"burkina":["BOBO - BANFORA","CARRIERE NIAOGHO","CARRIERE ZINIARE","DAPELOGO-Central Enr","DIABO - Gounghin FADA","KONGOUSSI-DJIBO","NAGRIN - OUAGA2000","PARC CENTRAL OUAGA","SCE TRANSPORT OUAGA","SIEGE SOROUBAT BF","TENKODOGO-OUARGAYE","YAGMA - OUAGA","Carriere BADJA","LOGEMENT - OUAGA"],"cameroun":["ADM DOUALA","ADM YAOUNDE","CHANTIER FOUMBAN","CHANTIER GAROUA","CHANTIER NGAOUNDERE","CHANTIER YAOUNDE","KUMBA","PARC FOUMBAN","Parc KPEME"],"cotedivoire":["ABIDJAN","BATIMENT BROFODOUME","COGIMEX","FC SAN PEDRO","FERME YOBOUEBO","GUINEE CONACRY","P. BATIMENT ABIDJAN","P. BATIMENT BROFODOUME","SOROUBAT CI","TAABO","TOULEPLEU","YAGMA - OUAGA","ZOO","BASE VIE","LOT 2","LOT 6","PK27"],"niger":["KANDADJI","NIAMEY"],"togo":["ADM LOME","Carriere SOKODE","Chantier RN2","Chantier SOKODE","LOT 2","LOT 6","Parc KPEME","SECURITE","100% BETON"]};
+const USERS = {
+  admin:{m:"SOROUBAT@Admin2024",l:"Admin - Tous les pays",a:true},
+  benin:{m:"SOROUBAT@Benin2024",l:"Benin",a:false},
+  burkina:{m:"SOROUBAT@Burkina2024",l:"Burkina Faso",a:false},
+  cameroun:{m:"SOROUBAT@Cam2024",l:"Cameroun",a:false},
+  cotedivoire:{m:"SOROUBAT@CdI2024",l:"Cote Ivoire",a:false},
+  niger:{m:"SOROUBAT@Niger2024",l:"Niger",a:false},
+  togo:{m:"SOROUBAT@Togo2024",l:"Togo",a:false}
+};
+const PN = {benin:"Benin",burkina:"Burkina Faso",cameroun:"Cameroun",cotedivoire:"Cote Ivoire",niger:"Niger",togo:"Togo"};
+const CH = {"benin": ["BANIKOARA", "COTONOU", "MALANVILLE", "Nexiste pas/ transf\u00e9r\u00e9e", "TCHAOUROU"], "burkina": ["BOBO - BANFORA", "CARRIERE NIAOGHO", "CARRIERE ZINIARE", "DAPELOGO-Central Enr", "DIABO - Gounghin FADA", "KANTCHARY", "KONGOUSSI-DJIBO", "LOGEMENT - OUAGA", "NAGRIN - OUAGA2000", "PARC CENTRAL OUAGA", "SCE TRANSPORT OUAGA", "SI\u00c8GE SOROUBAT BF", "TENKODOGO-OUARGAYE", "YAGMA - OUAGA"], "cameroun": ["ADM DOUALA", "ADM YAOUNDE", "CHANTIER FOUMBAN", "CHANTIER GAROUA", "CHANTIER NGAOUNDERE", "CHANTIER YAOUNDE", "FRONTIERE TOBOROU", "KUMBA", "PARC FOUMBAN"], "cotedivoire": ["100% BETON", "ABIDJAN", "BASE VIE", "BATIMENT BROFODOUME", "COGIMEX", "FC SAN PEDRO", "FERME YOBOUEBO", "LOT 2", "LOT 6", "P. BATIMENT ABIDJAN", "P. BATIMENT BROFODOUME", "PK27", "SECURITE", "SOROUBAT CI", "TAABO", "TOULEPLEU", "ZOO"], "niger": ["KANDADJI", "NIAMEY"], "togo": ["ADM LOME", "Carri\u00e8re BADJA", "Carri\u00e8re SOKODE", "Chantier RN2", "Chantier SOKODE", "DJOUGOU", "FOURNISSEUR", "GUINEE CONACRY", "Parc KPEME"]};
 
 let ses=null, all=[], fi=[], pg=1, PP=50, unsub=null;
 
-window.login = async function(){
-  const u=document.getElementById('u').value.trim().toLowerCase();
-  const p=document.getElementById('p').value.trim();
+function badge(s){
+  const mp={
+    'Fonctionnelle':'gv','Disponible':'gd','En panne':'gr2',
+    'En reparation':'go','En Att. PDR':'gb','Transfere':'gp','Reforme':'gg'
+  };
+  // Chercher correspondance exacte ou partielle
+  const key = Object.keys(mp).find(function(k){ return s && s.indexOf(k.split(' ')[0]) >= 0; }) || '';
+  return s ? '<span class="bg '+(mp[s]||mp[key]||'gg')+'">'+s+'</span>' : '-';
+}
+function pct(n,t){ return t>0 ? Math.round(n/t*100) : 0; }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function now(){ return new Date().toISOString(); }
+function toast(m,t){
+  const el=document.getElementById('toast');
+  el.innerHTML=m; el.className='sh '+(t||'ok');
+  setTimeout(function(){ el.className=''; },3500);
+}
+function oM(id){ document.getElementById(id).classList.add('op'); }
+function cM(id){ document.getElementById(id).classList.remove('op'); }
+
+// Fermer modals au clic exterieur
+document.querySelectorAll('.mo').forEach(function(m){
+  m.addEventListener('click',function(e){ if(e.target===m) m.classList.remove('op'); });
+});
+['close-mom','cancel-mom'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(){ cM('mom'); }); });
+['close-mod'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(){ cM('mod'); }); });
+['close-mod-detail','cancel-mod-detail'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(){ cM('mod-detail'); }); });
+['close-mod-interv','cancel-mod-interv'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(){ cM('mod-interv'); }); });
+
+// LOGIN
+async function login(){
+  const u = document.getElementById('u').value.trim().toLowerCase();
+  const p = document.getElementById('p').value.trim();
   document.getElementById('le').style.display='none';
-  if(!USERS[u]||USERS[u].m!==p){document.getElementById('le').style.display='block';return;}
-  ses={user:u,pays:u==='admin'?'admin':u,label:USERS[u].l,admin:USERS[u].a};
+  if(!USERS[u]||USERS[u].m!==p){ document.getElementById('le').style.display='block'; return; }
+  ses = {user:u, pays:u==='admin'?'admin':u, label:USERS[u].l, admin:USERS[u].a};
   document.getElementById('lm').style.display='block';
-  try {
+  try{
     const snap = await getDocs(collection(db,'machines'));
     all = [];
-    snap.forEach(d=>{
-      const data = {id:d.id,...d.data()};
-      if(ses.admin || data.pays_id === ses.pays) all.push(data);
-    });
-    all.sort((a,b)=>(a.code_machine||'').localeCompare(b.code_machine||''));
-    console.log('Machines chargees:', all.length, 'pour pays:', ses.pays);
-  } catch(e) {
-    console.error('Erreur Firebase:', e);
-    document.getElementById('le').textContent = 'Erreur Firebase: ' + e.message;
-    document.getElementById('le').style.display='block';
-    document.getElementById('lm').style.display='none';
-    return;
-  }
+    snap.forEach(function(d){ const data={id:d.id,...d.data()}; if(ses.admin||data.pays_id===ses.pays) all.push(data); });
+    all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
+  }catch(e){ toast('Erreur Firebase: '+e.message,'ko'); }
   document.getElementById('lm').style.display='none';
   start();
   abonner();
-};
-
-function abonner(){
-  // Pas d'abonnement temps reel sur 2700+ docs - trop lourd
-  // On utilise le rechargement manuel ou auto toutes les 60s
-  setInterval(async ()=>{
-    if(!ses) return;
-    const snap = await getDocs(collection(db,'machines'));
-    const newAll = [];
-    snap.forEach(d=>{
-      const data={id:d.id,...d.data()};
-      if(ses.admin||data.pays_id===ses.pays) newAll.push(data);
-    });
-    newAll.sort((a,b)=>(a.code_machine||'').localeCompare(b.code_machine||''));
-    if(newAll.length !== all.length){
-      all = newAll;
-      filt(); stat();
-      toast('Mise a jour detectee','inf');
-    }
-  }, 15000); // verifier toutes les 15 secondes
 }
 
-window.reloadData = async function(){
-  toast('Actualisation...','inf');
-  const snap = await getDocs(collection(db,'machines'));
-  all = [];
-  snap.forEach(d=>{
-    const data={id:d.id,...d.data()};
-    if(ses.admin||data.pays_id===ses.pays) all.push(data);
+function abonner(){
+  if(unsub) unsub();
+  unsub = onSnapshot(collection(db,'machines'), function(snap){
+    all = [];
+    snap.forEach(function(d){ const data={id:d.id,...d.data()}; if(ses.admin||data.pays_id===ses.pays) all.push(data); });
+    all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
+    filt(); stat();
   });
-  all.sort((a,b)=>(a.code_machine||'').localeCompare(b.code_machine||''));
-  filt(); stat();
-  toast('Actualise','ok');
-};
+}
 
-window.logout = function(){
+function logout(){
   if(unsub){unsub();unsub=null;}
   ses=null;
   document.getElementById('ap').style.display='none';
   document.getElementById('lg').style.display='flex';
-  document.getElementById('u').value='';document.getElementById('p').value='';
-};
+  document.getElementById('u').value='';
+  document.getElementById('p').value='';
+}
 
 function start(){
   document.getElementById('lg').style.display='none';
@@ -380,68 +472,114 @@ function start(){
     document.getElementById('cpays').style.display='';
     document.getElementById('tdash').style.display='';
     document.getElementById('badd').style.display='';
-  }else{
+    document.getElementById('filtre-pays-interv').style.display='flex';
+  } else {
     document.getElementById('tdash').style.display='none';
     document.getElementById('badd').style.display='none';
   }
-  filt(); stat();
-  // Attacher event listener bandeau alertes
-  var bd=document.getElementById('bandeau-alertes');
-  if(bd) bd.addEventListener('click',function(){
-    var btn=document.getElementById('tab-alertes');
-    if(btn) window.goT('alertes',btn);
+  // Event listeners
+  document.getElementById('bandeau-alertes').addEventListener('click',function(){
+    goT('alertes', document.getElementById('tab-alertes'));
   });
-  var br=document.getElementById('btn-refresh-alertes');
-  if(br) br.addEventListener('click',function(){ window.verifierAlertes(); });
-  // V&eacute;rifier les alertes au d&eacute;marrage
-  setTimeout(function(){ window.verifierAlertes(); }, 2000);
-  // Rev&eacute;rifier toutes les 5 minutes
-  setInterval(function(){ window.verifierAlertes(); }, 300000);
+  document.getElementById('btn-refresh-alertes').addEventListener('click',function(){ verifierAlertes(); });
+  document.getElementById('btn-nouvelle-interv').addEventListener('click',function(){ nouvelleIntervention(null); });
+  document.getElementById('fp-interv').addEventListener('change',function(){ chargerInterventions(); });
+  document.getElementById('btn-sauver-detail').addEventListener('click',sauverDetail);
+  document.getElementById('btn-sauver-interv').addEventListener('click',sauverIntervention);
+  filt(); stat();
+  setTimeout(function(){ verifierAlertes(); }, 2000);
+  setInterval(function(){ verifierAlertes(); }, 300000);
 }
 
-window.filt = function(){
-  const r=document.getElementById('fr').value.toLowerCase();
-  const s=document.getElementById('fs').value;
-  const f=document.getElementById('ff').value;
-  const py=ses.admin?document.getElementById('fp').value:ses.pays;
-  fi=all.filter(m=>{
-    const t=((m.code_machine||'')+(m.marque||'')+(m.chantier||'')+(m.sous_famille||'')+(m.numero_serie||'')).toLowerCase();
-    return(!r||t.includes(r))&&(!s||m.statut===s)&&(!f||m.famille===f)&&(!py||m.pays_id===py);
+// ONGLETS
+function goT(t, btn){
+  document.querySelectorAll('.ta').forEach(function(x){ x.classList.remove('ac'); });
+  if(btn) btn.classList.add('ac');
+  ['machines','interventions','historique','dashboard','alertes'].forEach(function(x){
+    const el = document.getElementById('t-'+x);
+    if(el) el.style.display = x===t ? '' : 'none';
+  });
+  if(t==='historique') affH();
+  if(t==='dashboard'&&ses.admin) affD();
+  if(t==='alertes') afficherAlertes();
+  if(t==='interventions') chargerInterventions();
+}
+
+['tab-machines','tab-interventions','tab-historique','tdash','tab-alertes'].forEach(function(id){
+  const el = document.getElementById(id);
+  if(el){
+    const t = id.replace('tab-','').replace('tdash','dashboard');
+    el.addEventListener('click', function(){ goT(t, el); });
+  }
+});
+
+// FILTRES
+function filt(){
+  const r = document.getElementById('fr').value.toLowerCase();
+  const s = document.getElementById('fs').value;
+  const f = document.getElementById('ff').value;
+  const py = ses.admin ? document.getElementById('fp').value : ses.pays;
+  fi = all.filter(function(m){
+    const t = ((m.code_machine||'')+(m.marque||'')+(m.chantier||'')+(m.sous_famille||'')+(m.numero_serie||'')).toLowerCase();
+    return (!r||t.includes(r)) && (!s||m.statut===s) && (!f||m.famille===f) && (!py||m.pays_id===py);
   });
   pg=1; ren(); stat();
-};
+}
+document.getElementById('fr').addEventListener('input', filt);
+document.getElementById('fs').addEventListener('change', filt);
+document.getElementById('ff').addEventListener('change', filt);
+document.getElementById('fp').addEventListener('change', filt);
+document.getElementById('btn-reload').addEventListener('click', async function(){
+  toast('Actualisation...','inf');
+  const snap = await getDocs(collection(db,'machines'));
+  all = [];
+  snap.forEach(function(d){ const data={id:d.id,...d.data()}; if(ses.admin||data.pays_id===ses.pays) all.push(data); });
+  all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
+  filt(); stat();
+  toast('Actualise !','ok');
+});
 
+// RENDU TABLEAU
 function ren(){
-  const tb=document.getElementById('tb2'),tot=fi.length,tp=Math.ceil(tot/PP)||1,st=(pg-1)*PP,sl=fi.slice(st,st+PP);
-  document.getElementById('tc2').textContent=tot+' machine(s)';
-  if(!tot){tb.innerHTML='';document.getElementById('em').style.display='block';document.getElementById('pag').innerHTML='';return;}
+  const tb = document.getElementById('tb2');
+  const tot = fi.length, tp = Math.ceil(tot/PP)||1;
+  const st = (pg-1)*PP, sl = fi.slice(st, st+PP);
+  document.getElementById('tc2').textContent = tot+' machine(s)';
+  if(!tot){ tb.innerHTML=''; document.getElementById('em').style.display='block'; document.getElementById('pag').innerHTML=''; return; }
   document.getElementById('em').style.display='none';
-  tb.innerHTML=sl.map(m=>{
-    const pc=ses.admin?`<td>${PN[m.pays_id]||m.pays_id||''}</td>`:'';
-    const ab=ses.admin
-      ?`<button class="bn bs bp" onclick="window.edt('${m.id}')" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" onclick="window.del('${m.id}')">&#128465;</button>`
-      :`<button class="bn bs" onclick="window.saisirDetail('${m.id}')" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B" title="Renseigner le d&eacute;tail du statut">&#128203; D&eacute;tail</button>`;
-    const dernierDetail = m.detail_statut||'';
-    const detailCourt = dernierDetail.length > 30 ? dernierDetail.slice(0,30)+'...' : dernierDetail;
-    return`<tr><td><strong>${m.code_machine||''}</strong></td>${pc}<td>${m.famille||'-'}<br><small style="color:var(--t2)">${m.sous_famille||''}</small></td><td>${m.marque||'-'}</td><td>${badge(m.statut)}</td><td style="font-size:12px;color:var(--te);max-width:160px"><span title="${dernierDetail}">${detailCourt||'<span style=color:var(--t2)>&mdash;</span>'}</span></td><td>${m.chantier||'-'}</td><td style="font-size:11px;color:var(--t2)">${m.numero_serie||'-'}</td><td style="white-space:nowrap"><button class="bn bs bp" onclick="window.det('${m.id}')" style="margin-right:3px">&#128065;</button>${ab}</td></tr>`;
+  tb.innerHTML = sl.map(function(m){
+    const pc = ses.admin ? '<td>'+(PN[m.pays_id]||m.pays_id||'')+'</td>' : '';
+    const detail = m.detail_statut||'';
+    const detailCourt = detail.length>30 ? detail.slice(0,30)+'...' : detail;
+    const ab = ses.admin
+      ? '<button class="bn bs bp" data-edt="'+m.id+'" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" data-del="'+m.id+'">&#128465;</button>'
+      : '<button class="bn bs" data-detail="'+m.id+'" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B">&#128203; Detail</button>';
+    return '<tr><td><strong>'+(m.code_machine||'')+'</strong></td>'+pc+'<td>'+(m.famille||'-')+'<br><small style="color:var(--t2)">'+(m.sous_famille||'')+'</small></td><td>'+(m.marque||'-')+'</td><td>'+badge(m.statut)+'</td><td style="font-size:12px;max-width:160px" title="'+detail+'">'+( detailCourt||'<span style="color:var(--t2)">&#8212;</span>' )+'</td><td>'+(m.chantier||'-')+'</td><td style="font-size:11px;color:var(--t2)">'+(m.numero_serie||'-')+'</td><td style="white-space:nowrap"><button class="bn bs bp" data-det="'+m.id+'" style="margin-right:3px">&#128065;</button><button class="bn bs" data-interv="'+m.id+'" style="background:#F59E0B;color:#fff;margin-right:3px">&#128295;</button>'+ab+'</td></tr>';
   }).join('');
-  if(tp<=1){document.getElementById('pag').innerHTML='';return;}
+  // Attacher events
+  tb.querySelectorAll('[data-det]').forEach(function(btn){ btn.addEventListener('click',function(){ det(btn.dataset.det); }); });
+  tb.querySelectorAll('[data-edt]').forEach(function(btn){ btn.addEventListener('click',function(){ edt(btn.dataset.edt); }); });
+  tb.querySelectorAll('[data-del]').forEach(function(btn){ btn.addEventListener('click',function(){ del(btn.dataset.del); }); });
+  tb.querySelectorAll('[data-detail]').forEach(function(btn){ btn.addEventListener('click',function(){ saisirDetail(btn.dataset.detail); }); });
+  tb.querySelectorAll('[data-interv]').forEach(function(btn){ btn.addEventListener('click',function(){ nouvelleIntervention(btn.dataset.interv); }); });
+  // Pagination
+  if(tp<=1){ document.getElementById('pag').innerHTML=''; return; }
   const fr=Math.max(1,pg-2),to=Math.min(tp,pg+2);
-  let bt=`<span class="pi">Page ${pg}/${tp} &mdash; ${st+1}&agrave;${Math.min(st+PP,tot)} / ${tot}</span><div class="pb">`;
-  bt+=`<button class="pp" onclick="window.goP(1)"${pg===1?' disabled':''}>&laquo;</button>`;
-  bt+=`<button class="pp" onclick="window.goP(${pg-1})"${pg===1?' disabled':''}>&lsaquo;</button>`;
-  for(let i=fr;i<=to;i++)bt+=`<button class="pp${i===pg?' ac':''}" onclick="window.goP(${i})">${i}</button>`;
-  bt+=`<button class="pp" onclick="window.goP(${pg+1})"${pg===tp?' disabled':''}>&rsaquo;</button>`;
-  bt+=`<button class="pp" onclick="window.goP(${tp})"${pg===tp?' disabled':''}>&raquo;</button></div>`;
+  let bt='<span class="pi">Page '+pg+'/'+tp+' &mdash; '+(st+1)+' a '+Math.min(st+PP,tot)+' sur '+tot+'</span><div class="pb">';
+  bt+='<button class="pp" data-pg="1"'+(pg===1?' disabled':'')+'>&laquo;</button>';
+  bt+='<button class="pp" data-pg="'+(pg-1)+'"'+(pg===1?' disabled':'')+'>&lsaquo;</button>';
+  for(let i=fr;i<=to;i++) bt+='<button class="pp'+(i===pg?' ac':'')+'" data-pg="'+i+'">'+i+'</button>';
+  bt+='<button class="pp" data-pg="'+(pg+1)+'"'+(pg===tp?' disabled':'')+'>&rsaquo;</button>';
+  bt+='<button class="pp" data-pg="'+tp+'"'+(pg===tp?' disabled':'')+'>&raquo;</button></div>';
   document.getElementById('pag').innerHTML=bt;
+  document.getElementById('pag').querySelectorAll('[data-pg]').forEach(function(btn){
+    btn.addEventListener('click',function(){ if(!btn.disabled){ pg=parseInt(btn.dataset.pg); ren(); window.scrollTo(0,200); } });
+  });
 }
 
-window.goP = p=>{pg=p;ren();window.scrollTo(0,200);};
-
-function pct(n,t){return t>0?Math.round(n/t*100):0;}
+// STATS
 function stat(){
-  const src=fi.length?fi:all;
-  const t=src.length;
+  const src = fi.length ? fi : all;
   let fonc=0,dispo=0,pa=0,rep=0,pdr=0,ref=0,tra=0;
   src.forEach(function(m){
     const s=m.statut;
@@ -453,496 +591,446 @@ function stat(){
     else if(s==='R&eacute;form&eacute;')ref++;
     else if(s==='Transf&eacute;r&eacute;')tra++;
   });
-  const parc = t - ref;
-  const tx_dispo = pct(fonc + dispo + tra, parc);
-  const tx_panne = pct(pa + rep + pdr, parc);
-  document.getElementById('sg').innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">
-      <div class="sc"><div class="sn">${t}</div><div class="sl">Total machines</div></div>
-      <div class="sc" style="border-left-color:#0EA5E9"><div class="sn" style="color:#0EA5E9">${parc}</div><div class="sl">Parc actif (hors r&eacute;form&eacute;s)</div></div>
-      <div class="sc v"><div class="sn">${fonc} <span style="font-size:13px;color:var(--ve)">${pct(fonc,parc)}%</span></div><div class="sl">Fonctionnelles</div></div>
-      <div class="sc v"><div class="sn">${dispo} <span style="font-size:13px;color:var(--ve)">${pct(dispo,parc)}%</span></div><div class="sl">Disponibles</div></div>
-      <div class="sc" style="border-left-color:#8B5CF6"><div class="sn">${tra} <span style="font-size:13px;color:#8B5CF6">${pct(tra,parc)}%</span></div><div class="sl">Transf&eacute;r&eacute;es</div></div>
-      <div class="sc r"><div class="sn">${pa} <span style="font-size:13px;color:var(--ro)">${pct(pa,parc)}%</span></div><div class="sl">En panne</div></div>
-      <div class="sc o"><div class="sn">${rep} <span style="font-size:13px;color:var(--or)">${pct(rep,parc)}%</span></div><div class="sl">En r&eacute;paration</div></div>
-      <div class="sc" style="border-left-color:#3B82F6"><div class="sn">${pdr} <span style="font-size:13px;color:#3B82F6">${pct(pdr,parc)}%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>
-      <div class="sc g"><div class="sn">${ref}</div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">
-      <div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
-        <div>
-          <div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Taux de disponibilit&eacute;</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Fonctionnelles + Transf&eacute;r&eacute;es / Parc actif</div>
-        </div>
-        <div style="font-size:42px;font-weight:800;color:#fff">${tx_dispo}<span style="font-size:22px">%</span></div>
-      </div>
-      <div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
-        <div>
-          <div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Taux de panne</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Panne + R&eacute;paration + PDR / Parc actif</div>
-        </div>
-        <div style="font-size:42px;font-weight:800;color:#fff">${tx_panne}<span style="font-size:22px">%</span></div>
-      </div>
-    </div>`;
+  const t=src.length, parc=t-ref;
+  const tx_dispo=pct(fonc+dispo+tra,parc), tx_panne=pct(pa+rep+pdr,parc);
+  document.getElementById('sg').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">'+
+    '<div class="sc"><div class="sn">'+t+'</div><div class="sl">Total machines</div></div>'+
+    '<div class="sc" style="border-left-color:#0EA5E9"><div class="sn" style="color:#0EA5E9">'+parc+'</div><div class="sl">Parc actif (hors r&eacute;form&eacute;s)</div></div>'+
+    '<div class="sc v"><div class="sn">'+fonc+' <span style="font-size:13px;color:var(--ve)">'+pct(fonc,parc)+'%</span></div><div class="sl">Fonctionnelles</div></div>'+
+    '<div class="sc v"><div class="sn">'+dispo+' <span style="font-size:13px;color:var(--ve)">'+pct(dispo,parc)+'%</span></div><div class="sl">Disponibles</div></div>'+
+    '<div class="sc" style="border-left-color:#8B5CF6"><div class="sn">'+tra+' <span style="font-size:13px;color:#8B5CF6">'+pct(tra,parc)+'%</span></div><div class="sl">Transf&eacute;r&eacute;es</div></div>'+
+    '<div class="sc r"><div class="sn">'+pa+' <span style="font-size:13px;color:var(--ro)">'+pct(pa,parc)+'%</span></div><div class="sl">En panne</div></div>'+
+    '<div class="sc o"><div class="sn">'+rep+' <span style="font-size:13px;color:var(--or)">'+pct(rep,parc)+'%</span></div><div class="sl">En r&eacute;paration</div></div>'+
+    '<div class="sc" style="border-left-color:#3B82F6"><div class="sn">'+pdr+' <span style="font-size:13px;color:#3B82F6">'+pct(pdr,parc)+'%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>'+
+    '<div class="sc g"><div class="sn">'+ref+'</div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">'+
+    '<div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
+    '<div><div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase">Taux de disponibilit&eacute;</div>'+
+    '<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Fonct. + Dispo + Transf. / Parc actif</div></div>'+
+    '<div style="font-size:42px;font-weight:800;color:#fff">'+tx_dispo+'<span style="font-size:22px">%</span></div></div>'+
+    '<div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
+    '<div><div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase">Taux de panne</div>'+
+    '<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Panne + R&eacute;par. + PDR / Parc actif</div></div>'+
+    '<div style="font-size:42px;font-weight:800;color:#fff">'+tx_panne+'<span style="font-size:22px">%</span></div></div>'+
+    '</div>';
 }
 
-window.openAdd = function(){
-  document.getElementById('mtit').textContent='Ajouter une machine';document.getElementById('eid').value='';
-  ['mc','msf','mmo','mse','mim','mct','mmqt','mco','mdetail'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('mmqt').style.display='none';document.getElementById('mct').style.display='none';
-  document.getElementById('mf').value='';document.getElementById('mmq').value='';
-  document.getElementById('mst').value='Fonctionnelle';document.getElementById('man').value='';
-  document.getElementById('mpays').value='cotedivoire';majCh('cotedivoire');oM('mom');
-};
+// AJOUTER / MODIFIER MACHINE
+document.getElementById('badd').addEventListener('click', openAdd);
+document.getElementById('btn-sauver').addEventListener('click', sauver);
+document.getElementById('mpays').addEventListener('change', function(){ majCh(this.value); });
+document.getElementById('mcs').addEventListener('change', function(){ const v=this.value; document.getElementById('mct').style.display=v==='X'?'block':'none'; });
+document.getElementById('mmq').addEventListener('change', function(){ const v=this.value; document.getElementById('mmqt').style.display=v==='X'?'block':'none'; });
 
-window.edt = function(id){
-  const m=all.find(x=>x.id===id);if(!m)return;
-  document.getElementById('mtit').textContent='Modifier';document.getElementById('eid').value=id;
-  document.getElementById('mc').value=m.code_machine||'';document.getElementById('mf').value=m.famille||'';
-  document.getElementById('msf').value=m.sous_famille||'';document.getElementById('mmo').value=m.modele||'';
-  document.getElementById('mse').value=m.numero_serie||'';document.getElementById('mim').value=m.immatriculation||'';
-  document.getElementById('man').value=m.annee_fabrication||'';document.getElementById('mst').value=m.statut||'Fonctionnelle';
+function openAdd(){
+  document.getElementById('mtit').textContent='Ajouter une machine';
+  document.getElementById('eid').value='';
+  ['mc','msf','mmo','mse','mim','mct','mmqt','mco','mdetail'].forEach(function(i){ document.getElementById(i).value=''; });
+  document.getElementById('mmqt').style.display='none'; document.getElementById('mct').style.display='none';
+  document.getElementById('mf').value=''; document.getElementById('mmq').value='';
+  document.getElementById('mst').value='Fonctionnelle'; document.getElementById('man').value='';
+  document.getElementById('mpays').value='cotedivoire'; majCh('cotedivoire');
+  oM('mom');
+}
+
+function edt(id){
+  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
+  document.getElementById('mtit').textContent='Modifier';
+  document.getElementById('eid').value=id;
+  document.getElementById('mc').value=m.code_machine||'';
+  document.getElementById('mf').value=m.famille||'';
+  document.getElementById('msf').value=m.sous_famille||'';
+  document.getElementById('mmo').value=m.modele||'';
+  document.getElementById('mse').value=m.numero_serie||'';
+  document.getElementById('mim').value=m.immatriculation||'';
+  document.getElementById('man').value=m.annee_fabrication||'';
+  document.getElementById('mst').value=m.statut||'Fonctionnelle';
   document.getElementById('mco').value=m.commentaire||'';
-  document.getElementById('mdetail').value=''; // Nouveau d&eacute;tail vide &mdash; l'ancien est dans l'historiquedocument.getElementById('mpays').value=m.pays_id||'cotedivoire';
+  document.getElementById('mdetail').value='';
+  document.getElementById('mpays').value=m.pays_id||'cotedivoire';
   const mqs=['Caterpillar','Komatsu','Volvo','Hyundai','JCB','Case','Bomag','Hamm','Sinotruk','Iveco','Saic-Iveco','Liebherr','Doosan','Vogele','Shantui','Atlas Copco','Ermont','Fiori','Renault','Manitou'];
-  if(m.marque&&mqs.includes(m.marque)){document.getElementById('mmq').value=m.marque;document.getElementById('mmqt').style.display='none';}
-  else if(m.marque){document.getElementById('mmq').value='X';document.getElementById('mmqt').value=m.marque;document.getElementById('mmqt').style.display='block';}
+  if(m.marque&&mqs.includes(m.marque)){ document.getElementById('mmq').value=m.marque; document.getElementById('mmqt').style.display='none'; }
+  else if(m.marque){ document.getElementById('mmq').value='X'; document.getElementById('mmqt').value=m.marque; document.getElementById('mmqt').style.display='block'; }
   else document.getElementById('mmq').value='';
   majCh(m.pays_id||'cotedivoire');
   const sites=CH[m.pays_id]||[];
-  if(m.chantier&&sites.includes(m.chantier)){document.getElementById('mcs').value=m.chantier;document.getElementById('mct').style.display='none';}
-  else if(m.chantier){document.getElementById('mcs').value='X';document.getElementById('mct').value=m.chantier;document.getElementById('mct').style.display='block';}
+  if(m.chantier&&sites.includes(m.chantier)){ document.getElementById('mcs').value=m.chantier; document.getElementById('mct').style.display='none'; }
+  else if(m.chantier){ document.getElementById('mcs').value='X'; document.getElementById('mct').value=m.chantier; document.getElementById('mct').style.display='block'; }
   oM('mom');
-};
+}
 
-window.sauver = async function(){
-  const code=document.getElementById('mc').value.trim();
-  if(!code){toast('Code obligatoire','ko');return;}
+async function sauver(){
+  const code=document.getElementById('mc').value.trim(); if(!code){toast('Code obligatoire','ko');return;}
   const pid=ses.admin?document.getElementById('mpays').value:ses.pays;
   const eid=document.getElementById('eid').value;
   const stat=document.getElementById('mst').value;
   const mq=document.getElementById('mmq').value==='X'?document.getElementById('mmqt').value.trim():document.getElementById('mmq').value;
   const cs=document.getElementById('mcs').value;
   const ch=cs==='X'?document.getElementById('mct').value.trim():cs;
-  const detail = document.getElementById('mdetail').value.trim();
-  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',detail_statut:detail||'',modifie_par:ses.user,modifie_le:new Date().toISOString()};
+  const detail=document.getElementById('mdetail').value.trim();
+  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',detail_statut:detail||'',modifie_par:ses.user,modifie_le:now()};
   try{
     if(eid){
-      const old=all.find(m=>m.id===eid);
-      mc.cree_par=old?old.cree_par:ses.user;mc.cree_le=old?old.cree_le:new Date().toISOString();
-      // Si pas de nouveau detail, conserver l'ancien
-      if(!detail && old && old.detail_statut) mc.detail_statut = old.detail_statut;
+      const old=all.find(function(m){ return m.id===eid; });
+      mc.cree_par=old?old.cree_par:ses.user; mc.cree_le=old?old.cree_le:now();
+      if(!detail&&old&&old.detail_statut) mc.detail_statut=old.detail_statut;
       await setDoc(doc(db,'machines',eid),mc);
-      // Enregistrer historique si statut chang&eacute; OU si detail renseign&eacute;
-      if(old && (old.statut!==stat || detail)){
-        await addDoc(collection(db,'historique'),{
-          machine_id:eid, code_machine:code, pays_id:pid,
-          ancien_statut:old.statut, nouveau_statut:stat,
-          detail_statut:detail||'',
-          modifie_par:ses.user, modifie_le:new Date().toISOString()
-        });
+      if(old&&(old.statut!==stat||detail)){
+        await addDoc(collection(db,'historique'),{machine_id:eid,code_machine:code,pays_id:pid,ancien_statut:old.statut,nouveau_statut:stat,detail_statut:detail||'',modifie_par:ses.user,modifie_le:now()});
       }
       toast('Mis a jour !','ok');
     }else{
-      mc.cree_par=ses.user;mc.cree_le=new Date().toISOString();
+      mc.cree_par=ses.user; mc.cree_le=now();
       await addDoc(collection(db,'machines'),mc);
-      if(detail){
-        await addDoc(collection(db,'historique'),{
-          machine_id:mc.id||'', code_machine:code, pays_id:pid,
-          ancien_statut:'', nouveau_statut:stat,
-          detail_statut:detail,
-          modifie_par:ses.user, modifie_le:new Date().toISOString()
-        });
-      }
       toast('Machine ajoutee !','ok');
     }
     cM('mom');
   }catch(e){toast('Erreur: '+e.message,'ko');}
-};
+}
 
-window.del = async function(id){
+async function del(id){
   if(!confirm('Supprimer cette machine ?'))return;
-  try{await deleteDoc(doc(db,'machines',id));toast('Supprimee','ok');}
-  catch(e){toast('Erreur','ko');}
-};
+  try{ await deleteDoc(doc(db,'machines',id)); toast('Supprimee','ok'); }
+  catch(e){ toast('Erreur','ko'); }
+}
 
-window.saisirDetail = function(id){
-  const m=all.find(x=>x.id===id);if(!m)return;
-  document.getElementById('sdtitle').textContent='D&eacute;tail statut &mdash; '+m.code_machine;
+// FICHE DETAIL
+async function det(id){
+  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
+  document.getElementById('dtit').textContent='Machine '+m.code_machine;
+  document.getElementById('dbody').innerHTML=
+    '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">'+
+    '<button class="bn bp" id="btn-copier-histo" style="flex:1;font-size:13px;padding:10px;min-width:110px">&#128203; Copier</button>'+
+    '<button class="bn bv" id="btn-pdf-histo" style="flex:1;font-size:13px;padding:10px;min-width:110px">&#128438; PDF</button>'+
+    '<button class="bn" id="btn-interv-det" style="flex:1;font-size:13px;padding:10px;min-width:110px;background:#F59E0B;color:#fff">&#128295; Intervention</button>'+
+    '</div>'+
+    '<div class="dg">'+
+    '<div class="di"><div class="dl">Code</div><div class="dv">'+(m.code_machine||'')+'</div></div>'+
+    '<div class="di"><div class="dl">Pays</div><div class="dv">'+(PN[m.pays_id]||m.pays_id||'')+'</div></div>'+
+    '<div class="di"><div class="dl">Famille</div><div class="dv">'+(m.famille||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Type</div><div class="dv">'+(m.sous_famille||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Marque</div><div class="dv">'+(m.marque||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Mod&egrave;le</div><div class="dv">'+(m.modele||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">N&deg; serie</div><div class="dv">'+(m.numero_serie||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Immat.</div><div class="dv">'+(m.immatriculation||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Statut actuel</div><div class="dv">'+badge(m.statut)+'</div></div>'+
+    '<div class="di"><div class="dl">Chantier</div><div class="dv">'+(m.chantier||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Modifie par</div><div class="dv">'+(m.modifie_par||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Le</div><div class="dv">'+(m.modifie_le||'').slice(0,16)+'</div></div>'+
+    (m.detail_statut?'<div class="di" style="grid-column:1/-1;background:#EFF6FF;border-left:3px solid #3B82F6"><div class="dl" style="color:#1D4ED8">Detail statut actuel</div><div class="dv" style="color:#1E40AF">'+m.detail_statut+'</div></div>':'')+
+    (m.commentaire?'<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">'+m.commentaire+'</div></div>':'')+
+    '</div>'+
+    '<div style="margin:16px 0 10px;font-size:14px;font-weight:700;color:var(--te)">Historique des modifications</div>'+
+    '<div id="histo-machine-'+id+'" style="font-size:13px;color:var(--t2)">Chargement...</div>';
+  document.getElementById('btn-copier-histo').addEventListener('click',function(){ copierHistorique(id); });
+  document.getElementById('btn-pdf-histo').addEventListener('click',function(){ imprimerFiche(id); });
+  document.getElementById('btn-interv-det').addEventListener('click',function(){ cM('mod'); nouvelleIntervention(id); });
+  oM('mod');
+  // Charger historique
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const items=[];
+    snap.forEach(function(d){ const data=d.data(); if(data.machine_id===id) items.push(data); });
+    items.sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
+    const hEl=document.getElementById('histo-machine-'+id);
+    if(!hEl)return;
+    if(!items.length){ hEl.innerHTML='<div style="color:var(--t2);padding:10px">Aucune modification enregistr&eacute;e</div>'; return; }
+    hEl.innerHTML=items.map(function(h,i){
+      return '<div class="hi" style="margin-bottom:10px">'+
+        '<div style="font-size:11px;color:var(--t2)">'+(h.modifie_le||'').slice(0,16).replace('T',' ')+' &mdash; par <strong>'+h.modifie_par+'</strong> <span style="float:right">#'+(items.length-i)+'</span></div>'+
+        '<div style="margin-top:5px">'+(h.ancien_statut?badge(h.ancien_statut)+' &rarr; ':'')+badge(h.nouveau_statut)+'</div>'+
+        (h.detail_statut?'<div style="margin-top:6px;font-size:12px;color:#1E40AF;background:#EFF6FF;padding:6px 10px;border-radius:5px;border-left:3px solid #3B82F6">&#128203; '+h.detail_statut+'</div>':'')+
+        '</div>';
+    }).join('');
+  }catch(e){ const hEl=document.getElementById('histo-machine-'+id); if(hEl) hEl.innerHTML='<div style="color:var(--ro)">Erreur chargement</div>'; }
+}
+
+// COPIER / PDF
+async function copierHistorique(id){
+  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const items=[];
+    snap.forEach(function(d){ const data=d.data(); if(data.machine_id===id) items.push(data); });
+    items.sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
+    let txt='HISTORIQUE MACHINE : '+m.code_machine+'\n';
+    txt+='Pays : '+(PN[m.pays_id]||m.pays_id)+'\n';
+    txt+='Marque : '+(m.marque||'-')+' '+(m.modele||'')+'\n';
+    txt+='Statut actuel : '+m.statut+'\n';
+    if(m.detail_statut) txt+='Detail actuel : '+m.detail_statut+'\n';
+    txt+='==================================================\n\n';
+    if(!items.length){ txt+='Aucune modification enregistree.\n'; }
+    else { items.forEach(function(h){ txt+='['+((h.modifie_le||'').slice(0,16).replace('T',' '))+'] Par: '+h.modifie_par+'\n'; if(h.ancien_statut) txt+='  Statut: '+h.ancien_statut+' => '+h.nouveau_statut+'\n'; else txt+='  Statut: '+h.nouveau_statut+'\n'; if(h.detail_statut) txt+='  Detail: '+h.detail_statut+'\n'; txt+='\n'; }); }
+    await navigator.clipboard.writeText(txt);
+    toast('Historique copie !','ok');
+  }catch(e){ toast('Erreur copie: '+e.message,'ko'); }
+}
+
+async function imprimerFiche(id){
+  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const items=[];
+    snap.forEach(function(d){ const data=d.data(); if(data.machine_id===id) items.push(data); });
+    items.sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
+    const statBg={'Fonctionnelle':'#D1FAE5','Disponible':'#E0F2FE','En panne':'#FEE2E2','En reparation':'#FEF3C7','En Att. PDR':'#DBEAFE','Reforme':'#F3F4F6','Transfere':'#EDE9FE'};
+    const statFg={'Fonctionnelle':'#065F46','Disponible':'#0369A1','En panne':'#991B1B','En reparation':'#92400E','En Att. PDR':'#1E40AF','Reforme':'#374151','Transfere':'#5B21B6'};
+    const win=window.open('','_blank');
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche Machine - SOROUBAT</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:24px;color:#1A1F2E;font-size:13px}.header{background:#1B4F8C;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.cell{padding:10px;background:#F4F5F7;border-radius:6px}.label{font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px}.val{font-size:14px;font-weight:600}.hi{padding:10px 14px;border-left:3px solid #1B4F8C;margin-bottom:8px;background:#F4F5F7;border-radius:0 6px 6px 0}.footer{margin-top:30px;font-size:10px;color:#9CA3AF;text-align:center;border-top:1px solid #DDE1E7;padding-top:10px}@media print{button{display:none}}</style></head><body>');
+    win.document.write('<div class="header"><div><h1 style="margin:0;font-size:20px">SOROUBAT - Fiche Machine</h1><div style="font-size:12px;opacity:.8;margin-top:4px">Genere le '+new Date().toLocaleDateString('fr-FR')+'</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:800">'+m.code_machine+'</div><div style="font-size:12px;opacity:.8">'+(PN[m.pays_id]||m.pays_id)+'</div></div></div>');
+    win.document.write('<div class="grid"><div class="cell"><div class="label">Famille</div><div class="val">'+(m.famille||'-')+'</div></div><div class="cell"><div class="label">Type</div><div class="val">'+(m.sous_famille||'-')+'</div></div><div class="cell"><div class="label">Marque</div><div class="val">'+(m.marque||'-')+'</div></div><div class="cell"><div class="label">Modele</div><div class="val">'+(m.modele||'-')+'</div></div><div class="cell"><div class="label">N serie</div><div class="val">'+(m.numero_serie||'-')+'</div></div><div class="cell"><div class="label">Immat.</div><div class="val">'+(m.immatriculation||'-')+'</div></div><div class="cell"><div class="label">Chantier</div><div class="val">'+(m.chantier||'-')+'</div></div><div class="cell"><div class="label">Statut</div><div class="val">'+m.statut+'</div></div></div>');
+    if(m.detail_statut) win.document.write('<div style="padding:12px;background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:0 6px 6px 0;margin-bottom:20px"><div class="label" style="color:#1D4ED8">Detail statut</div><div style="margin-top:4px;color:#1E40AF">'+m.detail_statut+'</div></div>');
+    win.document.write('<h3 style="color:#1B4F8C;border-bottom:2px solid #1B4F8C;padding-bottom:8px;margin-bottom:12px">Historique ('+items.length+' entree'+(items.length>1?'s':'')+')</h3>');
+    items.forEach(function(h,i){
+      win.document.write('<div class="hi"><div style="font-size:11px;color:#6B7280">#'+(items.length-i)+' &mdash; '+((h.modifie_le||'').slice(0,16).replace('T',' '))+' &mdash; Par: '+h.modifie_par+'</div><div style="margin-top:4px">'+h.ancien_statut+' &#8594; '+h.nouveau_statut+'</div>'+(h.detail_statut?'<div style="font-size:12px;color:#1E40AF;margin-top:4px">'+h.detail_statut+'</div>':'')+'</div>');
+    });
+    win.document.write('<div class="footer">SOROUBAT International - Gestion du Parc Materiel - '+(PN[m.pays_id]||m.pays_id)+'</div>');
+    win.document.write('<scr'+'ipt>window.onload=function(){window.print();}<'+'/scr'+'ipt>');
+    win.document.write('</body></html>');
+    win.document.close();
+  }catch(e){ toast('Erreur PDF: '+e.message,'ko'); }
+}
+
+// DETAIL STATUT PAYS
+function saisirDetail(id){
+  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
+  document.getElementById('sdtitle').textContent='Detail statut - '+m.code_machine;
   document.getElementById('sd-statut').innerHTML=badge(m.statut);
-  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun d&eacute;tail saisi';
+  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun detail saisi';
   document.getElementById('sd-txt').value='';
   document.getElementById('sd-mid').value=id;
   oM('mod-detail');
-};
+}
 
-window.sauverDetail = async function(){
+async function sauverDetail(){
   const id=document.getElementById('sd-mid').value;
   const txt=document.getElementById('sd-txt').value.trim();
-  if(!txt){toast('Veuillez saisir un d&eacute;tail','ko');return;}
-  const m=all.find(x=>x.id===id);if(!m)return;
+  if(!txt){toast('Veuillez saisir un detail','ko');return;}
+  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
   try{
-    const updates={...m, detail_statut:txt, modifie_par:ses.user, modifie_le:new Date().toISOString()};
-    delete updates.id;
+    const updates=Object.assign({},m); delete updates.id;
+    updates.detail_statut=txt; updates.modifie_par=ses.user; updates.modifie_le=now();
     await setDoc(doc(db,'machines',id),updates);
-    await addDoc(collection(db,'historique'),{
-      machine_id:id, code_machine:m.code_machine, pays_id:m.pays_id,
-      ancien_statut:m.statut, nouveau_statut:m.statut,
-      detail_statut:txt, modifie_par:ses.user, modifie_le:new Date().toISOString()
-    });
-    cM('mod-detail');
-    toast('D&eacute;tail enregistr&eacute; !','ok');
-  }catch(e){toast('Erreur: '+e.message,'ko');}
-};
-
-window.det = async function(id){
-  const m=all.find(x=>x.id===id);if(!m)return;
-  document.getElementById('dtit').textContent='Machine '+m.code_machine;
-
-  document.getElementById('dbody').innerHTML = `
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="bn bp" onclick="window.copierHistorique('${id}')" style="flex:1;font-size:13px;padding:10px">&#128203; Copier l'historique</button>
-      <button class="bn bv" onclick="window.imprimerFiche('${id}')" style="flex:1;font-size:13px;padding:10px">&#128438; Exporter PDF</button>
-    </div>
-    <div class="dg">
-      <div class="di"><div class="dl">Code</div><div class="dv">${m.code_machine||''}</div></div>
-      <div class="di"><div class="dl">Pays</div><div class="dv">${PN[m.pays_id]||m.pays_id||''}</div></div>
-      <div class="di"><div class="dl">Famille</div><div class="dv">${m.famille||'-'}</div></div>
-      <div class="di"><div class="dl">Type</div><div class="dv">${m.sous_famille||'-'}</div></div>
-      <div class="di"><div class="dl">Marque</div><div class="dv">${m.marque||'-'}</div></div>
-      <div class="di"><div class="dl">Mod&egrave;le</div><div class="dv">${m.modele||'-'}</div></div>
-      <div class="di"><div class="dl">N&deg; s&eacute;rie</div><div class="dv">${m.numero_serie||'-'}</div></div>
-      <div class="di"><div class="dl">Immat.</div><div class="dv">${m.immatriculation||'-'}</div></div>
-      <div class="di"><div class="dl">Statut actuel</div><div class="dv">${badge(m.statut)}</div></div>
-      <div class="di"><div class="dl">Chantier</div><div class="dv">${m.chantier||'-'}</div></div>
-      <div class="di"><div class="dl">Modifi&eacute; par</div><div class="dv">${m.modifie_par||'-'}</div></div>
-      <div class="di"><div class="dl">Le</div><div class="dv">${(m.modifie_le||'').slice(0,16)}</div></div>
-      ${m.detail_statut?'<div class="di" style="grid-column:1/-1;background:#EFF6FF;border-left:3px solid #3B82F6"><div class="dl" style="color:#1D4ED8">Detail statut actuel</div><div class="dv" style="color:#1E40AF">'+m.detail_statut+'</div></div>':''}
-      ${m.commentaire?'<div class="di" style="grid-column:1/-1"><div class="dl">Commentaire</div><div class="dv">'+m.commentaire+'</div></div>':''}
-    </div>
-    <div style="margin:16px 0 10px;font-size:14px;font-weight:700;color:var(--te)">Historique des modifications</div>
-    <div id="histo-machine-${id}" style="font-size:13px;color:var(--t2)">Chargement...</div>`;
-
-  oM('mod');
-
-  // Charger historique depuis Firebase
-  try{
-    const snap = await getDocs(collection(db,'historique'));
-    const items = [];
-    snap.forEach(d=>{const data=d.data();if(data.machine_id===id)items.push(data);});
-    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
-
-    const hEl = document.getElementById('histo-machine-'+id);
-    if(!hEl) return;
-    if(!items.length){
-      hEl.innerHTML='<div style="color:var(--t2);font-size:13px;padding:10px 0">Aucune modification enregistr&eacute;e</div>';
-      return;
-    }
-    hEl.innerHTML = items.map((h,i)=>`
-      <div class="hi" style="margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div>
-            <div style="font-size:11px;color:var(--t2)">${(h.modifie_le||'').slice(0,16).replace('T',' ')} &mdash; par <strong>${h.modifie_par}</strong></div>
-            <div style="margin-top:5px">${h.ancien_statut?badge(h.ancien_statut)+' &rarr; ':''} ${badge(h.nouveau_statut)}</div>
-            ${h.detail_statut?`<div style="margin-top:6px;font-size:12px;color:#1E40AF;background:#EFF6FF;padding:6px 10px;border-radius:5px;border-left:3px solid #3B82F6">&#128203; ${h.detail_statut}</div>`:''}
-          </div>
-          <span style="font-size:10px;color:var(--t2);white-space:nowrap;margin-left:8px">#${items.length-i}</span>
-        </div>
-      </div>`).join('');
-  }catch(e){
-    const hEl=document.getElementById('histo-machine-'+id);
-    if(hEl) hEl.innerHTML='<div style="color:var(--ro)">Erreur chargement historique</div>';
-  }
-};
-
-window.copierHistorique = async function(id){
-  const m=all.find(x=>x.id===id);if(!m)return;
-  try{
-    const snap=await getDocs(collection(db,'historique'));
-    const items=[];
-    snap.forEach(d=>{const data=d.data();if(data.machine_id===id)items.push(data);});
-    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
-
-    let txt = 'HISTORIQUE MACHINE : ' + m.code_machine + '\n';
-    txt += 'Pays : ' + (PN[m.pays_id]||m.pays_id) + '\n';
-    txt += 'Marque : ' + (m.marque||'-') + ' ' + (m.modele||'') + '\n';
-    txt += 'Statut actuel : ' + m.statut + '\n';
-    if(m.detail_statut) txt += 'Detail actuel : ' + m.detail_statut + '\n';
-    txt += '==================================================\n\n';
-
-    if(!items.length){
-      txt += 'Aucune modification enregistree.\n';
-    } else {
-      items.forEach(function(h,i){
-        txt += '[' + (h.modifie_le||'').slice(0,16).replace('T',' ') + '] Par: ' + h.modifie_par + '\n';
-        if(h.ancien_statut) txt += '  Statut: ' + h.ancien_statut + ' => ' + h.nouveau_statut + '\n';
-        else txt += '  Statut: ' + h.nouveau_statut + '\n';
-        if(h.detail_statut) txt += '  Detail: ' + h.detail_statut + '\n';
-        txt += '\n';
-      });
-    }
-
-    await navigator.clipboard.writeText(txt);
-    toast('Historique copie dans le presse-papier !','ok');
-  }catch(e){toast('Erreur copie: '+e.message,'ko');}
-};
-
-window.imprimerFiche = async function(id){
-  const m=all.find(x=>x.id===id);if(!m)return;
-  try{
-    const snap=await getDocs(collection(db,'historique'));
-    const items=[];
-    snap.forEach(d=>{const data=d.data();if(data.machine_id===id)items.push(data);});
-    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
-
-    const statColors={'Fonctionnelle':'#065F46','En panne':'#991B1B','En r&eacute;paration':'#92400E','En Att. PDR':'#1E40AF','R&eacute;form&eacute;':'#374151','Transf&eacute;r&eacute;':'#5B21B6'};
-    const statBg={'Fonctionnelle':'#D1FAE5','En panne':'#FEE2E2','En r&eacute;paration':'#FEF3C7','En Att. PDR':'#DBEAFE','R&eacute;form&eacute;':'#F3F4F6','Transf&eacute;r&eacute;':'#EDE9FE'};
-
-    const win = window.open('','_blank');
-    win.document.write(`<!DOCTYPE html><!-- SOROUBAT v3.2 --><html><head><meta charset="UTF-8">
-    <title>Fiche Machine - SOROUBAT</title>
-    <style>
-      body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:24px;color:#1A1F2E;font-size:13px;}
-      .header{background:#1B4F8C;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
-      .header h1{margin:0;font-size:20px;letter-spacing:1px;}
-      .header .sub{font-size:12px;opacity:.8;margin-top:4px;}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
-      .cell{padding:10px;background:#F4F5F7;border-radius:6px;}
-      .label{font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;}
-      .val{font-size:14px;font-weight:600;}
-      .statut{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
-      .detail-box{padding:12px;background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:0 6px 6px 0;margin-bottom:20px;}
-      .histo-title{font-size:15px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #1B4F8C;color:#1B4F8C;}
-      .histo-item{padding:10px 14px;border-left:3px solid #1B4F8C;margin-bottom:8px;background:#F4F5F7;border-radius:0 6px 6px 0;}
-      .histo-date{font-size:11px;color:#6B7280;}
-      .histo-detail{font-size:12px;color:#1E40AF;background:#EFF6FF;padding:5px 8px;border-radius:4px;margin-top:5px;border-left:2px solid #3B82F6;}
-      .footer{margin-top:30px;font-size:10px;color:#9CA3AF;text-align:center;border-top:1px solid #DDE1E7;padding-top:10px;}
-      @media print{body{padding:0;} button{display:none;}}
-    </style></head><body>
-    <div class="header">
-      <div>
-        <h1>SOROUBAT &mdash; Fiche Machine</h1>
-        <div class="sub">Document genere le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:22px;font-weight:800">${m.code_machine}</div>
-        <div style="font-size:12px;opacity:.8">${PN[m.pays_id]||m.pays_id}</div>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="cell"><div class="label">Famille</div><div class="val">${m.famille||'-'}</div></div>
-      <div class="cell"><div class="label">Sous-famille</div><div class="val">${m.sous_famille||'-'}</div></div>
-      <div class="cell"><div class="label">Marque</div><div class="val">${m.marque||'-'}</div></div>
-      <div class="cell"><div class="label">Mod&egrave;le</div><div class="val">${m.modele||'-'}</div></div>
-      <div class="cell"><div class="label">N&deg; s&eacute;rie</div><div class="val">${m.numero_serie||'-'}</div></div>
-      <div class="cell"><div class="label">Immatriculation</div><div class="val">${m.immatriculation||'-'}</div></div>
-      <div class="cell"><div class="label">Chantier</div><div class="val">${m.chantier||'-'}</div></div>
-      <div class="cell"><div class="label">Statut actuel</div><div class="val"><span class="statut" style="background:${statBg[m.statut]||'#F3F4F6'};color:${statColors[m.statut]||'#374151'}">${m.statut}</span></div></div>
-    </div>
-    ${m.detail_statut?`<div class="detail-box"><div class="label" style="color:#1D4ED8">D&eacute;tail statut actuel</div><div style="margin-top:4px;font-size:13px;color:#1E40AF">${m.detail_statut}</div></div>`:''}
-    <div class="histo-title">Historique des modifications (${items.length} entr&eacute;e${items.length>1?'s':''})</div>
-    ${items.length?items.map((h,i)=>`
-      <div class="histo-item">
-        <div class="histo-date">#${items.length-i} &mdash; ${(h.modifie_le||'').slice(0,16).replace('T',' ')} &mdash; Par : <strong>${h.modifie_par}</strong></div>
-        <div style="margin-top:4px;font-size:12px">${h.ancien_statut?`<span style="background:${statBg[h.ancien_statut]||'#F3F4F6'};color:${statColors[h.ancien_statut]||'#374151'};padding:2px 8px;border-radius:10px;font-weight:700">${h.ancien_statut}</span> &rarr; `:''}<span style="background:${statBg[h.nouveau_statut]||'#F3F4F6'};color:${statColors[h.nouveau_statut]||'#374151'};padding:2px 8px;border-radius:10px;font-weight:700">${h.nouveau_statut}</span></div>
-        ${h.detail_statut?`<div class="histo-detail">&#128203; ${h.detail_statut}</div>`:''}
-      </div>`).join(''):'<div style="color:#9CA3AF">Aucune modification enregistree</div>'}
-    <div class="footer">SOROUBAT International &mdash; Gestion du Parc Mat&eacute;riel &mdash; ${PN[m.pays_id]||m.pays_id}</div>
-    <scr'+'ipt>window.onload=()=>window.print();<\/scr'+'ipt>
-    </body></html>`);
-    win.document.close();
-  }catch(e){toast('Erreur PDF: '+e.message,'ko');}
-};
-
-window.affH = async function(){
-  try{
-    const snap=await getDocs(collection(db,'historique'));
-    const items=[];
-    snap.forEach(d=>{const data=d.data();if(ses.admin||data.pays_id===ses.pays)items.push(data);});
-    items.sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
-    document.getElementById('hc').innerHTML=items.length
-      ?items.map(h=>`<div class="hi"><div style="font-size:11px;color:var(--t2)">${(h.modifie_le||'').slice(0,16)} &mdash; <strong>${h.code_machine}</strong>${ses.admin?' ('+PN[h.pays_id]+')':''} par ${h.modifie_par}</div><div style="margin-top:3px">${badge(h.ancien_statut)} &rarr; ${badge(h.nouveau_statut)}</div></div>`).join('')
-      :'<div class="em">Aucune modification</div>';
-  }catch(e){document.getElementById('hc').innerHTML='<div class="em">Erreur</div>';}
-};
-
-window.affD = function(){
-  const pays=['benin','burkina','cameroun','cotedivoire','niger','togo'];
-  document.getElementById('pgrid').innerHTML=pays.map(p=>{
-    const ml=all.filter(m=>m.pays_id===p);
-    const tot2=ml.length;
-    const f=ml.filter(m=>m.statut==='Fonctionnelle').length;
-    const pa=ml.filter(m=>m.statut==='En panne').length;
-    const rep2=ml.filter(m=>m.statut==='En r&eacute;paration').length;
-    const pdr2=ml.filter(m=>m.statut==='En Att. PDR').length;
-    const ref2=ml.filter(m=>m.statut==='R&eacute;form&eacute;').length;
-    const tra2=ml.filter(m=>m.statut==='Transf&eacute;r&eacute;').length;
-    const parc2=tot2-ref2;
-    const txD=parc2>0?Math.round((f+tra2)/parc2*100):0;
-    const txP=parc2>0?Math.round((pa+rep2+pdr2)/parc2*100):0;
-    return`<div class="pc">
-      <div class="ph"><div class="pt">${PN[p]||p}</div><span class="bg gb">${tot2} machines</span></div>
-      <div class="ms">
-        <div class="mi"><div class="mn2" style="color:var(--ve)">${f}</div><div class="ml">Fonct.</div></div>
-        <div class="mi"><div class="mn2" style="color:var(--ro)">${pa}</div><div class="ml">Panne</div></div>
-        <div class="mi"><div class="mn2" style="color:var(--or)">${rep2}</div><div class="ml">R&eacute;par.</div></div>
-        <div class="mi"><div class="mn2" style="color:#3B82F6">${pdr2}</div><div class="ml">PDR</div></div>
-        <div class="mi"><div class="mn2" style="color:#94a3b8">${ref2}</div><div class="ml">Reformat.</div></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <div style="flex:1;background:#D1FAE5;border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:#059669">${txD}%</div>
-          <div style="font-size:10px;color:#065F46;font-weight:600">Taux disponibilit&eacute;</div>
-        </div>
-        <div style="flex:1;background:#FEE2E2;border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:#DC2626">${txP}%</div>
-          <div style="font-size:10px;color:#991B1B;font-weight:600">Taux de panne</div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-  const sts=['Fonctionnelle','En panne','En r&eacute;paration','En Att. PDR','Transf&eacute;r&eacute;','R&eacute;form&eacute;'],tot=all.length;
-  document.getElementById('dstat').innerHTML=sts.map(s=>{
-    const n=all.filter(m=>m.statut===s).length,pct=tot?Math.round(n/tot*100):0;
-    return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div style="width:140px">${badge(s)}</div><div style="flex:1;background:var(--gr);border-radius:20px;height:10px"><div style="width:${pct}%;background:var(--bl);height:10px;border-radius:20px"></div></div><div style="width:70px;text-align:right;font-size:13px;font-weight:700">${n} (${pct}%)</div></div>`;
-  }).join('');
-};
-
-// ============================================================
-// SYSTEME D'ALERTES
-// ============================================================
-const SEUIL_PDR_JOURS = 30; // Alerte si En Att. PDR depuis plus de 30 jours
-
-window.verifierAlertes = async function(){
-  if(!ses) return;
-  // R&eacute;cup&eacute;rer historique pour calculer anciennet&eacute; des statuts
-  try{
-    const snap = await getDocs(collection(db,'historique'));
-    const histoParMachine = {};
-    snap.forEach(d=>{
-      const data = d.data();
-      if(!histoParMachine[data.machine_id]) histoParMachine[data.machine_id] = [];
-      histoParMachine[data.machine_id].push(data);
-    });
-
-    const alertes = [];
-    const now = new Date();
-
-    all.forEach(function(m){
-      if(!ses.admin && m.pays_id !== ses.pays) return;
-
-      // Alerte 1 : Machine en panne
-      if(m.statut === 'En panne'){
-        // Chercher depuis quand
-        const histo = (histoParMachine[m.id]||[]).sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
-        const dernier = histo.find(h=>h.nouveau_statut==='En panne');
-        const depuis = dernier ? Math.floor((now-new Date(dernier.modifie_le))/86400000) : null;
-        alertes.push({
-          type:'panne', machine:m,
-          msg: depuis!==null ? 'En panne depuis '+depuis+' jour'+(depuis>1?'s':'') : 'En panne',
-          niveau:'rouge'
-        });
-      }
-
-      // Alerte 2 : En Att. PDR depuis trop longtemps
-      if(m.statut === 'En Att. PDR'){
-        const histo = (histoParMachine[m.id]||[]).sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
-        const dernier = histo.find(h=>h.nouveau_statut==='En Att. PDR');
-        const depuis = dernier ? Math.floor((now-new Date(dernier.modifie_le))/86400000) : 0;
-        if(depuis >= SEUIL_PDR_JOURS){
-          alertes.push({
-            type:'pdr', machine:m,
-            msg: 'En attente de pi&egrave;ces depuis '+depuis+' jours',
-            niveau:'orange'
-          });
-        }
-      }
-
-      // Alerte 3 : Transfert r&eacute;cent (moins de 7 jours)
-      if(m.statut === 'Transf&eacute;r&eacute;'){
-        const histo = (histoParMachine[m.id]||[]).sort((a,b)=>b.modifie_le.localeCompare(a.modifie_le));
-        const dernier = histo.find(h=>h.nouveau_statut==='Transf&eacute;r&eacute;');
-        const depuis = dernier ? Math.floor((now-new Date(dernier.modifie_le))/86400000) : 999;
-        if(depuis <= 7){
-          alertes.push({
-            type:'transfert', machine:m,
-            msg: 'Transf&eacute;r&eacute;e il y a '+depuis+' jour'+(depuis>1?'s':''),
-            niveau:'bleu'
-          });
-        }
-      }
-    });
-
-    // Mettre &agrave; jour le bandeau
-    const bandeau = document.getElementById('bandeau-alertes');
-    const badge = document.getElementById('badge-alertes');
-    const tabBtn = document.getElementById('tab-alertes');
-
-    if(alertes.length > 0){
-      bandeau.style.display = 'block';
-      tabBtn.style.display = '';
-      badge.style.display = '';
-      badge.textContent = alertes.length;
-
-      const pannes = alertes.filter(a=>a.type==='panne').length;
-      const pdrs = alertes.filter(a=>a.type==='pdr').length;
-      const transferts = alertes.filter(a=>a.type==='transfert').length;
-
-      document.getElementById('bandeau-titre').textContent = alertes.length+' alerte'+(alertes.length>1?'s':'')+' active'+(alertes.length>1?'s':'');
-      let details = [];
-      if(pannes) details.push(pannes+' machine'+(pannes>1?'s':'')+' en panne');
-      if(pdrs) details.push(pdrs+' en attente PDR >'+SEUIL_PDR_JOURS+'j');
-      if(transferts) details.push(transferts+' transfert'+(transferts>1?'s':'')+' r&eacute;cent'+(transferts>1?'s':''));
-      document.getElementById('bandeau-detail').textContent = details.join(' &mdash; ');
-    } else {
-      bandeau.style.display = 'none';
-      badge.style.display = 'none';
-    }
-
-    // Stocker pour l'onglet
-    window._alertes = alertes;
-  }catch(e){console.error('Erreur alertes:',e);}
+    await addDoc(collection(db,'historique'),{machine_id:id,code_machine:m.code_machine,pays_id:m.pays_id,ancien_statut:m.statut,nouveau_statut:m.statut,detail_statut:txt,modifie_par:ses.user,modifie_le:now()});
+    cM('mod-detail'); toast('Detail enregistre !','ok');
+  }catch(e){ toast('Erreur: '+e.message,'ko'); }
 }
 
-window.chargerAlertes = function(){
-  const cont = document.getElementById('alertes-content');
-  if(!window._alertes){
-    cont.innerHTML='<div class="em">Chargement...</div>';
-    verifierAlertes().then(()=>afficherAlertes());
-    return;
+// INTERVENTIONS
+function nouvelleIntervention(machineId){
+  document.getElementById('interv-titre').textContent='Nouvelle intervention';
+  document.getElementById('interv-id').value='';
+  document.getElementById('interv-machine-id').value=machineId||'';
+  document.getElementById('interv-date').value=new Date().toISOString().slice(0,10);
+  ['interv-tech','interv-duree','interv-cout','interv-desc','interv-pieces','interv-obs'].forEach(function(i){ document.getElementById(i).value=''; });
+  document.getElementById('interv-avant').value='';
+  document.getElementById('interv-apres').value='';
+  if(machineId){
+    const m=all.find(function(x){ return x.id===machineId; });
+    if(m){
+      document.getElementById('interv-machine-label').textContent=m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.marque||'')+' '+(m.sous_famille||'');
+      document.getElementById('interv-avant').value=m.statut||'';
+    }
+  } else {
+    document.getElementById('interv-machine-label').textContent='Intervention generale';
   }
-  afficherAlertes();
+  oM('mod-interv');
 }
 
-window.afficherAlertes = function(){
-  const cont = document.getElementById('alertes-content');
-  const alertes = window._alertes || [];
-  if(!alertes.length){
-    cont.innerHTML='<div class="em" style="color:#1D9E75">&#10003; Aucune alerte active</div>';
-    return;
-  }
-
-  const couleurs = {
-    rouge: {bg:'#FEE2E2',bord:'#E24B4A',txt:'#991B1B',ic:'&#128308;'},
-    orange:{bg:'#FEF3C7',bord:'#F59E0B',txt:'#92400E',ic:'&#128993;'},
-    bleu:  {bg:'#DBEAFE',bord:'#3B82F6',txt:'#1E40AF',ic:'&#128309;'}
+async function sauverIntervention(){
+  const tech=document.getElementById('interv-tech').value.trim();
+  const desc=document.getElementById('interv-desc').value.trim();
+  const date=document.getElementById('interv-date').value;
+  if(!tech||!desc||!date){toast('Champs obligatoires: date, technicien, description','ko');return;}
+  const machineId=document.getElementById('interv-machine-id').value;
+  const m=machineId?all.find(function(x){ return x.id===machineId; }):null;
+  const apres=document.getElementById('interv-apres').value;
+  const data={
+    machine_id:machineId||'', code_machine:m?m.code_machine:'',
+    pays_id:m?m.pays_id:ses.pays,
+    date_intervention:date, technicien:tech,
+    duree_heures:parseFloat(document.getElementById('interv-duree').value)||0,
+    cout_fcfa:parseInt(document.getElementById('interv-cout').value)||0,
+    statut_avant:document.getElementById('interv-avant').value||'',
+    statut_apres:apres||'', description:desc,
+    pieces_utilisees:document.getElementById('interv-pieces').value.trim()||'',
+    observations:document.getElementById('interv-obs').value.trim()||'',
+    cree_par:ses.user, cree_le:now()
   };
+  try{
+    await addDoc(collection(db,'interventions'),data);
+    if(machineId&&apres&&m&&m.statut!==apres){
+      const updates=Object.assign({},m); delete updates.id;
+      updates.statut=apres; updates.modifie_par=ses.user; updates.modifie_le=now();
+      await setDoc(doc(db,'machines',machineId),updates);
+      await addDoc(collection(db,'historique'),{machine_id:machineId,code_machine:m.code_machine,pays_id:m.pays_id,ancien_statut:m.statut,nouveau_statut:apres,detail_statut:'Intervention: '+desc.slice(0,80),modifie_par:ses.user,modifie_le:now()});
+    }
+    cM('mod-interv');
+    toast('Intervention enregistree !','ok');
+    chargerInterventions();
+  }catch(e){ toast('Erreur: '+e.message,'ko'); }
+}
 
-  const types = {panne:'En panne', pdr:'Att. PDR', transfert:'Transfert'};
+async function chargerInterventions(){
+  const cont=document.getElementById('interv-list'); if(!cont)return;
+  cont.innerHTML='<div class="em">Chargement...</div>';
+  try{
+    const snap=await getDocs(collection(db,'interventions'));
+    const items=[];
+    snap.forEach(function(d){ items.push({id:d.id,...d.data()}); });
+    const fp=ses.admin?(document.getElementById('fp-interv')?document.getElementById('fp-interv').value:''):ses.pays;
+    const filtered=items.filter(function(iv){ return !fp||iv.pays_id===fp; });
+    filtered.sort(function(a,b){ return b.date_intervention.localeCompare(a.date_intervention); });
+    if(!filtered.length){ cont.innerHTML='<div class="em">Aucune intervention enregistr&eacute;e</div>'; return; }
+    cont.innerHTML=filtered.map(function(iv){
+      const cout=iv.cout_fcfa?iv.cout_fcfa.toLocaleString('fr-FR')+' FCFA':'-';
+      const duree=iv.duree_heures?iv.duree_heures+'h':'-';
+      return '<div style="border:1px solid var(--bo);border-radius:8px;padding:16px;margin-bottom:12px">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'+
+        '<div><div style="font-weight:700;font-size:14px">'+iv.date_intervention+' &mdash; '+(iv.code_machine||'Intervention generale')+'</div>'+
+        '<div style="font-size:12px;color:var(--t2);margin-top:3px">'+(PN[iv.pays_id]||iv.pays_id||'')+
+        (iv.technicien?' &mdash; Technicien: <strong>'+iv.technicien+'</strong>':'')+
+        (duree!=='-'?' &mdash; Dur&eacute;e: '+duree:'')+
+        (cout!=='-'?' &mdash; Co&ucirc;t: '+cout:'')+'</div></div>'+
+        '<div style="display:flex;gap:6px;align-items:center">'+
+        (iv.statut_avant?'<span style="font-size:11px">'+badge(iv.statut_avant)+' &rarr; '+badge(iv.statut_apres)+'</span>':'')+
+        '<button class="bn bs bd" data-suppr="'+iv.id+'">&#128465;</button>'+
+        '</div></div>'+
+        '<div style="font-size:13px;color:var(--te);margin-bottom:6px">'+iv.description+'</div>'+
+        (iv.pieces_utilisees?'<div style="font-size:12px;color:var(--t2);background:var(--gr);padding:6px 10px;border-radius:5px;margin-bottom:4px">&#128295; Pi&egrave;ces: '+iv.pieces_utilisees+'</div>':'')+
+        (iv.observations?'<div style="font-size:12px;color:#1E40AF;background:#EFF6FF;padding:6px 10px;border-radius:5px">&#128161; '+iv.observations+'</div>':'')+
+        '<div style="font-size:11px;color:var(--t2);margin-top:8px">Cr&eacute;&eacute; par: '+iv.cree_par+'</div>'+
+        '</div>';
+    }).join('');
+    // Attacher events suppression
+    cont.querySelectorAll('[data-suppr]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        if(!confirm('Supprimer cette intervention ?'))return;
+        deleteDoc(doc(db,'interventions',btn.dataset.suppr)).then(function(){
+          toast('Supprimee','ok'); chargerInterventions();
+        }).catch(function(e){ toast('Erreur','ko'); });
+      });
+    });
+  }catch(e){ cont.innerHTML='<div class="em">Erreur chargement</div>'; console.error(e); }
+}
 
-  cont.innerHTML = alertes.map(function(a){
-    const c = couleurs[a.niveau];
-    const m = a.machine;
+// HISTORIQUE
+async function affH(){
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const items=[];
+    snap.forEach(function(d){ const data=d.data(); if(ses.admin||data.pays_id===ses.pays) items.push(data); });
+    items.sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
+    document.getElementById('hc').innerHTML=items.length
+      ?items.map(function(h){ return '<div class="hi"><div style="font-size:11px;color:var(--t2)">'+(h.modifie_le||'').slice(0,16)+' &mdash; <strong>'+h.code_machine+'</strong>'+(ses.admin?' ('+PN[h.pays_id]+')':'')+' par '+h.modifie_par+'</div><div style="margin-top:3px">'+badge(h.ancien_statut)+' &rarr; '+badge(h.nouveau_statut)+'</div>'+(h.detail_statut?'<div style="font-size:12px;color:#1E40AF;margin-top:4px">'+h.detail_statut+'</div>':'')+'</div>'; }).join('')
+      :'<div class="em">Aucune modification</div>';
+  }catch(e){ document.getElementById('hc').innerHTML='<div class="em">Erreur</div>'; }
+}
+
+// DASHBOARD
+function affD(){
+  const pays=['benin','burkina','cameroun','cotedivoire','niger','togo'];
+  document.getElementById('pgrid').innerHTML=pays.map(function(p){
+    const ml=all.filter(function(m){ return m.pays_id===p; });
+    const t2=ml.length;
+    const f=ml.filter(function(m){ return m.statut==='Fonctionnelle'; }).length;
+    const d2=ml.filter(function(m){ return m.statut==='Disponible'; }).length;
+    const pa=ml.filter(function(m){ return m.statut==='En panne'; }).length;
+    const rep2=ml.filter(function(m){ return m.statut==='En r&eacute;paration'; }).length;
+    const pdr2=ml.filter(function(m){ return m.statut==='En Att. PDR'; }).length;
+    const ref2=ml.filter(function(m){ return m.statut==='R&eacute;form&eacute;'; }).length;
+    const tra2=ml.filter(function(m){ return m.statut==='Transf&eacute;r&eacute;'; }).length;
+    const parc2=t2-ref2;
+    const txD=parc2>0?Math.round((f+d2+tra2)/parc2*100):0;
+    const txP=parc2>0?Math.round((pa+rep2+pdr2)/parc2*100):0;
+    return '<div class="pc"><div class="ph"><div class="pt">'+(PN[p]||p)+'</div><span class="bg gb">'+t2+' machines</span></div>'+
+      '<div class="ms">'+
+      '<div class="mi"><div class="mn2" style="color:var(--ve)">'+f+'</div><div class="ml">Fonct.</div></div>'+
+      '<div class="mi"><div class="mn2" style="color:#0EA5E9">'+d2+'</div><div class="ml">Dispo.</div></div>'+
+      '<div class="mi"><div class="mn2" style="color:var(--ro)">'+pa+'</div><div class="ml">Panne</div></div>'+
+      '<div class="mi"><div class="mn2" style="color:var(--or)">'+rep2+'</div><div class="ml">R&eacute;par.</div></div>'+
+      '<div class="mi"><div class="mn2" style="color:#3B82F6">'+pdr2+'</div><div class="ml">PDR</div></div>'+
+      '<div class="mi"><div class="mn2" style="color:#94a3b8">'+ref2+'</div><div class="ml">R&eacute;form.</div></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px">'+
+      '<div style="flex:1;background:#D1FAE5;border-radius:8px;padding:8px;text-align:center"><div style="font-size:20px;font-weight:800;color:#059669">'+txD+'%</div><div style="font-size:10px;color:#065F46;font-weight:600">Taux dispo.</div></div>'+
+      '<div style="flex:1;background:#FEE2E2;border-radius:8px;padding:8px;text-align:center"><div style="font-size:20px;font-weight:800;color:#DC2626">'+txP+'%</div><div style="font-size:10px;color:#991B1B;font-weight:600">Taux panne</div></div>'+
+      '</div></div>';
+  }).join('');
+  const sts=['Fonctionnelle','Disponible','En panne','En r&eacute;paration','En Att. PDR','Transf&eacute;r&eacute;','R&eacute;form&eacute;'],tot=all.length;
+  document.getElementById('dstat').innerHTML=sts.map(function(s){
+    const n=all.filter(function(m){ return m.statut===s; }).length;
+    const p=tot?Math.round(n/tot*100):0;
+    return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div style="width:140px">'+badge(s)+'</div><div style="flex:1;background:var(--gr);border-radius:20px;height:10px"><div style="width:'+p+'%;background:var(--bl);height:10px;border-radius:20px"></div></div><div style="width:70px;text-align:right;font-size:13px;font-weight:700">'+n+' ('+p+'%)</div></div>';
+  }).join('');
+}
+
+// ALERTES
+const SEUIL_PDR = 30;
+async function verifierAlertes(){
+  if(!ses)return;
+  try{
+    const snap=await getDocs(collection(db,'historique'));
+    const histoMap={};
+    snap.forEach(function(d){ const data=d.data(); if(!histoMap[data.machine_id]) histoMap[data.machine_id]=[]; histoMap[data.machine_id].push(data); });
+    const alertes=[];
+    const now2=new Date();
+    all.forEach(function(m){
+      if(!ses.admin&&m.pays_id!==ses.pays)return;
+      if(m.statut==='En panne'){
+        const histo=(histoMap[m.id]||[]).sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
+        const dernier=histo.find(function(h){ return h.nouveau_statut==='En panne'; });
+        const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):null;
+        alertes.push({type:'panne',machine:m,msg:'En panne'+(depuis!==null?' depuis '+depuis+' jour'+(depuis>1?'s':''):''),niveau:'rouge'});
+      }
+      if(m.statut==='En Att. PDR'){
+        const histo=(histoMap[m.id]||[]).sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
+        const dernier=histo.find(function(h){ return h.nouveau_statut==='En Att. PDR'; });
+        const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):0;
+        if(depuis>=SEUIL_PDR) alertes.push({type:'pdr',machine:m,msg:'En attente pieces depuis '+depuis+' jours',niveau:'orange'});
+      }
+      if(m.statut==='Transf&eacute;r&eacute;'){
+        const histo=(histoMap[m.id]||[]).sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
+        const dernier=histo.find(function(h){ return h.nouveau_statut==='Transf&eacute;r&eacute;'; });
+        const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):999;
+        if(depuis<=7) alertes.push({type:'transfert',machine:m,msg:'Transferee il y a '+depuis+' jour'+(depuis>1?'s':''),niveau:'bleu'});
+      }
+    });
+    window._alertes=alertes;
+    const bandeau=document.getElementById('bandeau-alertes');
+    const badge2=document.getElementById('badge-alertes');
+    const tabBtn=document.getElementById('tab-alertes');
+    if(alertes.length>0){
+      bandeau.style.display='block'; tabBtn.style.display=''; badge2.style.display=''; badge2.textContent=alertes.length;
+      const pannes=alertes.filter(function(a){ return a.type==='panne'; }).length;
+      const pdrs=alertes.filter(function(a){ return a.type==='pdr'; }).length;
+      const transfs=alertes.filter(function(a){ return a.type==='transfert'; }).length;
+      document.getElementById('bandeau-titre').textContent=alertes.length+' alerte'+(alertes.length>1?'s':'')+' active'+(alertes.length>1?'s':'');
+      const details=[];
+      if(pannes) details.push(pannes+' machine'+(pannes>1?'s':'')+' en panne');
+      if(pdrs) details.push(pdrs+' en attente PDR >'+SEUIL_PDR+'j');
+      if(transfs) details.push(transfs+' transfert'+(transfs>1?'s':'')+' recent'+(transfs>1?'s':''));
+      document.getElementById('bandeau-detail').textContent=details.join(' - ');
+    } else { bandeau.style.display='none'; badge2.style.display='none'; }
+  }catch(e){ console.error('Erreur alertes:',e); }
+}
+
+function afficherAlertes(){
+  const cont=document.getElementById('alertes-content');
+  const alertes=window._alertes||[];
+  if(!alertes.length){ cont.innerHTML='<div class="em" style="color:#1D9E75">&#10003; Aucune alerte active</div>'; return; }
+  const couleurs={rouge:{bg:'#FEE2E2',bord:'#E24B4A',txt:'#991B1B',ic:'&#128308;'},orange:{bg:'#FEF3C7',bord:'#F59E0B',txt:'#92400E',ic:'&#128993;'},bleu:{bg:'#DBEAFE',bord:'#3B82F6',txt:'#1E40AF',ic:'&#128309;'}};
+  const types={panne:'En panne',pdr:'Att. PDR',transfert:'Transfert'};
+  cont.innerHTML=alertes.map(function(a){
+    const c=couleurs[a.niveau]; const m=a.machine;
     return '<div style="background:'+c.bg+';border-left:4px solid '+c.bord+';border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:10px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
-      '<div style="display:flex;align-items:center;gap:10px">'+
-      '<span style="font-size:18px">'+c.ic+'</span>'+
-      '<div>'+
-      '<div style="font-weight:700;color:'+c.txt+';font-size:14px">'+m.code_machine+' &mdash; '+(PN[m.pays_id]||m.pays_id)+'</div>'+
+      '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px">'+c.ic+'</span>'+
+      '<div><div style="font-weight:700;color:'+c.txt+';font-size:14px">'+m.code_machine+' &mdash; '+(PN[m.pays_id]||m.pays_id)+'</div>'+
       '<div style="font-size:12px;color:'+c.txt+';margin-top:2px">'+a.msg+'</div>'+
-      '<div style="font-size:11px;color:var(--t2);margin-top:3px">'+
-        (m.famille||'')+(m.sous_famille?' &mdash; '+m.sous_famille:'')+(m.marque?' &mdash; '+m.marque:'')+(m.chantier?' &mdash; '+m.chantier:'')+
-      '</div>'+
+      '<div style="font-size:11px;color:var(--t2);margin-top:3px">'+(m.famille||'')+( m.sous_famille?' &mdash; '+m.sous_famille:'')+(m.marque?' &mdash; '+m.marque:'')+(m.chantier?' &mdash; '+m.chantier:'')+'</div>'+
       (m.detail_statut?'<div style="font-size:12px;color:#1E40AF;background:#EFF6FF;padding:4px 8px;border-radius:4px;margin-top:5px">'+m.detail_statut+'</div>':'')+
       '</div></div>'+
       '<span style="font-size:11px;font-weight:700;background:'+c.bord+';color:#fff;padding:3px 10px;border-radius:20px">'+types[a.type]+'</span>'+
@@ -950,47 +1038,33 @@ window.afficherAlertes = function(){
   }).join('');
 }
 
-window.expCSV = function(){
+// CSV
+function expCSV(){
   if(!fi.length){toast('Aucune donnee','ko');return;}
   const cols=['Code','Pays','Famille','Type','Marque','Modele','N Serie','Immat','Statut','Chantier'];
-  const rows=fi.map(m=>[m.code_machine,PN[m.pays_id]||m.pays_id,m.famille||'',m.sous_famille||'',m.marque||'',m.modele||'',m.numero_serie||'',m.immatriculation||'',m.statut||'',m.chantier||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';'));
+  const rows=fi.map(function(m){ return [m.code_machine,PN[m.pays_id]||m.pays_id,m.famille||'',m.sous_famille||'',m.marque||'',m.modele||'',m.numero_serie||'',m.immatriculation||'',m.statut||'',m.chantier||''].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(';'); });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['\uFEFF'+[cols.join(';'),...rows].join('\n')],{type:'text/csv;charset=utf-8'}));
-  a.download='SOROUBAT_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
-  toast('CSV exporte','ok');
-};
-
-window.majCh = function(p){
-  const s=document.getElementById('mcs'),sites=CH[p]||[];
-  let o='<option value="">--</option>';
-  sites.forEach(x=>o+=`<option>${x}</option>`);
-  o+='<option value="X">Nouveau site...</option>';
-  s.innerHTML=o;document.getElementById('mct').style.display='none';
-};
-window.togCh=()=>{const v=document.getElementById('mcs').value;document.getElementById('mct').style.display=v==='X'?'block':'none';};
-window.togMq=()=>{const v=document.getElementById('mmq').value;document.getElementById('mmqt').style.display=v==='X'?'block':'none';};
-window.goT=function(t,b){
-  document.querySelectorAll('.ta').forEach(x=>x.classList.remove('ac'));b.classList.add('ac');
-  ['machines','historique','dashboard','alertes'].forEach(x=>{
-    const el=document.getElementById('t-'+x);
-    if(el) el.style.display=x===t?'':'none';
-  });
-  if(t==='historique')window.affH();
-  if(t==='dashboard'&&ses.admin)window.affD();
-  if(t==='alertes')chargerAlertes();
-};
-
-window.goTabAlerte = function(){
-  const btn=document.getElementById('tab-alertes');
-  if(btn) window.goT('alertes',btn);
+  a.download='SOROUBAT_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  toast('CSV exporte !','ok');
 }
-window.oM=id=>document.getElementById(id).classList.add('op');
-window.cM=id=>document.getElementById(id).classList.remove('op');
-document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('op');}));
-function badge(s){const mp={'Fonctionnelle':'gv','En panne':'gr2','En r&eacute;paration':'go','En Att. PDR':'gb','Transf&eacute;r&eacute;':'gp','R&eacute;form&eacute;':'gg'};return s?`<span class="bg ${mp[s]||'gg'}">${s}</span>`:'-';}
-function toast(m,t){const el=document.getElementById('toast');el.innerHTML=m;el.className='sh '+(t||'ok');setTimeout(()=>el.className='',3500);}
-document.getElementById('p').addEventListener('keydown',e=>{if(e.key==='Enter')window.login();});
-document.getElementById('u').addEventListener('keydown',e=>{if(e.key==='Enter')window.login();});
+document.getElementById('btn-csv').addEventListener('click',expCSV);
+
+// CHANTIERS
+function majCh(p){
+  const s=document.getElementById('mcs'), sites=CH[p]||[];
+  let o='<option value="">--</option>';
+  sites.forEach(function(x){ o+='<option>'+x+'</option>'; });
+  o+='<option value="X">Nouveau site...</option>';
+  s.innerHTML=o; document.getElementById('mct').style.display='none';
+}
+
+// ENTER sur login
+document.getElementById('p').addEventListener('keydown',function(e){ if(e.key==='Enter') login(); });
+document.getElementById('u').addEventListener('keydown',function(e){ if(e.key==='Enter') login(); });
+document.getElementById('btn-login').addEventListener('click', login);
+document.getElementById('dc').addEventListener('click', logout);
+
 </script>
 </body>
 </html>
