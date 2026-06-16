@@ -120,7 +120,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
   </div>
   <div class="mn">
     <!-- BANDEAU ALERTES -->
-    <div id="bandeau-alertes" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:var(--r);padding:14px 18px;margin-bottom:16px;cursor:pointer" onclick="goTabAlerte()">
+    <div id="bandeau-alertes" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:var(--r);padding:14px 18px;margin-bottom:16px;cursor:pointer">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:20px">&#128680;</span>
@@ -138,7 +138,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
       <div class="tw" style="padding:20px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <h3 style="font-size:15px;font-weight:700">&#128680; Alertes actives</h3>
-          <button class="bn" style="background:var(--gr);font-size:12px" onclick="chargerAlertes()">&#8635; Actualiser</button>
+          <button class="bn" style="background:var(--gr);font-size:12px" id="btn-refresh-alertes">&#8635; Actualiser</button>
         </div>
         <div id="alertes-content"><div class="em">Chargement...</div></div>
       </div>
@@ -283,16 +283,6 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query, orderBy, addDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-window.onerror = function(msg, src, line, col, err) {
-  document.body.innerHTML = '<div style="padding:20px;font-family:Arial;background:#FEE2E2;color:#991B1B;border-radius:10px;margin:20px">' +
-    '<h3>Erreur technique</h3>' +
-    '<p><strong>Message:</strong> ' + msg + '</p>' +
-    '<p><strong>Ligne:</strong> ' + line + '</p>' +
-    '<p>Veuillez contacter l\'administrateur ou rafraichir la page.</p>' +
-    '</div>';
-  return false;
-};
-
 const FC = {
   apiKey:"AIzaSyBqlW_7dlxNETpHA8C0FOEdqcvV5cXXwmY",
   authDomain:"parc-soroubat-inter.firebaseapp.com",
@@ -395,10 +385,18 @@ function start(){
     document.getElementById('badd').style.display='none';
   }
   filt(); stat();
+  // Attacher event listener bandeau alertes
+  var bd=document.getElementById('bandeau-alertes');
+  if(bd) bd.addEventListener('click',function(){
+    var btn=document.getElementById('tab-alertes');
+    if(btn) window.goT('alertes',btn);
+  });
+  var br=document.getElementById('btn-refresh-alertes');
+  if(br) br.addEventListener('click',function(){ window.verifierAlertes(); });
   // V&eacute;rifier les alertes au d&eacute;marrage
-  setTimeout(function(){ verifierAlertes(); }, 2000);
+  setTimeout(function(){ window.verifierAlertes(); }, 2000);
   // Rev&eacute;rifier toutes les 5 minutes
-  setInterval(function(){ verifierAlertes(); }, 300000);
+  setInterval(function(){ window.verifierAlertes(); }, 300000);
 }
 
 window.filt = function(){
