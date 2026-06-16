@@ -437,7 +437,7 @@ function stat(){
       <div class="sc r"><div class="sn">${pa} <span style="font-size:13px;color:var(--ro)">${pct(pa,parc)}%</span></div><div class="sl">En panne</div></div>
       <div class="sc o"><div class="sn">${rep} <span style="font-size:13px;color:var(--or)">${pct(rep,parc)}%</span></div><div class="sl">En r&eacute;paration</div></div>
       <div class="sc" style="border-left-color:#3B82F6"><div class="sn">${pdr} <span style="font-size:13px;color:#3B82F6">${pct(pdr,parc)}%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>
-      <div class="sc g"><div class="sn">${ref} <span style="font-size:13px;color:#94a3b8">${pct(ref,t)}%</span></div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>
+      <div class="sc g"><div class="sn">${ref}</div><div class="sl">R&eacute;form&eacute;s (exclus du calcul)</div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">
       <div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
@@ -758,7 +758,7 @@ window.affD = function(){
         <div class="mi"><div class="mn2" style="color:var(--ro)">${pa}</div><div class="ml">Panne</div></div>
         <div class="mi"><div class="mn2" style="color:var(--or)">${rep2}</div><div class="ml">R&eacute;par.</div></div>
         <div class="mi"><div class="mn2" style="color:#3B82F6">${pdr2}</div><div class="ml">PDR</div></div>
-        <div class="mi"><div class="mn2" style="color:#94a3b8">${ref2}</div><div class="ml">R&eacute;form.</div></div>
+        <div class="mi"><div class="mn2" style="color:#94a3b8">${ref2}</div><div class="ml">Reformat.</div></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <div style="flex:1;background:#D1FAE5;border-radius:8px;padding:8px;text-align:center">
