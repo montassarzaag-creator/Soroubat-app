@@ -300,22 +300,39 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
   </div>
   <div class="mb">
     <input type="hidden" id="sd-mid">
+    <input type="hidden" id="sd-statut-ancien">
     <div style="margin-bottom:14px">
       <div class="dl">Statut actuel</div>
       <div style="margin-top:6px" id="sd-statut"></div>
     </div>
-    <div style="margin-bottom:14px;padding:12px;background:#FEF3C7;border-radius:8px;border-left:3px solid #F59E0B">
-      <div class="dl" style="color:#92400E">Dernier d&#233;tail enregistr&#233;</div>
-      <div style="margin-top:5px;font-size:13px;color:#78350F" id="sd-ancien"></div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;display:block;margin-bottom:5px">Changer le statut</label>
+      <select id="sd-nouveau-statut" style="width:100%;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;background:var(--gr)">
+        <option value="">-- Garder le statut actuel --</option>
+        <option value="Fonctionnelle">Fonctionnelle</option>
+        <option value="Disponible">Disponible</option>
+        <option value="En panne">En panne &#128680;</option>
+        <option value="En r&#233;paration">En r&#233;paration &#128295;</option>
+        <option value="En Att. PDR">En Att. PDR &#9203;</option>
+        <option value="Transf&#233;r&#233;">Transf&#233;r&#233;</option>
+        <option value="R&#233;form&#233;">R&#233;form&#233;</option>
+      </select>
+      <div id="sd-avert-interv" style="display:none;margin-top:8px;padding:10px;background:#FEF3C7;border-radius:8px;border-left:3px solid #F59E0B;font-size:12px;color:#92400E">
+        &#128276; Une fiche d&#39;intervention s&#39;ouvrira automatiquement apr&#232;s enregistrement.
+      </div>
+    </div>
+    <div style="margin-bottom:14px;padding:12px;background:#F4F5F7;border-radius:8px;border-left:3px solid #94a3b8">
+      <div class="dl">Dernier d&#233;tail enregistr&#233;</div>
+      <div style="margin-top:5px;font-size:13px;color:var(--t2)" id="sd-ancien"></div>
     </div>
     <div class="fg fu">
-      <label>Nouveau d&#233;tail</label>
-      <textarea id="sd-txt" rows="4" style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical"></textarea>
+      <label>D&#233;tail / Commentaire</label>
+      <textarea id="sd-txt" rows="3" style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical" placeholder="D&#233;crivez la situation actuelle de la machine..."></textarea>
     </div>
   </div>
   <div class="mf">
     <button class="bn" style="background:var(--gr)" id="cancel-mod-detail">Annuler</button>
-    <button class="bn bp" id="btn-sauver-detail">&#128190; Enregistrer le d&#233;tail</button>
+    <button class="bn bp" id="btn-sauver-detail">&#128190; Enregistrer</button>
   </div>
 </div></div>
 
@@ -485,6 +502,11 @@ function start(){
   document.getElementById('btn-nouvelle-interv').addEventListener('click',function(){ nouvelleIntervention(null); });
   document.getElementById('fp-interv').addEventListener('change',function(){ chargerInterventions(); });
   document.getElementById('btn-sauver-detail').addEventListener('click',sauverDetail);
+  document.getElementById('sd-nouveau-statut').addEventListener('change',function(){
+    const v=this.value;
+    const critiques=['En panne','En réparation','En Att. PDR'];
+    document.getElementById('sd-avert-interv').style.display = critiques.includes(v) ? 'block' : 'none';
+  });
   document.getElementById('btn-sauver-interv').addEventListener('click',sauverIntervention);
   filt(); stat();
   setTimeout(function(){ verifierAlertes(); }, 2000);
@@ -796,25 +818,69 @@ async function imprimerFiche(id){
 // DETAIL STATUT PAYS
 function saisirDetail(id){
   const m=all.find(function(x){ return x.id===id; }); if(!m)return;
-  document.getElementById('sdtitle').textContent='Detail statut - '+m.code_machine;
+  document.getElementById('sdtitle').textContent='Mise à jour - '+m.code_machine;
   document.getElementById('sd-statut').innerHTML=badge(m.statut);
-  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun detail saisi';
+  document.getElementById('sd-statut-ancien').value=m.statut;
+  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun détail saisi';
   document.getElementById('sd-txt').value='';
   document.getElementById('sd-mid').value=id;
+  document.getElementById('sd-nouveau-statut').value='';
+  document.getElementById('sd-avert-interv').style.display='none';
   oM('mod-detail');
 }
 
 async function sauverDetail(){
   const id=document.getElementById('sd-mid').value;
   const txt=document.getElementById('sd-txt').value.trim();
-  if(!txt){toast('Veuillez saisir un detail','ko');return;}
+  const nouveauStatut=document.getElementById('sd-nouveau-statut').value;
   const m=all.find(function(x){ return x.id===id; }); if(!m)return;
+
+  // Statut critique = ouvre fiche intervention
+  const statuts_critiques=['En panne','En réparation','En Att. PDR'];
+  const statutChangeCritique = nouveauStatut && statuts_critiques.includes(nouveauStatut);
+
   try{
     const updates=Object.assign({},m); delete updates.id;
-    updates.detail_statut=txt; updates.modifie_par=ses.user; updates.modifie_le=now();
+    if(txt) updates.detail_statut=txt;
+    updates.modifie_par=ses.user; updates.modifie_le=now();
+
+    // Changer le statut si demandé
+    if(nouveauStatut && nouveauStatut !== m.statut){
+      updates.statut=nouveauStatut;
+    }
+
     await setDoc(doc(db,'machines',id),updates);
-    await addDoc(collection(db,'historique'),{machine_id:id,code_machine:m.code_machine,pays_id:m.pays_id,ancien_statut:m.statut,nouveau_statut:m.statut,detail_statut:txt,modifie_par:ses.user,modifie_le:now()});
-    cM('mod-detail'); toast('Detail enregistre !','ok');
+
+    // Enregistrer dans historique
+    const statFinal = nouveauStatut || m.statut;
+    if(txt || (nouveauStatut && nouveauStatut !== m.statut)){
+      await addDoc(collection(db,'historique'),{
+        machine_id:id, code_machine:m.code_machine, pays_id:m.pays_id,
+        ancien_statut:m.statut, nouveau_statut:statFinal,
+        detail_statut:txt||'', modifie_par:ses.user, modifie_le:now()
+      });
+    }
+
+    cM('mod-detail');
+    toast('Mis à jour !','ok');
+
+    // Ouvrir automatiquement fiche intervention si statut critique
+    if(statutChangeCritique){
+      setTimeout(function(){
+        // Pré-remplir la fiche intervention avec les infos
+        document.getElementById('interv-machine-id').value=id;
+        document.getElementById('interv-titre').textContent='Nouvelle intervention - '+m.code_machine;
+        document.getElementById('interv-date').value=new Date().toISOString().slice(0,10);
+        ['interv-tech','interv-duree','interv-cout','interv-desc','interv-pieces','interv-obs'].forEach(function(i){ document.getElementById(i).value=''; });
+        document.getElementById('interv-avant').value=m.statut;
+        document.getElementById('interv-apres').value=nouveauStatut;
+        document.getElementById('interv-machine-label').textContent=
+          m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.marque||'')+' '+(m.sous_famille||'');
+        // Pré-remplir description avec le détail saisi
+        if(txt) document.getElementById('interv-desc').value=txt;
+        oM('mod-interv');
+      }, 500);
+    }
   }catch(e){ toast('Erreur: '+e.message,'ko'); }
 }
 
