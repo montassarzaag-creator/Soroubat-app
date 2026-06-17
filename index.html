@@ -608,10 +608,10 @@ function stat(){
     if(s==='Fonctionnelle')fonc++;
     else if(s==='Disponible')dispo++;
     else if(s==='En panne')pa++;
-    else if(s==='En r&eacute;paration')rep++;
+    else if(s==='En r\u00e9paration')rep++;
     else if(s==='En Att. PDR')pdr++;
-    else if(s==='R&eacute;form&eacute;')ref++;
-    else if(s==='Transf&eacute;r&eacute;')tra++;
+    else if(s==='R\u00e9form\u00e9')ref++;
+    else if(s==='Transf\u00e9r\u00e9')tra++;
   });
   const t=src.length, parc=t-ref;
   const tx_dispo=pct(fonc+dispo+tra,parc), tx_panne=pct(pa+rep+pdr,parc);
@@ -1004,10 +1004,10 @@ function affD(){
     const f=ml.filter(function(m){ return m.statut==='Fonctionnelle'; }).length;
     const d2=ml.filter(function(m){ return m.statut==='Disponible'; }).length;
     const pa=ml.filter(function(m){ return m.statut==='En panne'; }).length;
-    const rep2=ml.filter(function(m){ return m.statut==='En r&eacute;paration'; }).length;
+    const rep2=ml.filter(function(m){ return m.statut==='En r\u00e9paration'; }).length;
     const pdr2=ml.filter(function(m){ return m.statut==='En Att. PDR'; }).length;
-    const ref2=ml.filter(function(m){ return m.statut==='R&eacute;form&eacute;'; }).length;
-    const tra2=ml.filter(function(m){ return m.statut==='Transf&eacute;r&eacute;'; }).length;
+    const ref2=ml.filter(function(m){ return m.statut==='R\u00e9form\u00e9'; }).length;
+    const tra2=ml.filter(function(m){ return m.statut==='Transf\u00e9r\u00e9'; }).length;
     const parc2=t2-ref2;
     const txD=parc2>0?Math.round((f+d2+tra2)/parc2*100):0;
     const txP=parc2>0?Math.round((pa+rep2+pdr2)/parc2*100):0;
@@ -1025,7 +1025,7 @@ function affD(){
       '<div style="flex:1;background:#FEE2E2;border-radius:8px;padding:8px;text-align:center"><div style="font-size:20px;font-weight:800;color:#DC2626">'+txP+'%</div><div style="font-size:10px;color:#991B1B;font-weight:600">Taux panne</div></div>'+
       '</div></div>';
   }).join('');
-  const sts=['Fonctionnelle','Disponible','En panne','En r&eacute;paration','En Att. PDR','Transf&eacute;r&eacute;','R&eacute;form&eacute;'],tot=all.length;
+  const sts=['Fonctionnelle','Disponible','En panne','En r\u00e9paration','En Att. PDR','Transf\u00e9r\u00e9','R\u00e9form\u00e9'],tot=all.length;
   document.getElementById('dstat').innerHTML=sts.map(function(s){
     const n=all.filter(function(m){ return m.statut===s; }).length;
     const p=tot?Math.round(n/tot*100):0;
@@ -1057,9 +1057,9 @@ async function verifierAlertes(){
         const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):0;
         if(depuis>=SEUIL_PDR) alertes.push({type:'pdr',machine:m,msg:'En attente pieces depuis '+depuis+' jours',niveau:'orange'});
       }
-      if(m.statut==='Transf&eacute;r&eacute;'){
+      if(m.statut==='Transf\u00e9r\u00e9'){
         const histo=(histoMap[m.id]||[]).sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
-        const dernier=histo.find(function(h){ return h.nouveau_statut==='Transf&eacute;r&eacute;'; });
+        const dernier=histo.find(function(h){ return h.nouveau_statut==='Transf\u00e9r\u00e9'; });
         const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):999;
         if(depuis<=7) alertes.push({type:'transfert',machine:m,msg:'Transferee il y a '+depuis+' jour'+(depuis>1?'s':''),niveau:'bleu'});
       }
