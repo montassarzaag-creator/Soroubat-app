@@ -642,15 +642,23 @@ function stat(){
     '<div class="sc" style="border-left-color:#3B82F6"><div class="sn">'+pdr+' <span style="font-size:13px;color:#3B82F6">'+pct(pdr,parc)+'%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>'+
     '<div class="sc g"><div class="sn">'+ref+'</div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>'+
     '</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">'+
-    '<div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
-    '<div><div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase">Taux de disponibilit&eacute;</div>'+
-    '<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Fonct. + Dispo + Transf. / Parc actif</div></div>'+
-    '<div style="font-size:42px;font-weight:800;color:#fff">'+tx_dispo+'<span style="font-size:22px">%</span></div></div>'+
-    '<div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
-    '<div><div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase">Taux de panne</div>'+
-    '<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Panne + R&eacute;par. + PDR / Parc actif</div></div>'+
-    '<div style="font-size:42px;font-weight:800;color:#fff">'+tx_panne+'<span style="font-size:22px">%</span></div></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;margin-top:12px">'+
+    '<div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
+    '<div><div style="font-size:12px;color:rgba(255,255,255,.85);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Taux dispo.</div>'+
+    '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">Fonct.+Dispo+Transf.</div></div>'+
+    '<div style="font-size:38px;font-weight:800;color:#fff">'+tx_dispo+'<span style="font-size:18px">%</span></div></div>'+
+    '<div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
+    '<div><div style="font-size:12px;color:rgba(255,255,255,.85);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Taux panne</div>'+
+    '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">En panne / Parc actif</div></div>'+
+    '<div style="font-size:38px;font-weight:800;color:#fff">'+pct(pa,parc)+'<span style="font-size:18px">%</span></div></div>'+
+    '<div style="background:linear-gradient(135deg,#3B82F6,#60A5FA);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
+    '<div><div style="font-size:12px;color:rgba(255,255,255,.85);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Att. Pi&egrave;ces</div>'+
+    '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">En attente PDR</div></div>'+
+    '<div style="font-size:38px;font-weight:800;color:#fff">'+pct(pdr,parc)+'<span style="font-size:18px">%</span></div></div>'+
+    '<div style="background:linear-gradient(135deg,#D97706,#F59E0B);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
+    '<div><div style="font-size:12px;color:rgba(255,255,255,.85);font-weight:700;text-transform:uppercase;letter-spacing:.5px">En r&eacute;paration</div>'+
+    '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">En cours de r&eacute;paration</div></div>'+
+    '<div style="font-size:38px;font-weight:800;color:#fff">'+pct(rep,parc)+'<span style="font-size:18px">%</span></div></div>'+
     '</div>';
 }
 
