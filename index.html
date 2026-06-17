@@ -123,17 +123,52 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--blp);}
   <div class="mn">
 
     <!-- BANDEAU ALERTES -->
-    <div id="bandeau-alertes" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:var(--r);padding:14px 18px;margin-bottom:16px;cursor:pointer">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:20px">&#128680;</span>
-          <div>
-            <div style="font-weight:700;color:#991B1B;font-size:14px" id="bandeau-titre">Alertes actives</div>
-            <div style="font-size:12px;color:#DC2626" id="bandeau-detail"></div>
+    <div id="bandeau-alertes" style="display:none;margin-bottom:16px;cursor:pointer">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <!-- Bloc En panne -->
+        <div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">&#128680;</span>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">En panne</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px" id="bandeau-detail-panne">-</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:36px;font-weight:800;color:#fff" id="bandeau-nb-panne">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.7)">machines</div>
           </div>
         </div>
-        <span style="font-size:12px;color:#991B1B;font-weight:600">Voir les alertes &#8594;</span>
+        <!-- Bloc Att. PDR -->
+        <div style="background:linear-gradient(135deg,#1D4ED8,#3B82F6);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">&#9203;</span>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Att. Pi&egrave;ces (PDR)</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px" id="bandeau-detail-pdr">-</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:36px;font-weight:800;color:#fff" id="bandeau-nb-pdr">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.7)">machines</div>
+          </div>
+        </div>
+        <!-- Bloc En réparation -->
+        <div style="background:linear-gradient(135deg,#D97706,#F59E0B);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">&#128295;</span>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">En r&eacute;paration</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px" id="bandeau-detail-rep">-</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:36px;font-weight:800;color:#fff" id="bandeau-nb-rep">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.7)">machines</div>
+          </div>
+        </div>
       </div>
+      <div style="text-align:right;margin-top:6px;font-size:12px;color:#991B1B;font-weight:600">&#128680; Voir toutes les alertes &#8594;</div>
     </div>
 
     <!-- ONGLET MACHINES -->
@@ -630,6 +665,25 @@ function stat(){
   });
   const t=src.length, parc=t-ref;
   const tx_dispo=pct(fonc+dispo+tra,parc), tx_panne=pct(pa+rep+pdr,parc);
+  // Mettre &agrave; jour le bandeau directement depuis les stats
+  const nbPanneLocal = src.filter(function(m){ return statut_est(m.statut||'','En panne'); }).length;
+  const nbPdrLocal   = src.filter(function(m){ return statut_est(m.statut||'','En Att. PDR'); }).length;
+  const nbRepLocal   = src.filter(function(m){ return statut_est(m.statut||'','En reparation'); }).length;
+  if(document.getElementById('bandeau-nb-panne')){
+    document.getElementById('bandeau-nb-panne').textContent=nbPanneLocal;
+    document.getElementById('bandeau-nb-pdr').textContent=nbPdrLocal;
+    document.getElementById('bandeau-nb-rep').textContent=nbRepLocal;
+    document.getElementById('bandeau-detail-panne').textContent=nbPanneLocal>0?'machines en panne':'Aucune';
+    document.getElementById('bandeau-detail-pdr').textContent=nbPdrLocal>0?'en attente de pieces':'Aucune';
+    document.getElementById('bandeau-detail-rep').textContent=nbRepLocal>0?'en cours de reparation':'Aucune';
+    if(nbPanneLocal>0||nbPdrLocal>0||nbRepLocal>0){
+      document.getElementById('bandeau-alertes').style.display='block';
+      const badgeEl=document.getElementById('badge-alertes');
+      if(badgeEl){badgeEl.style.display='';badgeEl.textContent=nbPanneLocal+nbPdrLocal+nbRepLocal;}
+      const tabBtn=document.getElementById('tab-alertes');
+      if(tabBtn) tabBtn.style.display='';
+    }
+  }
   document.getElementById('sg').innerHTML=
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">'+
     '<div class="sc"><div class="sn">'+t+'</div><div class="sl">Total machines</div></div>'+
@@ -1091,17 +1145,23 @@ async function verifierAlertes(){
     const bandeau=document.getElementById('bandeau-alertes');
     const badge2=document.getElementById('badge-alertes');
     const tabBtn=document.getElementById('tab-alertes');
-    if(alertes.length>0){
-      bandeau.style.display='block'; tabBtn.style.display=''; badge2.style.display=''; badge2.textContent=alertes.length;
-      const pannes=alertes.filter(function(a){ return a.type==='panne'; }).length;
-      const pdrs=alertes.filter(function(a){ return a.type==='pdr'; }).length;
-      const transfs=alertes.filter(function(a){ return a.type==='transfert'; }).length;
-      document.getElementById('bandeau-titre').textContent=alertes.length+' alerte'+(alertes.length>1?'s':'')+' active'+(alertes.length>1?'s':'');
-      const details=[];
-      if(pannes) details.push(pannes+' machine'+(pannes>1?'s':'')+' en panne');
-      if(pdrs) details.push(pdrs+' en attente PDR >'+SEUIL_PDR+'j');
-      if(transfs) details.push(transfs+' transfert'+(transfs>1?'s':'')+' recent'+(transfs>1?'s':''));
-      document.getElementById('bandeau-detail').textContent=details.join(' - ');
+    // Compter chaque type depuis all (pas seulement les alertes historique)
+    const nbPanne = all.filter(function(m){ return statut_est(m.statut||'','En panne'); }).length;
+    const nbPdr   = all.filter(function(m){ return statut_est(m.statut||'','En Att. PDR'); }).length;
+    const nbRep   = all.filter(function(m){ return statut_est(m.statut||'','En reparation'); }).length;
+    if(nbPanne > 0 || nbPdr > 0 || nbRep > 0){
+      bandeau.style.display='block';
+      tabBtn.style.display=''; badge2.style.display=''; badge2.textContent=alertes.length||nbPanne+nbPdr+nbRep;
+      // Bloc panne
+      document.getElementById('bandeau-nb-panne').textContent=nbPanne;
+      document.getElementById('bandeau-detail-panne').textContent=nbPanne>0?'Voir les alertes':'Aucune';
+      // Bloc PDR
+      document.getElementById('bandeau-nb-pdr').textContent=nbPdr;
+      const pdrsLong=alertes.filter(function(a){ return a.type==='pdr'; }).length;
+      document.getElementById('bandeau-detail-pdr').textContent=pdrsLong>0?pdrsLong+' depuis >'+SEUIL_PDR+'j':'En attente';
+      // Bloc r&eacute;paration
+      document.getElementById('bandeau-nb-rep').textContent=nbRep;
+      document.getElementById('bandeau-detail-rep').textContent=nbRep>0?'En cours':'Aucune';
     } else { bandeau.style.display='none'; badge2.style.display='none'; }
   }catch(e){ console.error('Erreur alertes:',e); }
 }
