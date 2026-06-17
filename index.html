@@ -753,7 +753,16 @@ function ren(){
     const ab = ses.admin
       ? '<button class="bn bs bp" data-edt="'+m.id+'" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" data-del="'+m.id+'">&#128465;</button>'
       : '<button class="bn bs" data-detail="'+m.id+'" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B">&#128203; Detail</button>';
-    return '<tr><td><strong>'+(m.code_machine||'')+'</strong></td>'+pc+'<td>'+(m.famille||'-')+'<br><small style="color:var(--t2)">'+(m.sous_famille||'')+'</small></td><td>'+(m.marque||'-')+'</td><td>'+badge(m.statut)+'</td><td style="font-size:12px;max-width:160px" title="'+detail+'">'+( detailCourt||'<span style="color:var(--t2)">&#8212;</span>' )+'</td><td>'+(m.chantier||'-')+'</td><td style="font-size:11px;color:var(--t2)">'+(m.numero_serie||'-')+'</td><td style="white-space:nowrap"><button class="bn bs bp" data-det="'+m.id+'" style="margin-right:3px">&#128065;</button><button class="bn bs" data-interv="'+m.id+'" style="background:#F59E0B;color:#fff;margin-right:3px">&#128295;</button>'+ab+'</td></tr>';
+    // Bouton index
+    const typeIdx = getIndexType(m);
+    const indexActuel = parseFloat(m.index_exploitation||0);
+    const unite = typeIdx ? (typeIdx.index==='horaire'?'h':'km') : '';
+    const indexLabel = typeIdx ? (indexActuel>0 ? indexActuel.toLocaleString('fr-FR')+unite : '--') : '';
+    const urgentIdx = typeIdx && indexActuel>0 && estUrgent(indexActuel,typeIdx);
+    const btnIndex = typeIdx
+      ? '<button class="bn bs" data-idx="'+m.id+'" style="background:'+(urgentIdx?'#FEE2E2;color:#991B1B;border:1px solid #FCA5A5':'#EDE9FE;color:#5B21B6;border:1px solid #C4B5FD')+';margin-right:3px" title="Index exploitation">&#128200; '+indexLabel+'</button>'
+      : '';
+    return '<tr><td><strong>'+(m.code_machine||'')+'</strong></td>'+pc+'<td>'+(m.famille||'-')+'<br><small style="color:var(--t2)">'+(m.sous_famille||'')+'</small></td><td>'+(m.marque||'-')+'</td><td>'+badge(m.statut)+'</td><td style="font-size:12px;max-width:160px" title="'+detail+'">'+( detailCourt||'<span style="color:var(--t2)">&#8212;</span>' )+'</td><td>'+(m.chantier||'-')+'</td><td style="font-size:11px;color:var(--t2)">'+(m.numero_serie||'-')+'</td><td style="white-space:nowrap">'+btnIndex+'<button class="bn bs bp" data-det="'+m.id+'" style="margin-right:3px">&#128065;</button><button class="bn bs" data-interv="'+m.id+'" style="background:#F59E0B;color:#fff;margin-right:3px">&#128295;</button>'+ab+'</td></tr>';
   }).join('');
   // Attacher events
   tb.querySelectorAll('[data-det]').forEach(function(btn){ btn.addEventListener('click',function(){ det(btn.dataset.det); }); });
@@ -761,6 +770,7 @@ function ren(){
   tb.querySelectorAll('[data-del]').forEach(function(btn){ btn.addEventListener('click',function(){ del(btn.dataset.del); }); });
   tb.querySelectorAll('[data-detail]').forEach(function(btn){ btn.addEventListener('click',function(){ saisirDetail(btn.dataset.detail); }); });
   tb.querySelectorAll('[data-interv]').forEach(function(btn){ btn.addEventListener('click',function(){ nouvelleIntervention(btn.dataset.interv); }); });
+  tb.querySelectorAll('[data-idx]').forEach(function(btn){ btn.addEventListener('click',function(){ ouvrirSaisieIndex(btn.dataset.idx); }); });
   // Pagination
   if(tp<=1){ document.getElementById('pag').innerHTML=''; return; }
   const fr=Math.max(1,pg-2),to=Math.min(tp,pg+2);
