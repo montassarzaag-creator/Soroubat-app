@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOROUBAT</title>
+<title>SOROUBAT v4</title>
 <style>
 :root{--bl:#1B4F8C;--bl2:#2E6CB8;--blp:#E8F0FB;--ve:#1D9E75;--ro:#E24B4A;--or:#F59E0B;--gr:#F4F5F7;--bo:#DDE1E7;--te:#1A1F2E;--t2:#6B7280;--om:0 2px 12px rgba(0,0,0,.08);--r:10px;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -412,14 +412,21 @@ const CH = {"benin": ["BANIKOARA", "COTONOU", "MALANVILLE", "Nexiste pas/ transf
 
 let ses=null, all=[], fi=[], pg=1, PP=50, unsub=null;
 
+function normalizeStatut(s){
+  if(!s) return '';
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
 function badge(s){
-  const mp={
-    'Fonctionnelle':'gv','Disponible':'gd','En panne':'gr2',
-    'En reparation':'go','En Att. PDR':'gb','Transfere':'gp','Reforme':'gg'
-  };
-  // Chercher correspondance exacte ou partielle
-  const key = Object.keys(mp).find(function(k){ return s && s.indexOf(k.split(' ')[0]) >= 0; }) || '';
-  return s ? '<span class="bg '+(mp[s]||mp[key]||'gg')+'">'+s+'</span>' : '-';
+  if(!s) return '-';
+  const n = normalizeStatut(s);
+  let cls = 'gg';
+  if(n==='fonctionnelle') cls='gv';
+  else if(n==='disponible') cls='gd';
+  else if(n==='en panne') cls='gr2';
+  else if(n.includes('reparation')) cls='go';
+  else if(n.includes('att')) cls='gb';
+  else if(n.includes('transfer')) cls='gp';
+  return '<span class="bg '+cls+'">'+s+'</span>';
 }
 function pct(n,t){ return t>0 ? Math.round(n/t*100) : 0; }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
@@ -504,7 +511,7 @@ function start(){
   document.getElementById('btn-sauver-detail').addEventListener('click',sauverDetail);
   document.getElementById('sd-nouveau-statut').addEventListener('change',function(){
     const v=this.value;
-    const critiques=['En panne','En réparation','En Att. PDR'];
+    const critiques=['En panne','En r&eacute;paration','En Att. PDR'];
     document.getElementById('sd-avert-interv').style.display = critiques.includes(v) ? 'block' : 'none';
   });
   document.getElementById('btn-sauver-interv').addEventListener('click',sauverIntervention);
@@ -543,7 +550,8 @@ function filt(){
   const py = ses.admin ? document.getElementById('fp').value : ses.pays;
   fi = all.filter(function(m){
     const t = ((m.code_machine||'')+(m.marque||'')+(m.chantier||'')+(m.sous_famille||'')+(m.numero_serie||'')).toLowerCase();
-    return (!r||t.includes(r)) && (!s||m.statut===s) && (!f||m.famille===f) && (!py||m.pays_id===py);
+    const statutOk = !s || statut_est(m.statut||'', s);
+    return (!r||t.includes(r)) && statutOk && (!f||m.famille===f) && (!py||m.pays_id===py);
   });
   pg=1; ren(); stat();
 }
@@ -600,18 +608,25 @@ function ren(){
 }
 
 // STATS
+function statut_est(s, cible){
+  if(!s) return false;
+  // Comparer en normalisant (accents, casse)
+  const norm = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const cibleNorm = cible.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return norm === cibleNorm;
+}
 function stat(){
   const src = fi.length ? fi : all;
   let fonc=0,dispo=0,pa=0,rep=0,pdr=0,ref=0,tra=0;
   src.forEach(function(m){
-    const s=m.statut;
-    if(s==='Fonctionnelle')fonc++;
-    else if(s==='Disponible')dispo++;
-    else if(s==='En panne')pa++;
-    else if(s==='En r\u00e9paration')rep++;
-    else if(s==='En Att. PDR')pdr++;
-    else if(s==='R\u00e9form\u00e9')ref++;
-    else if(s==='Transf\u00e9r\u00e9')tra++;
+    const s=m.statut||'';
+    if(statut_est(s,'Fonctionnelle'))fonc++;
+    else if(statut_est(s,'Disponible'))dispo++;
+    else if(statut_est(s,'En panne'))pa++;
+    else if(statut_est(s,'En reparation'))rep++;
+    else if(statut_est(s,'En Att. PDR'))pdr++;
+    else if(statut_est(s,'Reforme'))ref++;
+    else if(statut_est(s,'Transfere'))tra++;
   });
   const t=src.length, parc=t-ref;
   const tx_dispo=pct(fonc+dispo+tra,parc), tx_panne=pct(pa+rep+pdr,parc);
@@ -818,10 +833,10 @@ async function imprimerFiche(id){
 // DETAIL STATUT PAYS
 function saisirDetail(id){
   const m=all.find(function(x){ return x.id===id; }); if(!m)return;
-  document.getElementById('sdtitle').textContent='Mise à jour - '+m.code_machine;
+  document.getElementById('sdtitle').textContent='Mise &agrave; jour - '+m.code_machine;
   document.getElementById('sd-statut').innerHTML=badge(m.statut);
   document.getElementById('sd-statut-ancien').value=m.statut;
-  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun détail saisi';
+  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun d&eacute;tail saisi';
   document.getElementById('sd-txt').value='';
   document.getElementById('sd-mid').value=id;
   document.getElementById('sd-nouveau-statut').value='';
@@ -836,7 +851,7 @@ async function sauverDetail(){
   const m=all.find(function(x){ return x.id===id; }); if(!m)return;
 
   // Statut critique = ouvre fiche intervention
-  const statuts_critiques=['En panne','En réparation','En Att. PDR'];
+  const statuts_critiques=['En panne','En r&eacute;paration','En Att. PDR'];
   const statutChangeCritique = nouveauStatut && statuts_critiques.includes(nouveauStatut);
 
   try{
@@ -844,7 +859,7 @@ async function sauverDetail(){
     if(txt) updates.detail_statut=txt;
     updates.modifie_par=ses.user; updates.modifie_le=now();
 
-    // Changer le statut si demandé
+    // Changer le statut si demand&eacute;
     if(nouveauStatut && nouveauStatut !== m.statut){
       updates.statut=nouveauStatut;
     }
@@ -862,12 +877,12 @@ async function sauverDetail(){
     }
 
     cM('mod-detail');
-    toast('Mis à jour !','ok');
+    toast('Mis &agrave; jour !','ok');
 
     // Ouvrir automatiquement fiche intervention si statut critique
     if(statutChangeCritique){
       setTimeout(function(){
-        // Pré-remplir la fiche intervention avec les infos
+        // Pr&eacute;-remplir la fiche intervention avec les infos
         document.getElementById('interv-machine-id').value=id;
         document.getElementById('interv-titre').textContent='Nouvelle intervention - '+m.code_machine;
         document.getElementById('interv-date').value=new Date().toISOString().slice(0,10);
@@ -876,7 +891,7 @@ async function sauverDetail(){
         document.getElementById('interv-apres').value=nouveauStatut;
         document.getElementById('interv-machine-label').textContent=
           m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.marque||'')+' '+(m.sous_famille||'');
-        // Pré-remplir description avec le détail saisi
+        // Pr&eacute;-remplir description avec le d&eacute;tail saisi
         if(txt) document.getElementById('interv-desc').value=txt;
         oM('mod-interv');
       }, 500);
@@ -1001,13 +1016,13 @@ function affD(){
   document.getElementById('pgrid').innerHTML=pays.map(function(p){
     const ml=all.filter(function(m){ return m.pays_id===p; });
     const t2=ml.length;
-    const f=ml.filter(function(m){ return m.statut==='Fonctionnelle'; }).length;
-    const d2=ml.filter(function(m){ return m.statut==='Disponible'; }).length;
-    const pa=ml.filter(function(m){ return m.statut==='En panne'; }).length;
-    const rep2=ml.filter(function(m){ return m.statut==='En r\u00e9paration'; }).length;
-    const pdr2=ml.filter(function(m){ return m.statut==='En Att. PDR'; }).length;
-    const ref2=ml.filter(function(m){ return m.statut==='R\u00e9form\u00e9'; }).length;
-    const tra2=ml.filter(function(m){ return m.statut==='Transf\u00e9r\u00e9'; }).length;
+    const f=ml.filter(function(m){ return statut_est(m.statut||'','Fonctionnelle'); }).length;
+    const d2=ml.filter(function(m){ return statut_est(m.statut||'','Disponible'); }).length;
+    const pa=ml.filter(function(m){ return statut_est(m.statut||'','En panne'); }).length;
+    const rep2=ml.filter(function(m){ return statut_est(m.statut||'','En reparation'); }).length;
+    const pdr2=ml.filter(function(m){ return statut_est(m.statut||'','En Att. PDR'); }).length;
+    const ref2=ml.filter(function(m){ return statut_est(m.statut||'','Reforme'); }).length;
+    const tra2=ml.filter(function(m){ return statut_est(m.statut||'','Transfere'); }).length;
     const parc2=t2-ref2;
     const txD=parc2>0?Math.round((f+d2+tra2)/parc2*100):0;
     const txP=parc2>0?Math.round((pa+rep2+pdr2)/parc2*100):0;
@@ -1045,21 +1060,21 @@ async function verifierAlertes(){
     const now2=new Date();
     all.forEach(function(m){
       if(!ses.admin&&m.pays_id!==ses.pays)return;
-      if(m.statut==='En panne'){
+      if(statut_est(m.statut||'','En panne')){
         const histo=(histoMap[m.id]||[]).sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
-        const dernier=histo.find(function(h){ return h.nouveau_statut==='En panne'; });
+        const dernier=histo.find(function(h){ return statut_est(h.nouveau_statut||'','En panne'); });
         const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):null;
         alertes.push({type:'panne',machine:m,msg:'En panne'+(depuis!==null?' depuis '+depuis+' jour'+(depuis>1?'s':''):''),niveau:'rouge'});
       }
-      if(m.statut==='En Att. PDR'){
+      if(statut_est(m.statut||'','En Att. PDR')){
         const histo=(histoMap[m.id]||[]).sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
-        const dernier=histo.find(function(h){ return h.nouveau_statut==='En Att. PDR'; });
+        const dernier=histo.find(function(h){ return statut_est(h.nouveau_statut||'','En Att. PDR'); });
         const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):0;
         if(depuis>=SEUIL_PDR) alertes.push({type:'pdr',machine:m,msg:'En attente pieces depuis '+depuis+' jours',niveau:'orange'});
       }
-      if(m.statut==='Transf\u00e9r\u00e9'){
+      if(statut_est(m.statut||'','Transfere')){
         const histo=(histoMap[m.id]||[]).sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
-        const dernier=histo.find(function(h){ return h.nouveau_statut==='Transf\u00e9r\u00e9'; });
+        const dernier=histo.find(function(h){ return statut_est(h.nouveau_statut||'','Transfere'); });
         const depuis=dernier?Math.floor((now2-new Date(dernier.modifie_le))/86400000):999;
         if(depuis<=7) alertes.push({type:'transfert',machine:m,msg:'Transferee il y a '+depuis+' jour'+(depuis>1?'s':''),niveau:'bleu'});
       }
