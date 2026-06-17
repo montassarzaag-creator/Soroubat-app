@@ -1356,9 +1356,6 @@ document.getElementById('u').addEventListener('keydown',function(e){ if(e.key===
 document.getElementById('btn-login').addEventListener('click', login);
 document.getElementById('dc').addEventListener('click', logout);
 
-</script>
-</body>
-</html
 function ouvrirSaisieIndex(machineId){
   const m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
   const typeIdx = getIndexType(m);
@@ -1369,13 +1366,13 @@ function ouvrirSaisieIndex(machineId){
   document.getElementById('index-machine-id').value = machineId;
   document.getElementById('index-machine-label').innerHTML = '<strong>'+m.code_machine+'</strong> &mdash; '+(PN[m.pays_id]||m.pays_id)+' &mdash; '+(m.sous_famille||m.famille||'');
   document.getElementById('index-actuel-display').textContent = indexActuel.toLocaleString('fr-FR')+(unite?' '+unite:'');
-  document.getElementById('index-type-display').textContent = typeIdx?(typeIdx.index==='horaire'?'Horaire (heures)':'Km (kilomètres)'):'Non défini';
+  document.getElementById('index-type-display').textContent = typeIdx?(typeIdx.index==='horaire'?'Horaire (heures)':'Km (kilom&egrave;tres)'):'Non d&eacute;fini';
   document.getElementById('index-valeur').value = indexActuel||'';
   document.getElementById('index-valeur').placeholder = 'Ex: '+(indexActuel+250);
   document.getElementById('index-remarque').value = '';
   if(prochain){
     document.getElementById('index-prochain-wrap').style.display='block';
-    document.getElementById('index-prochain-label').textContent = 'à '+prochain.valeur.toLocaleString('fr-FR')+unite+' ('+prochain.libelle+')';
+    document.getElementById('index-prochain-label').textContent = '&agrave; '+prochain.valeur.toLocaleString('fr-FR')+unite+' ('+prochain.libelle+')';
     document.getElementById('index-prochain-restant').textContent = 'Encore '+prochain.restant.toLocaleString('fr-FR')+unite+' restant';
   } else {
     document.getElementById('index-prochain-wrap').style.display='none';
@@ -1403,10 +1400,12 @@ async function sauverIndex(){
       remarque:remarque, saisi_par:ses.user, saisi_le:now()
     });
     cM('mod-index');
-    toast('Index mis à jour !','ok');
+    toast('Index mis &agrave; jour !','ok');
     window.chargerMaintenance();
     window.verifierAlertes();
   }catch(e){toast('Erreur: '+e.message,'ko');}
 }
 
->
+</script>
+</body>
+</html>
