@@ -119,6 +119,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     <button class="ta ac" id="tab-machines">&#128668; Machines</button>
     <button class="ta" id="tab-interventions">&#128295; Interventions</button>
     <button class="ta" id="tab-historique">&#128203; Historique</button>
+    <button class="ta" id="tab-maintenance">&#128200; Maintenance</button>
     <button class="ta" id="tdash">&#128202; Dashboard</button>
     <button class="ta" id="tab-alertes" style="display:none">
       &#128276; Alertes <span id="badge-alertes" style="background:#E24B4A;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;display:none">0</span>
@@ -218,6 +219,33 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
         </div>
         <div id="em" class="em" style="display:none">Aucune machine trouv&#233;e</div>
         <div class="pg2" id="pag"></div>
+      </div>
+    </div>
+
+    <!-- ONGLET MAINTENANCE -->
+    <div id="t-maintenance" style="display:none">
+      <div class="tw" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h3 style="font-size:15px;font-weight:700">&#128200; Suivi des index d'exploitation</h3>
+            <div style="font-size:12px;color:var(--t2);margin-top:3px">Cycle horaire: 2000h par paliers de 250h &mdash; Cycle km: 40 000km par paliers de 5 000km</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="filtre-maint-pays-wrap">
+            <select id="fp-maint" style="padding:8px 12px;border:0.5px solid var(--bo);border-radius:7px;font-size:13px;background:#fff">
+              <option value="">Tous les pays</option>
+              <option value="benin">B&#233;nin</option><option value="burkina">Burkina Faso</option>
+              <option value="cameroun">Cameroun</option><option value="cotedivoire">C&#244;te d&#39;Ivoire</option>
+              <option value="niger">Niger</option><option value="togo">Togo</option>
+            </select>
+            <select id="filtre-urgence" style="padding:8px 12px;border:0.5px solid var(--bo);border-radius:7px;font-size:13px;background:#fff">
+              <option value="">Toutes les machines</option>
+              <option value="urgent">&#128680; Entretien urgent (&lt;10% restant)</option>
+              <option value="planifie">Entretien planifi&eacute;</option>
+              <option value="sans">Sans index</option>
+            </select>
+          </div>
+        </div>
+        <div id="maint-list"><div class="em">Chargement...</div></div>
       </div>
     </div>
 
@@ -419,6 +447,42 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
   </div>
 </div></div>
 
+<!-- MODAL SAISIE INDEX -->
+<div class="mo" id="mod-index"><div class="md" style="max-width:500px">
+  <div class="mh">
+    <h3 id="index-titre">Mettre &agrave; jour l'index</h3>
+    <button class="mx" id="close-mod-index">&#215;</button>
+  </div>
+  <div class="mb">
+    <input type="hidden" id="index-machine-id">
+    <div style="background:#F8FAFC;border-radius:8px;padding:14px;margin-bottom:16px">
+      <div class="dl">Machine</div>
+      <div class="dv" id="index-machine-label" style="margin-top:4px"></div>
+      <div style="margin-top:8px;display:flex;gap:16px;font-size:13px">
+        <div><span style="color:var(--t2)">Index actuel:</span> <strong id="index-actuel-display">0</strong></div>
+        <div><span style="color:var(--t2)">Type:</span> <strong id="index-type-display">-</strong></div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;padding:12px;border-radius:8px;border-left:3px solid #F59E0B;background:#FFFBEB" id="index-prochain-wrap">
+      <div style="font-size:11px;font-weight:600;color:#92400E;text-transform:uppercase;margin-bottom:4px">Prochain entretien pr&eacute;vu</div>
+      <div style="font-size:14px;font-weight:600;color:#78350F" id="index-prochain-label">-</div>
+      <div style="font-size:12px;color:#B45309;margin-top:2px" id="index-prochain-restant"></div>
+    </div>
+    <div class="fg fu" style="margin-bottom:12px">
+      <label>Nouvel index *</label>
+      <input type="number" id="index-valeur" min="0" step="1" placeholder="Ex: 1250" style="font-size:16px;font-weight:600;text-align:center">
+    </div>
+    <div class="fg fu">
+      <label>Remarque (optionnel)</label>
+      <input type="text" id="index-remarque" placeholder="Ex: Relevé lors de la visite du 17/06/2026">
+    </div>
+  </div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-index">Annuler</button>
+    <button class="bn bp" id="btn-sauver-index">&#128190; Enregistrer l'index</button>
+  </div>
+</div></div>
+
 <div id="toast"></div>
 
 <script type="module">
@@ -448,6 +512,62 @@ const USERS = {
 };
 const PN = {benin:"Benin",burkina:"Burkina Faso",cameroun:"Cameroun",cotedivoire:"Cote Ivoire",niger:"Niger",togo:"Togo"};
 const CH = {"benin": ["BANIKOARA", "COTONOU", "MALANVILLE", "Nexiste pas/ transf\u00e9r\u00e9e", "TCHAOUROU"], "burkina": ["BOBO - BANFORA", "CARRIERE NIAOGHO", "CARRIERE ZINIARE", "DAPELOGO-Central Enr", "DIABO - Gounghin FADA", "KANTCHARY", "KONGOUSSI-DJIBO", "LOGEMENT - OUAGA", "NAGRIN - OUAGA2000", "PARC CENTRAL OUAGA", "SCE TRANSPORT OUAGA", "SI\u00c8GE SOROUBAT BF", "TENKODOGO-OUARGAYE", "YAGMA - OUAGA"], "cameroun": ["ADM DOUALA", "ADM YAOUNDE", "CHANTIER FOUMBAN", "CHANTIER GAROUA", "CHANTIER NGAOUNDERE", "CHANTIER YAOUNDE", "FRONTIERE TOBOROU", "KUMBA", "PARC FOUMBAN"], "cotedivoire": ["100% BETON", "ABIDJAN", "BASE VIE", "BATIMENT BROFODOUME", "COGIMEX", "FC SAN PEDRO", "FERME YOBOUEBO", "LOT 2", "LOT 6", "P. BATIMENT ABIDJAN", "P. BATIMENT BROFODOUME", "PK27", "SECURITE", "SOROUBAT CI", "TAABO", "TOULEPLEU", "ZOO"], "niger": ["KANDADJI", "NIAMEY"], "togo": ["ADM LOME", "Carri\u00e8re BADJA", "Carri\u00e8re SOKODE", "Chantier RN2", "Chantier SOKODE", "DJOUGOU", "FOURNISSEUR", "GUINEE CONACRY", "Parc KPEME"]};
+
+// ============================================================
+// MAPPING INDEX D'EXPLOITATION
+// ============================================================
+const INDEX_MAPPING = {"horaire": {"ALIMENTATEUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "AUTOBETONNIERE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "AUTOGRAVILLONNEUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "BALISE LUMINEUSE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "BETONNIERE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "BRISE ROCHE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "BULLDOZER": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CENTRALE A BETON": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CENTRALE DE REFROIDISSEMENT": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CENTRALE ENROBAGE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CENTRALE GRH": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CENTRALE HYDRAULIQUE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CHARGEUSE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CHARIOT ELEVATEUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "COMPACTEUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "COMPRESSEUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CYLINDRE DJL": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CYLINDRE MIXTE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "CYLINDRE PIED DE MOUTON": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "EPANDEUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "FINISSEUSE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "FOREUSE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "FRAISEUSE DE CHAUSSEE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "GROUPE ELECTROGENE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "GRUE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "GRUE A TOUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "GRUE CHENILLE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "GRUE PNEUMATIQUE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "MACHINE A BORDURE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "MINI CHARGEUSE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "MINI CYLINDRE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "MINI PELLE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "MOTOPOMPE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "NACELLE CISEAUX": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "NIVELEUSE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "PELLE CHENILLE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "PELLE PNEUMATIQUE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "POMPE A BETON": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "REPANDEUSE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "STAB. DE SOL": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "TELESCOPIQUE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "TRACTEUR AGRICOLE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "TRACTOPELLE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "UNITE CONCASSAGE": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"], "VIBROFONCEUR": ["250 h", "500h", "750h", "1000h", "1250h", "1500", "1750h", "2000h"]}, "km": {"AMBULANCE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "BENNE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "BENNE ROCHE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "BENNE TRACTABLE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "BENNE-CITERNE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "BENNE-DEFLEXION": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "BENNE-STATION ENTRETIEN": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "BUS": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "CAMIONNETTE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "CAMION ENTRETIEN": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "FOURGON": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "MINI BUS": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "MOTO": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "RAVITAILLEUR": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "TOUPIE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "TRACTEUR ROUTIER": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "TRANSPORT": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "TRICYCLE": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"], "VEHICULE LEGER": ["5 000 km", "10 000 km", "15 000 km", "20 000 km", "25 000 km", "30 000 km", "35 000 km", "40 000 km"]}, "sans": ["BALAYEUSE", "CISAILLE", "CITERNE", "CITERNE A GASOIL TRACTABLE", "CITERNE D`ARROSAGE TRACTABLE", "CONTENEURS PREFABRIQUES (MOBILE HOME )", "COUDEUSE", "CRIBLE", "CUVE DE GASOIL", "DESCENDEUR DE BETONITE", "ELECTRO-POMPE", "EPANDEUR TRACTABLE", "GYROBROYEUR", "LABOUREUSE PULLUK", "MACHINE DEMONTE PNEU", "MATERIEL TOPOGRAPHIQUE", "MINI RABOTEUSE", "MOTEUR ELECTRIQUE", "NETTOYEUR HP", "PERCEUSE", "PINCE", "PLAQUE VIBRANTE", "PLATEAU", "PLATEAU D'ENTRETIEN", "PLIEUSE DE TOLE", "POMPE A GRAISSE", "POMPE FINISSEUR", "PONT BASCULE", "PORTE CHARS", "POSTE SOUDURE", "PRESSE A BETON", "PRESSE HYDRAULIQUE", "PULVERISEUR", "REMORQUE AGRICOLE", "REPANDEUSE TRACTABLE", "SCIE A SOL", "SOUFFLEUR", "STATION FIXE D'ENTRETIEN", "STOCKEUSE", "TANKER", "TOUPIE TRACTABLE", "TOUR PARALLEL", "TRANCHEUSE", "TURBOMIXER", "VRAQUIER"]};
+
+// Normaliser un type de machine pour le mapping
+function getIndexType(machine){
+  // La famille dans Excel = colonne "Famille" = type r&eacute;el de la machine
+  // Dans notre base c'est stock&eacute; dans "sous_famille" (qui est en r&eacute;alit&eacute; la marque)
+  // et "famille" qui est g&eacute;n&eacute;rique
+  // On va utiliser le champ type_machine si disponible, sinon sous_famille
+  const typ = (machine.type_machine||machine.sous_famille||'').toUpperCase().trim();
+  if(INDEX_MAPPING.horaire[typ]) return {index:'horaire', seuils:[250,500,750,1000,1250,1500,1750,2000], cycle:2000};
+  if(INDEX_MAPPING.km[typ]) return {index:'km', seuils:[5000,10000,15000,20000,25000,30000,35000,40000], cycle:40000};
+  // Chercher par correspondance partielle
+  for(const k of Object.keys(INDEX_MAPPING.horaire)){
+    if(typ.includes(k)||k.includes(typ)) return {index:'horaire', seuils:[250,500,750,1000,1250,1500,1750,2000], cycle:2000};
+  }
+  for(const k of Object.keys(INDEX_MAPPING.km)){
+    if(typ.includes(k)||k.includes(typ)) return {index:'km', seuils:[5000,10000,15000,20000,25000,30000,35000,40000], cycle:40000};
+  }
+  return null;
+}
+
+// Calculer le prochain entretien
+function prochainEntretien(indexActuel, typeIndex){
+  if(!typeIndex) return null;
+  const {seuils, cycle} = typeIndex;
+  // Position dans le cycle
+  const posInCycle = indexActuel % cycle;
+  // Prochain seuil dans le cycle
+  const prochainSeuil = seuils.find(s => s > posInCycle);
+  if(prochainSeuil){
+    return {
+      valeur: indexActuel + (prochainSeuil - posInCycle),
+      restant: prochainSeuil - posInCycle,
+      libelle: prochainSeuil + (typeIndex.index==='horaire'?'h':' km') + ' (cycle ' + cycle + (typeIndex.index==='horaire'?'h':' km') + ')'
+    };
+  }
+  // Fin de cycle - prochain = d&eacute;but du nouveau cycle
+  return {
+    valeur: indexActuel + (cycle - posInCycle),
+    restant: cycle - posInCycle,
+    libelle: 'R&eacute;vision g&eacute;n&eacute;rale ' + cycle + (typeIndex.index==='horaire'?'h':' km')
+  };
+}
+
+// V&eacute;rifier si entretien urgent (reste moins de 10% du cycle)
+function estUrgent(indexActuel, typeIndex){
+  if(!typeIndex) return false;
+  const prochain = prochainEntretien(indexActuel, typeIndex);
+  if(!prochain) return false;
+  const seuilUrgence = typeIndex.cycle * 0.1; // 10% du cycle
+  return prochain.restant <= seuilUrgence;
+}
 
 let ses=null, all=[], fi=[], pg=1, PP=50, unsub=null;
 
@@ -548,6 +668,12 @@ function start(){
   document.getElementById('btn-nouvelle-interv').addEventListener('click',function(){ nouvelleIntervention(null); });
   document.getElementById('fp-interv').addEventListener('change',function(){ chargerInterventions(); });
   document.getElementById('btn-sauver-detail').addEventListener('click',sauverDetail);
+  document.getElementById('btn-sauver-index').addEventListener('click',sauverIndex);
+  document.getElementById('close-mod-index').addEventListener('click',function(){ cM('mod-index'); });
+  document.getElementById('cancel-mod-index').addEventListener('click',function(){ cM('mod-index'); });
+  document.getElementById('fp-maint').addEventListener('change',function(){ window.chargerMaintenance(); });
+  document.getElementById('filtre-urgence').addEventListener('change',function(){ window.chargerMaintenance(); });
+  if(!ses.admin){ document.getElementById('filtre-maint-pays-wrap').style.display='none'; }
   document.getElementById('sd-nouveau-statut').addEventListener('change',function(){
     const v=this.value;
     const critiques=['En panne','En r&eacute;paration','En Att. PDR'];
@@ -563,7 +689,7 @@ function start(){
 function goT(t, btn){
   document.querySelectorAll('.ta').forEach(function(x){ x.classList.remove('ac'); });
   if(btn) btn.classList.add('ac');
-  ['machines','interventions','historique','dashboard','alertes'].forEach(function(x){
+  ['machines','interventions','historique','dashboard','alertes','maintenance'].forEach(function(x){
     const el = document.getElementById('t-'+x);
     if(el) el.style.display = x===t ? '' : 'none';
   });
@@ -571,12 +697,13 @@ function goT(t, btn){
   if(t==='dashboard'&&ses.admin) affD();
   if(t==='alertes') afficherAlertes();
   if(t==='interventions') chargerInterventions();
+  if(t==='maintenance') window.chargerMaintenance();
 }
 
-['tab-machines','tab-interventions','tab-historique','tdash','tab-alertes'].forEach(function(id){
+['tab-machines','tab-interventions','tab-historique','tdash','tab-alertes','tab-maintenance'].forEach(function(id){
   const el = document.getElementById(id);
   if(el){
-    const t = id.replace('tab-','').replace('tdash','dashboard');
+    const t = id.replace('tab-','').replace('tdash','dashboard').replace('tab-','');
     el.addEventListener('click', function(){ goT(t, el); });
   }
 });
@@ -1137,6 +1264,25 @@ async function verifierAlertes(){
         if(depuis<=7) alertes.push({type:'transfert',machine:m,msg:'Transferee il y a '+depuis+' jour'+(depuis>1?'s':''),niveau:'bleu'});
       }
     });
+    // Ajouter alertes maintenance (index proche du seuil)
+    all.forEach(function(m){
+      if(!ses.admin&&m.pays_id!==ses.pays)return;
+      const typeIdx = getIndexType(m);
+      if(!typeIdx) return;
+      const indexActuel = parseFloat(m.index_exploitation||0);
+      if(indexActuel <= 0) return; // Pas encore d'index saisi
+      if(estUrgent(indexActuel, typeIdx)){
+        const prochain = prochainEntretien(indexActuel, typeIdx);
+        const unite = typeIdx.index==='horaire'?'h':'km';
+        alertes.push({
+          type:'maintenance',
+          machine:m,
+          msg:'Entretien pr&eacute;ventif: encore '+prochain.restant.toLocaleString('fr-FR')+unite+' avant '+prochain.valeur.toLocaleString('fr-FR')+unite,
+          niveau:'orange'
+        });
+      }
+    });
+
     window._alertes=alertes;
     const bandeau=document.getElementById('bandeau-alertes');
     const badge2=document.getElementById('badge-alertes');
@@ -1167,7 +1313,7 @@ function afficherAlertes(){
   const alertes=window._alertes||[];
   if(!alertes.length){ cont.innerHTML='<div class="em" style="color:#1D9E75">&#10003; Aucune alerte active</div>'; return; }
   const couleurs={rouge:{bg:'#FEE2E2',bord:'#E24B4A',txt:'#991B1B',ic:'&#128308;'},orange:{bg:'#FEF3C7',bord:'#F59E0B',txt:'#92400E',ic:'&#128993;'},bleu:{bg:'#DBEAFE',bord:'#3B82F6',txt:'#1E40AF',ic:'&#128309;'}};
-  const types={panne:'En panne',pdr:'Att. PDR',transfert:'Transfert'};
+  const types={panne:'En panne',pdr:'Att. PDR',transfert:'Transfert',maintenance:'Maintenance'};
   cont.innerHTML=alertes.map(function(a){
     const c=couleurs[a.niveau]; const m=a.machine;
     return '<div style="background:'+c.bg+';border-left:4px solid '+c.bord+';border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:10px">'+
@@ -1212,4 +1358,55 @@ document.getElementById('dc').addEventListener('click', logout);
 
 </script>
 </body>
-</html>
+</html
+function ouvrirSaisieIndex(machineId){
+  const m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  const typeIdx = getIndexType(m);
+  const indexActuel = parseFloat(m.index_exploitation||0);
+  const prochain = typeIdx ? prochainEntretien(indexActuel, typeIdx) : null;
+  const unite = typeIdx ? (typeIdx.index==='horaire'?'h':'km') : '';
+  document.getElementById('index-titre').textContent = 'Index - '+m.code_machine;
+  document.getElementById('index-machine-id').value = machineId;
+  document.getElementById('index-machine-label').innerHTML = '<strong>'+m.code_machine+'</strong> &mdash; '+(PN[m.pays_id]||m.pays_id)+' &mdash; '+(m.sous_famille||m.famille||'');
+  document.getElementById('index-actuel-display').textContent = indexActuel.toLocaleString('fr-FR')+(unite?' '+unite:'');
+  document.getElementById('index-type-display').textContent = typeIdx?(typeIdx.index==='horaire'?'Horaire (heures)':'Km (kilomètres)'):'Non défini';
+  document.getElementById('index-valeur').value = indexActuel||'';
+  document.getElementById('index-valeur').placeholder = 'Ex: '+(indexActuel+250);
+  document.getElementById('index-remarque').value = '';
+  if(prochain){
+    document.getElementById('index-prochain-wrap').style.display='block';
+    document.getElementById('index-prochain-label').textContent = 'à '+prochain.valeur.toLocaleString('fr-FR')+unite+' ('+prochain.libelle+')';
+    document.getElementById('index-prochain-restant').textContent = 'Encore '+prochain.restant.toLocaleString('fr-FR')+unite+' restant';
+  } else {
+    document.getElementById('index-prochain-wrap').style.display='none';
+  }
+  oM('mod-index');
+}
+
+async function sauverIndex(){
+  const machineId = document.getElementById('index-machine-id').value;
+  const valeur = parseFloat(document.getElementById('index-valeur').value);
+  const remarque = document.getElementById('index-remarque').value.trim();
+  if(!machineId||isNaN(valeur)||valeur<0){toast('Index invalide','ko');return;}
+  const m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  const typeIdx = getIndexType(m);
+  const ancienIndex = parseFloat(m.index_exploitation||0);
+  const unite = typeIdx?(typeIdx.index==='horaire'?'h':'km'):'';
+  try{
+    const updates = Object.assign({},m); delete updates.id;
+    updates.index_exploitation=valeur; updates.index_type=typeIdx?typeIdx.index:'';
+    updates.index_date=now(); updates.modifie_par=ses.user; updates.modifie_le=now();
+    await setDoc(doc(db,'machines',machineId),updates);
+    await addDoc(collection(db,'historique_index'),{
+      machine_id:machineId, code_machine:m.code_machine, pays_id:m.pays_id,
+      index_avant:ancienIndex, index_apres:valeur, unite:unite,
+      remarque:remarque, saisi_par:ses.user, saisi_le:now()
+    });
+    cM('mod-index');
+    toast('Index mis à jour !','ok');
+    window.chargerMaintenance();
+    window.verifierAlertes();
+  }catch(e){toast('Erreur: '+e.message,'ko');}
+}
+
+>
