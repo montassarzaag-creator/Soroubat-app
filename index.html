@@ -1811,22 +1811,44 @@ document.getElementById('btn-csv').addEventListener('click',expCSV);
 window.chargerMaintenance = async function(){
   var cont = document.getElementById('maint-list');
   if(!cont) return;
-  cont.innerHTML = '<div class="em">Chargement...</div>';
 
-  // Charger depuis Firebase si all est vide
-  var source = all;
-  if(!source || source.length === 0){
-    try{
-      var snap = await getDocs(collection(db,'machines'));
+  try{
+    // ETAPE 1: Afficher progression
+    cont.innerHTML = '<div style="padding:16px;font-size:12px;color:#475569;line-height:1.8">'+
+      '<strong>Chargement Maintenance...</strong><br>' +
+      '&bull; all[]: '+(all?all.length:0)+' machines en m&eacute;moire<br>' +
+      '</div>';
+
+    // ETAPE 2: Charger depuis Firebase si all est vide
+    var source = (all && all.length > 0) ? all : [];
+    if(source.length === 0){
+      cont.querySelector('div').innerHTML += '&bull; Chargement Firebase...<br>';
+      var snap2 = await getDocs(collection(db,'machines'));
       source = [];
-      snap.forEach(function(d){ source.push({id:d.id,...d.data()}); });
-      // Aussi mettre &agrave; jour all
+      snap2.forEach(function(d){ source.push({id:d.id,...d.data()}); });
       all = source;
-    }catch(e){
-      cont.innerHTML = '<div class="em">Erreur chargement: '+e.message+'</div>';
+      cont.querySelector('div').innerHTML += '&bull; Firebase: '+source.length+' machines<br>';
+    }
+
+    // ETAPE 3: Tester getIndexType
+    var nbAvecIdx = source.filter(function(m){ return getIndexType(m) !== null; }).length;
+    cont.querySelector('div').innerHTML += '&bull; Avec index: '+nbAvecIdx+'/'+source.length+'<br>';
+
+    if(nbAvecIdx === 0){
+      var ex = source[0];
+      cont.innerHTML = '<div class="em" style="color:#D97706">'+source.length+
+        ' machines mais 0 avec index reconnu.<br>'+
+        (ex ? 'Ex: '+ex.code_machine+' type='+( ex.type_machine||ex.sous_famille||'?') : '')+
+        '</div>';
       return;
     }
+
+  }catch(err){
+    cont.innerHTML = '<div class="em" style="color:#DC2626">Erreur: '+err.message+'</div>';
+    return;
   }
+
+  var source = (all && all.length > 0) ? all : []
 
   var fp = ses.admin ? (document.getElementById('fp-maint')?document.getElementById('fp-maint').value:'') :
            ses.ravitailleur ? '' : ses.pays;
