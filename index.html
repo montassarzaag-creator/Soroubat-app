@@ -832,6 +832,102 @@ function start(){
   document.getElementById('btn-confirmer-entretien').addEventListener('click',confirmerEntretien);
   document.getElementById('close-mod-entretien').addEventListener('click',function(){ cM('mod-entretien'); });
   document.getElementById('cancel-mod-entretien').addEventListener('click',function(){ cM('mod-entretien'); });
+  // Listeners modification d'&eacute;ch&eacute;ance
+  document.getElementById('btn-etape1-echeance').addEventListener('click', function(){
+    const nouvelle = parseFloat(document.getElementById('echeance-nouvelle').value);
+    const motif = document.getElementById('echeance-motif').value.trim();
+    const machineId = document.getElementById('echeance-machine-id').value;
+    const m = all.find(function(x){ return x.id===machineId; });
+    const se = m ? getStatutEntretien(m) : null;
+    const unite = se ? se.unite : 'h';
+  
+    if(!nouvelle||nouvelle<=0){ toast('Veuillez saisir une &eacute;ch&eacute;ance valide','ko'); return; }
+    if(!motif){ toast('Le motif est obligatoire','ko'); return; }
+    if(se&&nouvelle<=se.indexActuel){
+      toast('Ech&eacute;ance invalide: doit &ecirc;tre sup&eacute;rieure &agrave; l index actuel','ko');
+      return;
+    }
+    // Afficher 2e confirmation
+    document.getElementById('confirm-recap').innerHTML =
+      'De <strong>'+(se&&se.prochainEcheance?se.prochainEcheance.toLocaleString('fr-FR'):'-')+
+      ' '+unite+'</strong> &rarr; <strong style="color:#DC2626">'+
+      nouvelle.toLocaleString('fr-FR')+' '+unite+'</strong>'+
+      '<br><small>Machine: '+(m?m.code_machine:'')+'</small>';
+    document.getElementById('confirm-motif').textContent = motif;
+    cM('mod-echeance');
+    oM('mod-echeance-confirm');
+  });
+  
+  document.getElementById('btn-confirmer-echeance').addEventListener('click', async function(){
+    const machineId = document.getElementById('echeance-machine-id').value;
+    const nouvelle = parseFloat(document.getElementById('echeance-nouvelle').value);
+    const motif = document.getElementById('echeance-motif').value.trim();
+    if(!machineId||!nouvelle) return;
+    const m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+    const se = getStatutEntretien(m);
+    const unite = se ? se.unite : 'h';
+  
+    try{
+      await updateDoc(doc(db,'machines',machineId),{
+        prochain_entretien: nouvelle,
+        prochain_type: 'Modifi&eacute; manuellement',
+        echeance_modifiee: true,
+        modifie_par: ses.user,
+        modifie_le: now()
+      });
+      await addDoc(collection(db,'historique_index'),{
+        machine_id:machineId, code_machine:m.code_machine, pays_id:m.pays_id,
+        action:'modification_echeance',
+        ancienne_echeance:se&&se.prochainEcheance?se.prochainEcheance:0,
+        nouvelle_echeance:nouvelle, unite:unite,
+        motif:motif, modifie_par:ses.user, modifie_le:now()
+      });
+      cM('mod-echeance-confirm');
+      toast('&#10003; &Eacute;ch&eacute;ance modifi&eacute;e &agrave; '+nouvelle.toLocaleString('fr-FR')+' '+unite,'ok');
+      window.chargerMaintenance();
+      setTimeout(function(){ window.verifierAlertes(); },500);
+    }catch(e){ toast('Erreur: '+e.message,'ko'); }
+  });
+  
+  document.getElementById('close-mod-echeance').addEventListener('click',function(){ cM('mod-echeance'); });
+  document.getElementById('cancel-mod-echeance').addEventListener('click',function(){ cM('mod-echeance'); });
+  document.getElementById('close-mod-echeance-confirm').addEventListener('click',function(){
+    cM('mod-echeance-confirm'); oM('mod-echeance');
+  });
+  document.getElementById('cancel-mod-echeance-confirm').addEventListener('click',function(){
+    cM('mod-echeance-confirm'); oM('mod-echeance');
+  });
+  
+  // Saisir index du dernier entretien (responsable pays)
+  function saisirEntretien(machineId){
+    const m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+    const se = getStatutEntretien(m);
+    const unite = se ? se.unite : '';
+    const indexActuel = se ? se.indexActuel : 0;
+  
+    // Cr&eacute;er un mini-modal de confirmation
+    // confirmation affich&eacute;e dans le modal
+  
+    document.getElementById('entretien-machine-id').value = machineId;
+    document.getElementById('entretien-machine-label').textContent = m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.type_machine||m.sous_famille||'');
+    document.getElementById('entretien-index-actuel').textContent = indexActuel.toLocaleString('fr-FR')+' '+unite;
+    document.getElementById('entretien-ecart').textContent = se ? se.ecart.toLocaleString('fr-FR')+' '+unite+' depuis le dernier entretien' : '--';
+    document.getElementById('entretien-index-saisi').value = indexActuel;
+    document.getElementById('entretien-remarque').value = '';
+    // Calculer prochain entretien en temps r&eacute;el
+    var prochainCalc = document.getElementById('prochain-calcule');
+    var typeIdxM = se ? se.typeIdx : null;
+    if(prochainCalc && typeIdxM){
+      var pObj = getProchainEntretien(indexActuel, typeIdxM);
+      prochainCalc.textContent = pObj.type+' &agrave; '+pObj.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
+      document.getElementById('entretien-index-saisi').addEventListener('input', function(){
+        var v = parseFloat(this.value)||0;
+        var pObj2 = getProchainEntretien(v, typeIdxM);
+        prochainCalc.textContent = pObj2.type+' &agrave; '+pObj2.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
+      });
+    }
+    oM('mod-entretien');
+  }
   document.getElementById('fp-maint').addEventListener('change',function(){ window.chargerMaintenance(); });
   document.getElementById('filtre-urgence').addEventListener('change',function(){ window.chargerMaintenance(); });
   if(!ses.admin){ document.getElementById('filtre-maint-pays-wrap').style.display='none'; }
@@ -1519,35 +1615,25 @@ document.getElementById('u').addEventListener('keydown',function(e){ if(e.key===
 document.getElementById('btn-login').addEventListener('click', login);
 document.getElementById('dc').addEventListener('click', logout);
 
-// Saisir index du dernier entretien (responsable pays)
-function saisirEntretien(machineId){
+// ============================================================
+// MODIFICATION ECHEANCE PROCHAIN ENTRETIEN
+// ============================================================
+function ouvrirModifEcheance(machineId){
   const m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
   const se = getStatutEntretien(m);
-  const unite = se ? se.unite : '';
-  const indexActuel = se ? se.indexActuel : 0;
+  const unite = se ? se.unite : 'h';
 
-  // Cr&eacute;er un mini-modal de confirmation
-  // confirmation affich&eacute;e dans le modal
-
-  document.getElementById('entretien-machine-id').value = machineId;
-  document.getElementById('entretien-machine-label').textContent = m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.type_machine||m.sous_famille||'');
-  document.getElementById('entretien-index-actuel').textContent = indexActuel.toLocaleString('fr-FR')+' '+unite;
-  document.getElementById('entretien-ecart').textContent = se ? se.ecart.toLocaleString('fr-FR')+' '+unite+' depuis le dernier entretien' : '--';
-  document.getElementById('entretien-index-saisi').value = indexActuel;
-  document.getElementById('entretien-remarque').value = '';
-  // Calculer prochain entretien en temps r&eacute;el
-  var prochainCalc = document.getElementById('prochain-calcule');
-  var typeIdxM = se ? se.typeIdx : null;
-  if(prochainCalc && typeIdxM){
-    var pObj = getProchainEntretien(indexActuel, typeIdxM);
-    prochainCalc.textContent = pObj.type+' &agrave; '+pObj.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
-    document.getElementById('entretien-index-saisi').addEventListener('input', function(){
-      var v = parseFloat(this.value)||0;
-      var pObj2 = getProchainEntretien(v, typeIdxM);
-      prochainCalc.textContent = pObj2.type+' &agrave; '+pObj2.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
-    });
-  }
-  oM('mod-entretien');
+  document.getElementById('echeance-machine-id').value = machineId;
+  document.getElementById('echeance-machine-label').innerHTML =
+    '<strong>'+m.code_machine+'</strong> &mdash; '+(PN[m.pays_id]||m.pays_id)+
+    ' &mdash; '+(m.type_machine||m.sous_famille||'');
+  document.getElementById('echeance-index-actuel').textContent =
+    se&&se.indexActuel>0 ? se.indexActuel.toLocaleString('fr-FR')+' '+unite : '--';
+  document.getElementById('echeance-prochain-actuel').textContent =
+    se&&se.prochainEcheance ? se.prochainEcheance.toLocaleString('fr-FR')+' '+unite+' ('+se.prochainType+')' : '--';
+  document.getElementById('echeance-nouvelle').value = se&&se.prochainEcheance ? se.prochainEcheance : '';
+  document.getElementById('echeance-motif').value = '';
+  oM('mod-echeance');
 }
 
 async function confirmerEntretien(){
