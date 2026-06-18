@@ -161,7 +161,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
             <div style="font-size:10px;color:rgba(255,255,255,.7)">machines</div>
           </div>
         </div>
-        <!-- Bloc En réparation -->
+        <!-- Bloc En r&eacute;paration -->
         <div style="background:linear-gradient(135deg,#D97706,#F59E0B);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:22px">&#128295;</span>
@@ -509,7 +509,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     </div>
     <div class="fg fu">
       <label>Remarque (optionnel)</label>
-      <input type="text" id="index-remarque" placeholder="Ex: Relevé lors de la visite du 17/06/2026">
+      <input type="text" id="index-remarque" placeholder="Ex: Relev&eacute; lors de la visite du 17/06/2026">
     </div>
   </div>
   <div class="mf">
@@ -654,21 +654,39 @@ async function login(){
   try{
     const snap = await getDocs(collection(db,'machines'));
     all = [];
-    snap.forEach(function(d){ const data={id:d.id,...d.data()}; if(ses.admin||data.pays_id===ses.pays) all.push(data); });
+    snap.forEach(function(d){
+      const data={id:d.id,...d.data()};
+      // Admin et ravitailleur voient tout, pays voit son pays
+      if(ses.admin || ses.ravitailleur || data.pays_id===ses.pays) all.push(data);
+    });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
   }catch(e){ toast('Erreur Firebase: '+e.message,'ko'); }
   document.getElementById('lm').style.display='none';
   start();
+  // Charger maintenance apr&egrave;s que all soit pr&ecirc;t
+  if(ses.ravitailleur){
+    setTimeout(function(){
+      if(window.chargerMaintenance) window.chargerMaintenance();
+    }, 1000);
+  }
   abonner();
 }
 
 function abonner(){
   if(unsub) unsub();
   unsub = onSnapshot(collection(db,'machines'), function(snap){
+    if(!ses) return; // S&eacute;curit&eacute;: ne pas traiter si pas connect&eacute;
     all = [];
-    snap.forEach(function(d){ const data={id:d.id,...d.data()}; if(ses.admin||data.pays_id===ses.pays) all.push(data); });
+    snap.forEach(function(d){
+      const data={id:d.id,...d.data()};
+      // Admin et ravitailleur voient TOUT, responsable pays voit son pays
+      if(ses.admin || ses.ravitailleur || data.pays_id===ses.pays) all.push(data);
+    });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
     filt(); stat();
+    // Recharger maintenance si onglet actif
+    const tabMaint = document.getElementById('tab-maintenance');
+    if(tabMaint && tabMaint.classList.contains('ac')) window.chargerMaintenance();
   });
 }
 
@@ -693,16 +711,16 @@ function start(){
     document.getElementById('badd').style.display='';
     document.getElementById('filtre-pays-interv').style.display='flex';
   } else if(ses.ravitailleur){
-    // Ravitailleur: acc&egrave;s limit&eacute; - aller directement &agrave; Maintenance
+    // Ravitailleur: acc&egrave;s limit&eacute; - Machines (lecture) + Maintenance (saisie index)
     document.getElementById('tdash').style.display='none';
     document.getElementById('badd').style.display='none';
     document.getElementById('tab-interventions').style.display='none';
     document.getElementById('tab-historique').style.display='none';
     document.getElementById('tab-alertes').style.display='none';
-    // Aller directement sur Maintenance
+    // Aller sur Maintenance apr&egrave;s chargement
     setTimeout(function(){
       goT('maintenance', document.getElementById('tab-maintenance'));
-    }, 100);
+    }, 800);
   } else {
     document.getElementById('tdash').style.display='none';
     document.getElementById('badd').style.display='none';
@@ -1424,7 +1442,7 @@ function saisirEntretien(machineId){
   const indexActuel = se ? se.indexActuel : 0;
 
   // Cr&eacute;er un mini-modal de confirmation
-  // confirmation affichée dans le modal
+  // confirmation affich&eacute;e dans le modal
 
   document.getElementById('entretien-machine-id').value = machineId;
   document.getElementById('entretien-machine-label').textContent = m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.type_machine||m.sous_famille||'');
