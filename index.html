@@ -1811,22 +1811,35 @@ document.getElementById('btn-csv').addEventListener('click',expCSV);
 window.chargerMaintenance = async function(){
   var cont = document.getElementById('maint-list');
   if(!cont) return;
+  if(!ses){ 
+    cont.innerHTML = '<div class="em">En attente de connexion...</div>';
+    setTimeout(window.chargerMaintenance, 500);
+    return; 
+  }
   cont.innerHTML = '<div class="em">Chargement...</div>';
 
   // Charger depuis Firebase si all est vide
   var source = (all && all.length > 0) ? all : [];
   if(source.length === 0){
     try{
+      cont.innerHTML = '<div class="em">Connexion Firebase en cours...</div>';
       var snap2 = await getDocs(collection(db,'machines'));
       source = [];
       snap2.forEach(function(d){ source.push({id:d.id,...d.data()}); });
       all = source;
     }catch(e){
-      cont.innerHTML = '<div class="em" style="color:#DC2626">Erreur Firebase: '+e.message+'</div>';
+      cont.innerHTML = '<div class="em" style="color:#DC2626">Erreur chargement: '+e.message+'</div>';
       return;
     }
   }
+  
+  // Protection: si toujours vide apr&egrave;s tentative
+  if(source.length === 0){
+    cont.innerHTML = '<div class="em" style="color:#D97706">Impossible de charger les machines. V&eacute;rifiez votre connexion.</div>';
+    return;
+  }
 
+  try{
   var fp = ses.admin ? (document.getElementById('fp-maint')?document.getElementById('fp-maint').value:'') :
            ses.ravitailleur ? '' : ses.pays;
   var filtreUrgence = document.getElementById('filtre-urgence') ? document.getElementById('filtre-urgence').value : '';
@@ -1965,6 +1978,9 @@ window.chargerMaintenance = async function(){
   cont.querySelectorAll('[data-modifier-echeance]').forEach(function(btn){
     btn.addEventListener('click',function(){ ouvrirModifEcheance(btn.dataset.modifierEcheance); });
   });
+  }catch(mainErr){
+    cont.innerHTML = '<div class="em" style="color:#DC2626;font-size:12px">Erreur: '+mainErr.message+'<br><small>'+mainErr.stack.split('\n')[0]+'</small></div>';
+  }
 };
 
 </script>
