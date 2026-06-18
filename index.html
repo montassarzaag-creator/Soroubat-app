@@ -663,6 +663,92 @@ function getIndexType(machine){
   return null;
 }
 
+// ============================================================
+// CYCLES ET CALCULS ENTRETIEN PREVENTIF
+// ============================================================
+const SEUIL_ALERTE = 0.80;
+const INTERVALLE_H = 250;
+const INTERVALLE_KM = 5000;
+const CYCLE_H = [
+  {palier:250,  type:'Entretien 250h'},
+  {palier:500,  type:'Entretien 500h'},
+  {palier:750,  type:'Entretien 250h'},
+  {palier:1000, type:'Entretien 1000h'},
+  {palier:1250, type:'Entretien 250h'},
+  {palier:1500, type:'Entretien 500h'},
+  {palier:1750, type:'Entretien 250h'},
+  {palier:2000, type:'Entretien majeur 2000h'}
+];
+const CYCLE_KM = [
+  {palier:5000,  type:'Entretien 5 000 km'},
+  {palier:10000, type:'Entretien 10 000 km'},
+  {palier:15000, type:'Entretien 5 000 km'},
+  {palier:20000, type:'Entretien 20 000 km'},
+  {palier:25000, type:'Entretien 5 000 km'},
+  {palier:30000, type:'Entretien 10 000 km'},
+  {palier:35000, type:'Entretien 5 000 km'},
+  {palier:40000, type:'Entretien majeur 40 000 km'}
+];
+const CYCLE_TOTAL_H  = 2000;
+const CYCLE_TOTAL_KM = 40000;
+
+function getProchainEntretien(indexDernier, typeIdx){
+  var cycle = typeIdx.index==='horaire' ? CYCLE_H : CYCLE_KM;
+  var cycleTotal = typeIdx.index==='horaire' ? CYCLE_TOTAL_H : CYCLE_TOTAL_KM;
+  var baseCycle = Math.floor(indexDernier / cycleTotal) * cycleTotal;
+  for(var i=0; i<cycle.length; i++){
+    var prochainAbs = baseCycle + cycle[i].palier;
+    if(prochainAbs > indexDernier + 1){
+      return {
+        type: cycle[i].type,
+        echeanceAbs: prochainAbs,
+        intervalle: prochainAbs - indexDernier
+      };
+    }
+  }
+  var prochainAbs = baseCycle + cycleTotal + cycle[0].palier;
+  return {
+    type: cycle[0].type,
+    echeanceAbs: prochainAbs,
+    intervalle: prochainAbs - indexDernier
+  };
+}
+
+function getStatutEntretien(m){
+  var typeIdx = getIndexType(m);
+  if(!typeIdx) return null;
+  var unite = typeIdx.index==='horaire' ? 'h' : 'km';
+  var indexActuel = parseFloat(m.index_exploitation||0);
+  var indexDernier = parseFloat(m.index_dernier_entretien||0);
+
+  if(indexActuel <= 0){
+    var p0 = getProchainEntretien(0, typeIdx);
+    return {statut:'sans_index', ecart:0, intervalle:p0.intervalle, pct:0,
+      restant:p0.echeanceAbs, unite:unite, typeIdx:typeIdx,
+      indexActuel:0, indexDernierEntretien:0,
+      prochainType:p0.type, prochainEcheance:p0.echeanceAbs};
+  }
+
+  var prochain = getProchainEntretien(indexDernier, typeIdx);
+  var ecart = indexActuel - indexDernier;
+  var intervalle = prochain.intervalle;
+  var pct = intervalle > 0 ? ecart / intervalle : 0;
+  var restant = prochain.echeanceAbs - indexActuel;
+
+  var statut = 'ok';
+  if(pct >= 1.0) statut = 'du';
+  else if(pct >= SEUIL_ALERTE) statut = 'alerte';
+
+  return {
+    statut:statut, ecart:ecart, intervalle:intervalle, pct:pct, restant:restant,
+    indexActuel:indexActuel, indexDernierEntretien:indexDernier,
+    unite:unite, typeIdx:typeIdx,
+    prochainType:prochain.type, prochainEcheance:prochain.echeanceAbs
+  };
+}
+
+
+
 // Calculer le prochain entretien
 function prochainEntretien(indexActuel, typeIndex){
   if(!typeIndex) return null;
