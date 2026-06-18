@@ -1584,17 +1584,7 @@ function afficherAlertes(){
   }).join('');
 }
 
-// CSV
-function expCSV(){
-  if(!fi.length){toast('Aucune donnee','ko');return;}
-  const cols=['Code','Pays','Famille','Type','Marque','Modele','N Serie','Immat','Statut','Chantier'];
-  const rows=fi.map(function(m){ return [m.code_machine,PN[m.pays_id]||m.pays_id,m.famille||'',m.sous_famille||'',m.marque||'',m.modele||'',m.numero_serie||'',m.immatriculation||'',m.statut||'',m.chantier||''].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(';'); });
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\uFEFF'+[cols.join(';'),...rows].join('\n')],{type:'text/csv;charset=utf-8'}));
-  a.download='SOROUBAT_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
-  toast('CSV exporte !','ok');
-}
-document.getElementById('btn-csv').addEventListener('click',expCSV);
+
 
 // CHANTIERS
 function majCh(p){
@@ -1671,6 +1661,138 @@ function ouvrirModifEcheance(machineId){
   oM('mod-echeance');
 }
 
+
+// ============================================================
+// SAISIE INDEX (RAVITAILLEUR / ADMIN)
+// ============================================================
+function ouvrirSaisieIndex(machineId){
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  var typeIdx = getIndexType(m);
+  var se = getStatutEntretien(m);
+  var indexActuel = parseFloat(m.index_exploitation||0);
+  var unite = typeIdx ? (typeIdx.index==='horaire'?'h':'km') : '';
+  var prochain = se&&se.prochainEcheance ? se.prochainEcheance : null;
+
+  document.getElementById('index-titre').textContent = 'Index - '+m.code_machine;
+  document.getElementById('index-machine-id').value = machineId;
+  document.getElementById('index-machine-label').innerHTML =
+    '<strong>'+m.code_machine+'</strong> &mdash; '+(PN[m.pays_id]||m.pays_id)+
+    ' &mdash; '+(m.type_machine||m.sous_famille||'');
+  document.getElementById('index-actuel-display').textContent =
+    indexActuel>0 ? indexActuel.toLocaleString('fr-FR')+' '+unite : '--';
+  document.getElementById('index-type-display').textContent =
+    typeIdx ? (typeIdx.index==='horaire'?'Horaire (heures)':'Km (kilom&egrave;tres)') : 'Non d&eacute;fini';
+  document.getElementById('index-valeur').value = indexActuel||'';
+  document.getElementById('index-valeur').placeholder = 'Ex: '+(indexActuel+250);
+  document.getElementById('index-remarque').value = '';
+
+  if(se&&se.prochainType){
+    document.getElementById('index-prochain-wrap').style.display='block';
+    document.getElementById('index-prochain-label').textContent =
+      se.prochainType+' &agrave; '+se.prochainEcheance.toLocaleString('fr-FR')+' '+unite;
+    document.getElementById('index-prochain-restant').textContent =
+      'Encore '+se.restant.toLocaleString('fr-FR')+' '+unite+' restant';
+  } else {
+    document.getElementById('index-prochain-wrap').style.display='none';
+  }
+  oM('mod-index');
+}
+
+async function sauverIndex(){
+  var machineId = document.getElementById('index-machine-id').value;
+  var valeur = parseFloat(document.getElementById('index-valeur').value);
+  var remarque = document.getElementById('index-remarque').value.trim();
+  if(!machineId||isNaN(valeur)||valeur<0){toast('Index invalide','ko');return;}
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  var typeIdx = getIndexType(m);
+  var ancienIndex = parseFloat(m.index_exploitation||0);
+  var unite = typeIdx?(typeIdx.index==='horaire'?'h':'km'):'';
+  try{
+    await updateDoc(doc(db,'machines',machineId),{
+      index_exploitation: valeur,
+      index_type: typeIdx?typeIdx.index:'',
+      index_date: now(),
+      modifie_par: ses.user,
+      modifie_le: now()
+    });
+    await addDoc(collection(db,'historique_index'),{
+      machine_id:machineId, code_machine:m.code_machine, pays_id:m.pays_id,
+      index_avant:ancienIndex, index_apres:valeur, unite:unite,
+      remarque:remarque, saisi_par:ses.user, saisi_le:now()
+    });
+    cM('mod-index');
+    toast('Index mis &agrave; jour: '+valeur.toLocaleString('fr-FR')+' '+unite,'ok');
+    window.chargerMaintenance();
+    window.verifierAlertes();
+  }catch(e){toast('Erreur: '+e.message,'ko');}
+}
+
+// ============================================================
+// CONFIRMATION ENTRETIEN (RESPONSABLE PAYS)
+// ============================================================
+async function confirmerEntretien(){
+  var machineId = document.getElementById('entretien-machine-id').value;
+  var indexSaisi = parseFloat(document.getElementById('entretien-index-saisi').value);
+  var remarque = document.getElementById('entretien-remarque').value.trim();
+  if(!machineId||isNaN(indexSaisi)||indexSaisi<0){toast('Index invalide','ko');return;}
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  var typeIdx = getIndexType(m);
+  var unite = typeIdx?(typeIdx.index==='horaire'?'h':'km'):'';
+  var indexActuelAvant = parseFloat(m.index_exploitation||0);
+  var ancienDernier = parseFloat(m.index_dernier_entretien||0);
+  var ecartRealise = indexActuelAvant - ancienDernier;
+
+  try{
+    // Calculer le VRAI prochain entretien du cycle
+    var prochainObj = typeIdx ? getProchainEntretien(indexSaisi, typeIdx) : null;
+    await updateDoc(doc(db,'machines',machineId),{
+      index_dernier_entretien: indexSaisi,
+      date_dernier_entretien: now(),
+      prochain_entretien: prochainObj ? prochainObj.echeanceAbs : null,
+      prochain_type: prochainObj ? prochainObj.type : null,
+      echeance_modifiee: false,
+      modifie_par: ses.user,
+      modifie_le: now()
+    });
+    await addDoc(collection(db,'historique_entretien'),{
+      machine_id:machineId, code_machine:m.code_machine, pays_id:m.pays_id,
+      type_machine:m.type_machine||m.sous_famille||'',
+      index_entretien:indexSaisi, index_actuel:indexActuelAvant,
+      ecart_realise:ecartRealise,
+      prochain_entretien:prochainObj?prochainObj.echeanceAbs:null,
+      prochain_type:prochainObj?prochainObj.type:null,
+      unite:unite, remarque:remarque,
+      realise_par:ses.user, realise_le:now()
+    });
+    cM('mod-entretien');
+    var msgProchain = prochainObj ? prochainObj.type+' &agrave; '+prochainObj.echeanceAbs.toLocaleString('fr-FR')+' '+unite : '';
+    toast('&#10003; Entretien valid&eacute; ! Prochain: '+msgProchain,'ok');
+    window.chargerMaintenance();
+    setTimeout(function(){ window.verifierAlertes(); },500);
+  }catch(e){toast('Erreur: '+e.message,'ko');}
+}
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+function expCSV(){
+  if(!fi.length){toast('Aucune donn&eacute;e','ko');return;}
+  var cols=['Code','Pays','Famille','Type','Marque','Modele','N Serie','Immat','Statut','Chantier'];
+  var rows=fi.map(function(m){
+    return [m.code_machine,PN[m.pays_id]||m.pays_id,m.famille||'',m.sous_famille||'',
+      m.marque||'',m.modele||'',m.numero_serie||'',m.immatriculation||'',
+      m.statut||'',m.chantier||''].map(function(v){
+        return '"'+String(v).replace(/"/g,'""')+'"';
+      }).join(';');
+  });
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+[cols.join(';'),...rows].join('\n')],
+    {type:'text/csv;charset=utf-8'}));
+  a.download='SOROUBAT_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('CSV export&eacute; !','ok');
+}
+document.getElementById('btn-csv').addEventListener('click',expCSV);
 </script>
 </body>
 </html>
