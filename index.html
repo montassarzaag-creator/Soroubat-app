@@ -1811,50 +1811,27 @@ document.getElementById('btn-csv').addEventListener('click',expCSV);
 window.chargerMaintenance = async function(){
   var cont = document.getElementById('maint-list');
   if(!cont) return;
+  cont.innerHTML = '<div class="em">Chargement...</div>';
 
-  try{
-    // ETAPE 1: Afficher progression
-    cont.innerHTML = '<div style="padding:16px;font-size:12px;color:#475569;line-height:1.8">'+
-      '<strong>Chargement Maintenance...</strong><br>' +
-      '&bull; all[]: '+(all?all.length:0)+' machines en m&eacute;moire<br>' +
-      '</div>';
-
-    // ETAPE 2: Charger depuis Firebase si all est vide
-    var source = (all && all.length > 0) ? all : [];
-    if(source.length === 0){
-      cont.querySelector('div').innerHTML += '&bull; Chargement Firebase...<br>';
+  // Charger depuis Firebase si all est vide
+  var source = (all && all.length > 0) ? all : [];
+  if(source.length === 0){
+    try{
       var snap2 = await getDocs(collection(db,'machines'));
       source = [];
       snap2.forEach(function(d){ source.push({id:d.id,...d.data()}); });
       all = source;
-      cont.querySelector('div').innerHTML += '&bull; Firebase: '+source.length+' machines<br>';
-    }
-
-    // ETAPE 3: Tester getIndexType
-    var nbAvecIdx = source.filter(function(m){ return getIndexType(m) !== null; }).length;
-    cont.querySelector('div').innerHTML += '&bull; Avec index: '+nbAvecIdx+'/'+source.length+'<br>';
-
-    if(nbAvecIdx === 0){
-      var ex = source[0];
-      cont.innerHTML = '<div class="em" style="color:#D97706">'+source.length+
-        ' machines mais 0 avec index reconnu.<br>'+
-        (ex ? 'Ex: '+ex.code_machine+' type='+( ex.type_machine||ex.sous_famille||'?') : '')+
-        '</div>';
+    }catch(e){
+      cont.innerHTML = '<div class="em" style="color:#DC2626">Erreur Firebase: '+e.message+'</div>';
       return;
     }
-
-  }catch(err){
-    cont.innerHTML = '<div class="em" style="color:#DC2626">Erreur: '+err.message+'</div>';
-    return;
   }
-
-  var source = (all && all.length > 0) ? all : []
 
   var fp = ses.admin ? (document.getElementById('fp-maint')?document.getElementById('fp-maint').value:'') :
            ses.ravitailleur ? '' : ses.pays;
   var filtreUrgence = document.getElementById('filtre-urgence') ? document.getElementById('filtre-urgence').value : '';
 
-  // Seules les machines avec un type d'index
+  // Filtrer les machines avec index
   var machines = source.filter(function(m){
     if(fp && m.pays_id !== fp) return false;
     return getIndexType(m) !== null;
@@ -1888,16 +1865,16 @@ window.chargerMaintenance = async function(){
     '</div>';
 
   if(!filtered.length){
-    cont.innerHTML=h2+'<div class="em">Aucune machine avec index trouv&eacute;e</div>';
+    cont.innerHTML=h2+'<div class="em">Aucune machine trouv&eacute;e pour ce filtre</div>';
     return;
   }
 
   var th=function(txt,center){
-    return '<th style="padding:8px 10px;text-align:'+(center?'center':'left')+';font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #E2E8F0;white-space:nowrap">'+txt+'</th>';
+    return '<th style="padding:8px 10px;text-align:'+(center?'center':'left')+';font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #E2E8F0;white-space:nowrap;background:#F8FAFC">'+txt+'</th>';
   };
 
   h2+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
-    '<thead><tr style="background:#F8FAFC">'+
+    '<thead><tr>'+
     th('Code')+
     (ses.admin||ses.ravitailleur?th('Pays'):'')+
     th('D&eacute;signation')+
@@ -1920,27 +1897,27 @@ window.chargerMaintenance = async function(){
 
     if(se.statut==='du'){
       barColor='#DC2626';
-      statBadge='<span style="background:#FEE2E2;color:#991B1B;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#128680; D&Ucirc;</span>';
+      statBadge='<span style="background:#FEE2E2;color:#991B1B;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#128680; Entretien D&Ucirc;</span>';
       rowBg='#FFF5F5';
     } else if(se.statut==='alerte'){
       barColor='#D97706';
-      statBadge='<span style="background:#FEF3C7;color:#92400E;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#9888; '+ecartPct+'%</span>';
+      statBadge='<span style="background:#FEF3C7;color:#92400E;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#9888; Alerte '+ecartPct+'%</span>';
       rowBg='#FFFBEB';
     } else if(se.statut==='sans_index'){
-      statBadge='<span style="background:#F1F5F9;color:#64748B;font-size:10px;padding:2px 8px;border-radius:20px">--</span>';
+      statBadge='<span style="background:#F1F5F9;color:#64748B;font-size:10px;padding:2px 8px;border-radius:20px">&#8212; Index non saisi</span>';
     } else {
-      statBadge='<span style="background:#D1FAE5;color:#065F46;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600">&#10003; '+ecartPct+'%</span>';
+      statBadge='<span style="background:#D1FAE5;color:#065F46;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600">&#10003; OK '+ecartPct+'%</span>';
     }
 
     var barre='<div style="display:inline-flex;align-items:center;gap:4px">'+
       '<div style="background:#E2E8F0;border-radius:20px;height:8px;width:80px">'+
-      '<div style="width:'+ecartPct+'%;background:'+barColor+';height:8px;border-radius:20px;max-width:100%"></div></div>'+
-      '<span style="font-size:10px;color:'+barColor+';font-weight:600">'+ecartPct+'%</span></div>';
+      '<div style="width:'+ecartPct+'%;background:'+barColor+';height:8px;border-radius:20px;max-width:100%"></div>'+
+      '</div><span style="font-size:10px;color:'+barColor+';font-weight:600">'+ecartPct+'%</span></div>';
 
     var dateDE = m.date_dernier_entretien ? m.date_dernier_entretien.slice(0,10) : '--';
     var suiteBadge = se.typeIdx ?
       (se.typeIdx.index==='horaire'?
-        '<span style="background:#EFF6FF;color:#1D4ED8;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#9201; H</span>':
+        '<span style="background:#EFF6FF;color:#1D4ED8;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#9201; Horaire</span>':
         '<span style="background:#F0FDF4;color:#166534;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#128663; Km</span>') : '';
     var restantTxt = se.restant!==undefined ?
       (se.restant>0 ? '<strong>'+se.restant.toLocaleString('fr-FR')+'</strong> '+unite :
@@ -1954,14 +1931,14 @@ window.chargerMaintenance = async function(){
       btns+='<button class="bn bs bv" data-entretien="'+m.id+'" style="font-size:11px;padding:4px 8px;margin-right:3px">&#10003; Fait</button>';
     }
     if(!ses.ravitailleur&&!ses.admin){
-      btns+='<button class="bn bs" data-modifier-echeance="'+m.id+'" style="background:#F0F9FF;color:#0369A1;border:0.5px solid #BAE6FD;font-size:11px;padding:4px 8px">&#9998; Ech.</button>';
+      btns+='<button class="bn bs" data-modifier-echeance="'+m.id+'" style="background:#F0F9FF;color:#0369A1;border:0.5px solid #BAE6FD;font-size:11px;padding:4px 8px">&#9998; &Eacute;ch.</button>';
     }
 
-    var td=function(v,c){ return '<td style="padding:8px 10px;'+(c?'text-align:center;':'')+'">'+(v||'--')+'</td>'; };
+    var td=function(v,c){ return '<td style="padding:8px 10px;'+(c?'text-align:center;':'')+'border-bottom:0.5px solid #F1F5F9;">'+(v||'--')+'</td>'; };
 
     h2+=
-      '<tr style="background:'+rowBg+';border-bottom:0.5px solid #E2E8F0">'+
-      td('<strong>'+m.code_machine+'</strong>')+
+      '<tr style="background:'+rowBg+'">'+
+      td('<strong style="font-size:12px">'+m.code_machine+'</strong>')+
       (ses.admin||ses.ravitailleur?td(PN[m.pays_id]||m.pays_id):'')+
       td('<span style="font-size:11px;color:#475569">'+(m.type_machine||m.sous_famille||'-')+'</span>')+
       td(suiteBadge,true)+
@@ -1972,7 +1949,7 @@ window.chargerMaintenance = async function(){
       td(se.prochainEcheance?'<strong>'+se.prochainEcheance.toLocaleString('fr-FR')+'</strong> '+unite:'--',true)+
       td(restantTxt,true)+
       td(statBadge,true)+
-      '<td style="padding:8px 10px;text-align:center;white-space:nowrap">'+btns+'</td>'+
+      '<td style="padding:8px 10px;text-align:center;white-space:nowrap;border-bottom:0.5px solid #F1F5F9;">'+btns+'</td>'+
       '</tr>';
   });
 
