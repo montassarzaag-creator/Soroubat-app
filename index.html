@@ -1813,10 +1813,19 @@ window.chargerMaintenance = async function(){
   if(!cont) return;
   cont.innerHTML = '<div class="em">Chargement...</div>';
 
-  // Si all est encore vide, r&eacute;essayer dans 1 seconde
-  if(!all || all.length === 0){
-    setTimeout(function(){ window.chargerMaintenance(); }, 1000);
-    return;
+  // Charger depuis Firebase si all est vide
+  var source = all;
+  if(!source || source.length === 0){
+    try{
+      var snap = await getDocs(collection(db,'machines'));
+      source = [];
+      snap.forEach(function(d){ source.push({id:d.id,...d.data()}); });
+      // Aussi mettre &agrave; jour all
+      all = source;
+    }catch(e){
+      cont.innerHTML = '<div class="em">Erreur chargement: '+e.message+'</div>';
+      return;
+    }
   }
 
   var fp = ses.admin ? (document.getElementById('fp-maint')?document.getElementById('fp-maint').value:'') :
@@ -1824,7 +1833,7 @@ window.chargerMaintenance = async function(){
   var filtreUrgence = document.getElementById('filtre-urgence') ? document.getElementById('filtre-urgence').value : '';
 
   // Seules les machines avec un type d'index
-  var machines = all.filter(function(m){
+  var machines = source.filter(function(m){
     if(fp && m.pays_id !== fp) return false;
     return getIndexType(m) !== null;
   });
