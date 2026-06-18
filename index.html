@@ -749,37 +749,7 @@ function getStatutEntretien(m){
 
 
 
-// Calculer le prochain entretien
-function prochainEntretien(indexActuel, typeIndex){
-  if(!typeIndex) return null;
-  const {seuils, cycle} = typeIndex;
-  // Position dans le cycle
-  const posInCycle = indexActuel % cycle;
-  // Prochain seuil dans le cycle
-  const prochainSeuil = seuils.find(s => s > posInCycle);
-  if(prochainSeuil){
-    return {
-      valeur: indexActuel + (prochainSeuil - posInCycle),
-      restant: prochainSeuil - posInCycle,
-      libelle: prochainSeuil + (typeIndex.index==='horaire'?'h':' km') + ' (cycle ' + cycle + (typeIndex.index==='horaire'?'h':' km') + ')'
-    };
-  }
-  // Fin de cycle - prochain = d&eacute;but du nouveau cycle
-  return {
-    valeur: indexActuel + (cycle - posInCycle),
-    restant: cycle - posInCycle,
-    libelle: 'R&eacute;vision g&eacute;n&eacute;rale ' + cycle + (typeIndex.index==='horaire'?'h':' km')
-  };
-}
-
-// V&eacute;rifier si entretien urgent (reste moins de 10% du cycle)
-function estUrgent(indexActuel, typeIndex){
-  if(!typeIndex) return false;
-  const prochain = prochainEntretien(indexActuel, typeIndex);
-  if(!prochain) return false;
-  const seuilUrgence = typeIndex.cycle * 0.1; // 10% du cycle
-  return prochain.restant <= seuilUrgence;
-}
+// Anciennes fonctions supprimees - remplacees par getProchainEntretien/getStatutEntretien
 
 let ses=null, all=[], fi=[], pg=1, PP=50, unsub=null;
 
