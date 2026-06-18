@@ -755,9 +755,15 @@ async function login(){
   start();
   // Charger maintenance apr&egrave;s que all soit pr&ecirc;t
   if(ses.ravitailleur){
-    setTimeout(function(){
-      if(window.chargerMaintenance) window.chargerMaintenance();
-    }, 1000);
+    // Attendre que Firebase charge les donn&eacute;es
+    var tentative = 0;
+    var attendre = setInterval(function(){
+      tentative++;
+      if(all.length > 0 || tentative > 10){
+        clearInterval(attendre);
+        if(window.chargerMaintenance) window.chargerMaintenance();
+      }
+    }, 500);
   }
   abonner();
 }
@@ -774,9 +780,11 @@ function abonner(){
     });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
     filt(); stat();
-    // Recharger maintenance si onglet actif
-    const tabMaint = document.getElementById('tab-maintenance');
-    if(tabMaint && tabMaint.classList.contains('ac')) window.chargerMaintenance();
+    // Recharger maintenance apr&egrave;s chaque mise &agrave; jour Firebase
+    var tabMaint = document.getElementById('tab-maintenance');
+    if(tabMaint && tabMaint.classList.contains('ac')){
+      window.chargerMaintenance();
+    }
   });
 }
 
@@ -1793,6 +1801,161 @@ function expCSV(){
   toast('CSV export&eacute; !','ok');
 }
 document.getElementById('btn-csv').addEventListener('click',expCSV);
+
+// ============================================================
+// MAINTENANCE - CHARGEMENT DU TABLEAU
+// ============================================================
+window.chargerMaintenance = async function(){
+  var cont = document.getElementById('maint-list');
+  if(!cont) return;
+  cont.innerHTML = '<div class="em">Chargement...</div>';
+
+  // Si all est encore vide, r&eacute;essayer dans 1 seconde
+  if(!all || all.length === 0){
+    setTimeout(function(){ window.chargerMaintenance(); }, 1000);
+    return;
+  }
+
+  var fp = ses.admin ? (document.getElementById('fp-maint')?document.getElementById('fp-maint').value:'') :
+           ses.ravitailleur ? '' : ses.pays;
+  var filtreUrgence = document.getElementById('filtre-urgence') ? document.getElementById('filtre-urgence').value : '';
+
+  // Seules les machines avec un type d'index
+  var machines = all.filter(function(m){
+    if(fp && m.pays_id !== fp) return false;
+    return getIndexType(m) !== null;
+  });
+
+  var items = machines.map(function(m){ return {m:m, se:getStatutEntretien(m)}; });
+
+  var filtered = items;
+  if(filtreUrgence==='urgent') filtered=items.filter(function(i){ return i.se&&(i.se.statut==='du'||i.se.statut==='alerte'); });
+  else if(filtreUrgence==='ok') filtered=items.filter(function(i){ return i.se&&i.se.statut==='ok'; });
+  else if(filtreUrgence==='sans') filtered=items.filter(function(i){ return !i.se||i.se.statut==='sans_index'; });
+
+  var ordre={'du':0,'alerte':1,'ok':2,'sans_index':3};
+  filtered.sort(function(a,b){
+    var oa=a.se?ordre[a.se.statut]:3, ob=b.se?ordre[b.se.statut]:3;
+    if(oa!==ob) return oa-ob;
+    return (b.se?b.se.pct:0)-(a.se?a.se.pct:0);
+  });
+
+  var nbDu=items.filter(function(i){return i.se&&i.se.statut==='du';}).length;
+  var nbAlert=items.filter(function(i){return i.se&&i.se.statut==='alerte';}).length;
+  var nbOk=items.filter(function(i){return i.se&&i.se.statut==='ok';}).length;
+  var nbSans=items.filter(function(i){return !i.se||i.se.statut==='sans_index';}).length;
+
+  var h2=
+    '<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">'+
+    '<div style="background:#FEE2E2;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#128680;</span><div><div style="font-size:22px;font-weight:700;color:#991B1B">'+nbDu+'</div><div style="font-size:11px;color:#DC2626;font-weight:600">Entretien D&Ucirc;</div></div></div>'+
+    '<div style="background:#FEF3C7;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#9888;</span><div><div style="font-size:22px;font-weight:700;color:#92400E">'+nbAlert+'</div><div style="font-size:11px;color:#D97706;font-weight:600">Alerte (&gt;80%)</div></div></div>'+
+    '<div style="background:#D1FAE5;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#10003;</span><div><div style="font-size:22px;font-weight:700;color:#065F46">'+nbOk+'</div><div style="font-size:11px;color:#059669;font-weight:600">OK</div></div></div>'+
+    '<div style="background:#F1F5F9;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#8212;</span><div><div style="font-size:22px;font-weight:700;color:#475569">'+nbSans+'</div><div style="font-size:11px;color:#64748B;font-weight:600">Sans index saisi</div></div></div>'+
+    '</div>';
+
+  if(!filtered.length){
+    cont.innerHTML=h2+'<div class="em">Aucune machine avec index trouv&eacute;e</div>';
+    return;
+  }
+
+  var th=function(txt,center){
+    return '<th style="padding:8px 10px;text-align:'+(center?'center':'left')+';font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #E2E8F0;white-space:nowrap">'+txt+'</th>';
+  };
+
+  h2+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr style="background:#F8FAFC">'+
+    th('Code')+
+    (ses.admin||ses.ravitailleur?th('Pays'):'')+
+    th('D&eacute;signation')+
+    th('Suivi',true)+
+    th('Index actuel',true)+
+    th('Dernier entretien',true)+
+    th('Date',true)+
+    th('Prochain entretien')+
+    th('&Eacute;ch&eacute;ance',true)+
+    th('Restant',true)+
+    th('Alerte',true)+
+    th('Actions',true)+
+    '</tr></thead><tbody>';
+
+  filtered.forEach(function(item,i){
+    var m=item.m, se=item.se; if(!se)return;
+    var unite=se.unite||'';
+    var ecartPct=Math.min(Math.round(se.pct*100),100);
+    var barColor='#16A34A', statBadge='', rowBg=i%2===0?'#fff':'#F8FAFC';
+
+    if(se.statut==='du'){
+      barColor='#DC2626';
+      statBadge='<span style="background:#FEE2E2;color:#991B1B;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#128680; D&Ucirc;</span>';
+      rowBg='#FFF5F5';
+    } else if(se.statut==='alerte'){
+      barColor='#D97706';
+      statBadge='<span style="background:#FEF3C7;color:#92400E;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#9888; '+ecartPct+'%</span>';
+      rowBg='#FFFBEB';
+    } else if(se.statut==='sans_index'){
+      statBadge='<span style="background:#F1F5F9;color:#64748B;font-size:10px;padding:2px 8px;border-radius:20px">--</span>';
+    } else {
+      statBadge='<span style="background:#D1FAE5;color:#065F46;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600">&#10003; '+ecartPct+'%</span>';
+    }
+
+    var barre='<div style="display:inline-flex;align-items:center;gap:4px">'+
+      '<div style="background:#E2E8F0;border-radius:20px;height:8px;width:80px">'+
+      '<div style="width:'+ecartPct+'%;background:'+barColor+';height:8px;border-radius:20px;max-width:100%"></div></div>'+
+      '<span style="font-size:10px;color:'+barColor+';font-weight:600">'+ecartPct+'%</span></div>';
+
+    var dateDE = m.date_dernier_entretien ? m.date_dernier_entretien.slice(0,10) : '--';
+    var suiteBadge = se.typeIdx ?
+      (se.typeIdx.index==='horaire'?
+        '<span style="background:#EFF6FF;color:#1D4ED8;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#9201; H</span>':
+        '<span style="background:#F0FDF4;color:#166534;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#128663; Km</span>') : '';
+    var restantTxt = se.restant!==undefined ?
+      (se.restant>0 ? '<strong>'+se.restant.toLocaleString('fr-FR')+'</strong> '+unite :
+       '<span style="color:#DC2626;font-weight:700">D&Ucirc;</span>') : '--';
+
+    var btns='';
+    if(ses.ravitailleur||ses.admin){
+      btns+='<button class="bn bs" data-idx="'+m.id+'" style="background:#EDE9FE;color:#5B21B6;border:0.5px solid #C4B5FD;font-size:11px;padding:4px 8px;margin-right:3px">&#128200; Index</button>';
+    }
+    if(!ses.ravitailleur){
+      btns+='<button class="bn bs bv" data-entretien="'+m.id+'" style="font-size:11px;padding:4px 8px;margin-right:3px">&#10003; Fait</button>';
+    }
+    if(!ses.ravitailleur&&!ses.admin){
+      btns+='<button class="bn bs" data-modifier-echeance="'+m.id+'" style="background:#F0F9FF;color:#0369A1;border:0.5px solid #BAE6FD;font-size:11px;padding:4px 8px">&#9998; Ech.</button>';
+    }
+
+    var td=function(v,c){ return '<td style="padding:8px 10px;'+(c?'text-align:center;':'')+'">'+(v||'--')+'</td>'; };
+
+    h2+=
+      '<tr style="background:'+rowBg+';border-bottom:0.5px solid #E2E8F0">'+
+      td('<strong>'+m.code_machine+'</strong>')+
+      (ses.admin||ses.ravitailleur?td(PN[m.pays_id]||m.pays_id):'')+
+      td('<span style="font-size:11px;color:#475569">'+(m.type_machine||m.sous_famille||'-')+'</span>')+
+      td(suiteBadge,true)+
+      td(se.indexActuel>0?'<strong>'+se.indexActuel.toLocaleString('fr-FR')+'</strong> '+unite:'<span style="color:#94A3B8">--</span>',true)+
+      td(se.indexDernierEntretien>0?se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite:'<span style="color:#94A3B8">Jamais</span>',true)+
+      td('<span style="font-size:11px;color:#64748B">'+dateDE+'</span>',true)+
+      td('<span style="font-weight:700;font-size:11px">'+(se.prochainType||'Entretien 250h')+'</span>')+
+      td(se.prochainEcheance?'<strong>'+se.prochainEcheance.toLocaleString('fr-FR')+'</strong> '+unite:'--',true)+
+      td(restantTxt,true)+
+      td(statBadge,true)+
+      '<td style="padding:8px 10px;text-align:center;white-space:nowrap">'+btns+'</td>'+
+      '</tr>';
+  });
+
+  h2+='</tbody></table></div>';
+  cont.innerHTML=h2;
+
+  cont.querySelectorAll('[data-idx]').forEach(function(btn){
+    btn.addEventListener('click',function(){ ouvrirSaisieIndex(btn.dataset.idx); });
+  });
+  cont.querySelectorAll('[data-entretien]').forEach(function(btn){
+    btn.addEventListener('click',function(){ saisirEntretien(btn.dataset.entretien); });
+  });
+  cont.querySelectorAll('[data-modifier-echeance]').forEach(function(btn){
+    btn.addEventListener('click',function(){ ouvrirModifEcheance(btn.dataset.modifierEcheance); });
+  });
+};
+
 </script>
 </body>
 </html>
