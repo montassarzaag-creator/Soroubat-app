@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- BUILD:1781788671 | v1781788570 -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1453,13 +1454,15 @@ function saisirEntretien(machineId){
   document.getElementById('entretien-index-saisi').value = indexActuel;
   document.getElementById('entretien-remarque').value = '';
   // Calculer prochain entretien en temps r&eacute;el
-  const intervalleMach = se ? (se.unite==='h' ? INTERVALLE_H : INTERVALLE_KM) : 0;
-  const prochainCalc = document.getElementById('prochain-calcule');
-  if(prochainCalc && intervalleMach > 0){
-    prochainCalc.textContent = (indexActuel+intervalleMach).toLocaleString('fr-FR')+' '+(se?se.unite:'');
+  var prochainCalc = document.getElementById('prochain-calcule');
+  var typeIdxM = se ? se.typeIdx : null;
+  if(prochainCalc && typeIdxM){
+    var pObj = getProchainEntretien(indexActuel, typeIdxM);
+    prochainCalc.textContent = pObj.type+' &agrave; '+pObj.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
     document.getElementById('entretien-index-saisi').addEventListener('input', function(){
-      const v = parseFloat(this.value)||0;
-      prochainCalc.textContent = (v+intervalleMach).toLocaleString('fr-FR')+' '+(se?se.unite:'');
+      var v = parseFloat(this.value)||0;
+      var pObj2 = getProchainEntretien(v, typeIdxM);
+      prochainCalc.textContent = pObj2.type+' &agrave; '+pObj2.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
     });
   }
   oM('mod-entretien');
@@ -1485,9 +1488,12 @@ async function confirmerEntretien(){
     updates.modifie_par = ses.user;
     updates.modifie_le = now();
 
-    // ACTION 3: Prochain entretien = indexSaisi + intervalle
-    const intervalle = typeIdx ? (typeIdx.index==='horaire' ? INTERVALLE_H : INTERVALLE_KM) : 0;
-    updates.prochain_entretien = indexSaisi + intervalle;
+    // ACTION 3: Calculer le VRAI prochain entretien du cycle
+    var prochainObj = typeIdx ? getProchainEntretien(indexSaisi, typeIdx) : null;
+    if(prochainObj){
+      updates.prochain_entretien = prochainObj.echeanceAbs;
+      updates.prochain_type = prochainObj.type;
+    }
 
     // Utiliser updateDoc pour ne modifier QUE les champs de maintenance
     // sans &eacute;craser les autres champs (index_exploitation, statut, etc.)
@@ -1516,7 +1522,8 @@ async function confirmerEntretien(){
     });
 
     cM('mod-entretien');
-    toast('&#10003; Entretien valid&eacute; ! Prochain &agrave; '+(indexSaisi+intervalle).toLocaleString('fr-FR')+' '+unite,'ok');
+    var msgProchain = prochainObj ? prochainObj.type+' &agrave; '+prochainObj.echeanceAbs.toLocaleString('fr-FR')+' '+unite : '';
+    toast('&#10003; Entretien valid&eacute; ! Prochain: '+msgProchain,'ok');
 
     // Recharger maintenance et alertes
     window.chargerMaintenance();
@@ -1531,26 +1538,90 @@ const INTERVALLE_H = 250;
 const INTERVALLE_KM = 5000;
 const SEUIL_ALERTE = 0.80;
 
-function getEcart(m){
-  const indexActuel = parseFloat(m.index_exploitation||0);
-  const indexDernier = parseFloat(m.index_dernier_entretien||0);
-  return indexActuel - indexDernier;
+const CYCLE_H = [
+  {palier:250,  type:'Entretien 250h'},
+  {palier:500,  type:'Entretien 500h'},
+  {palier:750,  type:'Entretien 250h'},
+  {palier:1000, type:'Entretien 1000h'},
+  {palier:1250, type:'Entretien 250h'},
+  {palier:1500, type:'Entretien 500h'},
+  {palier:1750, type:'Entretien 250h'},
+  {palier:2000, type:'Entretien majeur 2000h'}
+];
+const CYCLE_KM = [
+  {palier:5000,  type:'Entretien 5 000 km'},
+  {palier:10000, type:'Entretien 10 000 km'},
+  {palier:15000, type:'Entretien 5 000 km'},
+  {palier:20000, type:'Entretien 20 000 km'},
+  {palier:25000, type:'Entretien 5 000 km'},
+  {palier:30000, type:'Entretien 10 000 km'},
+  {palier:35000, type:'Entretien 5 000 km'},
+  {palier:40000, type:'Entretien majeur 40 000 km'}
+];
+const CYCLE_TOTAL_H  = 2000;
+const CYCLE_TOTAL_KM = 40000;
+
+// Calculer le prochain entretien du cycle
+function getProchainEntretien(indexDernierEntretien, typeIdx){
+  const cycle = typeIdx.index==='horaire' ? CYCLE_H : CYCLE_KM;
+  const cycleTotal = typeIdx.index==='horaire' ? CYCLE_TOTAL_H : CYCLE_TOTAL_KM;
+  // Base du cycle actuel (ex: si dernier=2300h, base=2000h)
+  const baseCycle = Math.floor(indexDernierEntretien / cycleTotal) * cycleTotal;
+  // Position dans le cycle du dernier entretien
+  const posInCycle = indexDernierEntretien - baseCycle;
+  // Trouver le prochain palier dans le cycle
+  for(var i=0; i<cycle.length; i++){
+    var prochainAbs = baseCycle + cycle[i].palier;
+    if(prochainAbs > indexDernierEntretien + 1){
+      return {
+        type: cycle[i].type,
+        palierRelatif: cycle[i].palier,
+        echeanceAbs: prochainAbs,
+        intervalle: prochainAbs - indexDernierEntretien
+      };
+    }
+  }
+  // Fin de cycle -> recommencer avec palier 1 du cycle suivant
+  var prochainAbs = baseCycle + cycleTotal + cycle[0].palier;
+  return {
+    type: cycle[0].type,
+    palierRelatif: cycle[0].palier,
+    echeanceAbs: prochainAbs,
+    intervalle: prochainAbs - indexDernierEntretien
+  };
 }
 
 function getStatutEntretien(m){
   const typeIdx = getIndexType(m);
   if(!typeIdx) return null;
+  const unite = typeIdx.index==='horaire'?'h':'km';
   const indexActuel = parseFloat(m.index_exploitation||0);
-  if(indexActuel <= 0) return {statut:'sans_index',ecart:0,intervalle:0,pct:0,unite:typeIdx.index==='horaire'?'h':'km',indexActuel:0,indexDernierEntretien:0,typeIdx};
-  const intervalle = typeIdx.index==='horaire' ? INTERVALLE_H : INTERVALLE_KM;
-  const ecart = getEcart(m);
-  const pct = intervalle > 0 ? ecart/intervalle : 0;
+  const indexDernier = parseFloat(m.index_dernier_entretien||0);
+
+  if(indexActuel <= 0){
+    return {statut:'sans_index',ecart:0,intervalle:0,pct:0,unite,
+      indexActuel:0,indexDernierEntretien:0,typeIdx,
+      prochainType:'Entretien 250h',prochainEcheance:250,restant:250};
+  }
+
+  const prochain = getProchainEntretien(indexDernier, typeIdx);
+  const ecart = indexActuel - indexDernier;
+  const intervalle = prochain.intervalle;
+  const pct = intervalle > 0 ? ecart / intervalle : 0;
+  const restant = prochain.echeanceAbs - indexActuel;
+
   let statut = 'ok';
   if(pct >= 1.0) statut = 'du';
   else if(pct >= SEUIL_ALERTE) statut = 'alerte';
-  return {statut,ecart,intervalle,pct,indexActuel,
-    indexDernierEntretien:parseFloat(m.index_dernier_entretien||0),
-    unite:typeIdx.index==='horaire'?'h':'km',typeIdx};
+
+  return {
+    statut, ecart, intervalle, pct, restant,
+    indexActuel, indexDernierEntretien:indexDernier,
+    unite, typeIdx,
+    prochainType: prochain.type,
+    prochainEcheance: prochain.echeanceAbs,
+    prochainPalier: prochain.palierRelatif
+  };
 }
 
 window.chargerMaintenance = async function(){
@@ -1596,17 +1667,22 @@ window.chargerMaintenance = async function(){
     '<div style="background:#F1F5F9;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#8212;</span><div><div style="font-size:22px;font-weight:700;color:#475569">'+nbSans+'</div><div style="font-size:11px;color:#64748B;font-weight:600">Sans index saisi</div></div></div>'+
     '</div>';
 
-  h2 += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">'+
+  var thP = function(txt){ return '<th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #E2E8F0;white-space:nowrap">'+txt+'</th>'; };
+  var thC = function(txt){ return '<th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #E2E8F0;white-space:nowrap">'+txt+'</th>'; };
+  h2 += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
     '<thead><tr style="background:#F8FAFC">'+
-    '<th style="padding:10px 12px;text-align:left;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Code</th>'+
-    (ses.admin||ses.ravitailleur?'<th style="padding:10px 12px;text-align:left;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Pays</th>':'')+
-    '<th style="padding:10px 12px;text-align:left;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Type</th>'+
-    '<th style="padding:10px 12px;text-align:center;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Index actuel</th>'+
-    '<th style="padding:10px 12px;text-align:center;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Dernier entretien</th>'+
-    '<th style="padding:10px 12px;text-align:center;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Ecart</th>'+
-    '<th style="padding:10px 12px;text-align:center;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Progression (250h/5000km)</th>'+
-    '<th style="padding:10px 12px;text-align:center;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Statut</th>'+
-    '<th style="padding:10px 12px;text-align:center;font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;border-bottom:1px solid #E2E8F0">Actions</th>'+
+    thP('Code')+
+    (ses.admin||ses.ravitailleur?thP('Pays'):'')+
+    thP('D&eacute;signation')+
+    thC('Suivi')+
+    thC('Index actuel')+
+    thC('Dernier entretien r&eacute;alis&eacute;')+
+    thC('Date dernier entretien')+
+    thC('Prochain entretien')+
+    thC('&Eacute;ch&eacute;ance')+
+    thC('Restant')+
+    thC('Alerte')+
+    thC('Actions')+
     '</tr></thead><tbody>';
 
   filtered.forEach(function(item,i){
@@ -1639,17 +1715,25 @@ window.chargerMaintenance = async function(){
       btns+='<button class="bn bs bv" data-entretien="'+m.id+'" style="font-size:11px;padding:4px 10px" title="Enregistrer entretien realise">&#10003; Entretien fait</button>';
     }
 
+    var tdP=function(v,s){ return '<td style="padding:8px 10px;'+(s||'')+'">'+v+'</td>'; };
+    var tdC=function(v,s){ return '<td style="padding:8px 10px;text-align:center;'+(s||'')+'">'+v+'</td>'; };
+    var dateDE = m.date_dernier_entretien ? m.date_dernier_entretien.slice(0,10) : '--';
+    var suiteBadge = se.typeIdx ? (se.typeIdx.index==='horaire'?'<span style="background:#EFF6FF;color:#1D4ED8;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#9201; Horaire</span>':'<span style="background:#F0FDF4;color:#166534;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#128663; Km</span>') : '';
+    var restantTxt = se.restant !== undefined ? (se.restant > 0 ? se.restant.toLocaleString('fr-FR')+' '+unite : '<span style="color:#DC2626;font-weight:700">D&Ucirc;</span>') : '--';
     h2+=
       '<tr style="background:'+rowBg+';border-bottom:0.5px solid #E2E8F0">'+
-      '<td style="padding:10px 12px;font-weight:700">'+m.code_machine+'</td>'+
-      (ses.admin||ses.ravitailleur?'<td style="padding:10px 12px;font-size:12px">'+(PN[m.pays_id]||m.pays_id)+'</td>':'')+
-      '<td style="padding:10px 12px;font-size:12px;color:#64748B">'+(m.type_machine||m.sous_famille||'-')+'</td>'+
-      '<td style="padding:10px 12px;text-align:center;font-weight:700">'+(se.indexActuel>0?se.indexActuel.toLocaleString('fr-FR')+' '+unite:'<span style="color:#94A3B8">--</span>')+'</td>'+
-      '<td style="padding:10px 12px;text-align:center;color:#64748B">'+(se.indexDernierEntretien>0?se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite:'<span style="color:#94A3B8">Jamais</span>')+'</td>'+
-      '<td style="padding:10px 12px;text-align:center;font-weight:600;color:'+(se.statut==='du'?'#DC2626':se.statut==='alerte'?'#D97706':'#059669')+'">'+(se.ecart>0?'+'+se.ecart.toLocaleString('fr-FR')+' '+unite:'--')+'</td>'+
-      '<td style="padding:10px 12px;text-align:center">'+barre+'</td>'+
-      '<td style="padding:10px 12px;text-align:center">'+statBadge+'</td>'+
-      '<td style="padding:10px 12px;text-align:center;white-space:nowrap">'+btns+'</td>'+
+      tdP('<strong>'+m.code_machine+'</strong>')+
+      (ses.admin||ses.ravitailleur?tdP(PN[m.pays_id]||m.pays_id,'font-size:11px;color:#64748B'):'')+
+      tdP((m.type_machine||m.sous_famille||'-'),'font-size:11px;color:#475569')+
+      tdC(suiteBadge)+
+      tdC(se.indexActuel>0?'<strong>'+se.indexActuel.toLocaleString('fr-FR')+'</strong> '+unite:'<span style="color:#94A3B8">--</span>')+
+      tdC(se.indexDernierEntretien>0?se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite:'<span style="color:#94A3B8">Jamais</span>','color:#64748B')+
+      tdC(dateDE,'color:#64748B;font-size:11px')+
+      tdC(se.prochainType?'<span style="font-size:11px;font-weight:600;color:#0F172A">'+se.prochainType+'</span>':'--')+
+      tdC(se.prochainEcheance?'<strong>'+se.prochainEcheance.toLocaleString('fr-FR')+'</strong> '+unite:'--')+
+      tdC(restantTxt,'font-weight:600;color:'+(se.statut==='du'?'#DC2626':se.statut==='alerte'?'#D97706':'#059669'))+
+      tdC(statBadge)+
+      tdC(btns,'white-space:nowrap')+
       '</tr>';
   });
 
