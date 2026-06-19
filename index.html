@@ -692,25 +692,39 @@ const CYCLE_KM = [
 const CYCLE_TOTAL_H  = 2000;
 const CYCLE_TOTAL_KM = 40000;
 
-function getProchainEntretien(indexDernier, typeIdx){
+function getProchainEntretien(indexDernierEntretien, typeIdx){
   var cycle = typeIdx.index==='horaire' ? CYCLE_H : CYCLE_KM;
   var cycleTotal = typeIdx.index==='horaire' ? CYCLE_TOTAL_H : CYCLE_TOTAL_KM;
-  var baseCycle = Math.floor(indexDernier / cycleTotal) * cycleTotal;
+  var intervalleBase = typeIdx.index==='horaire' ? INTERVALLE_H : INTERVALLE_KM;
+
+  var posInCycle = indexDernierEntretien % cycleTotal;
+  var baseCycle = Math.floor(indexDernierEntretien / cycleTotal) * cycleTotal;
+
+  // Fin de cycle exact (ex: 2000h, 4000h...) -> recommencer depuis le 1er palier
+  if(posInCycle === 0 && indexDernierEntretien > 0){
+    return {
+      type: cycle[0].type,
+      echeanceAbs: indexDernierEntretien + cycle[0].palier,
+      intervalle: cycle[0].palier
+    };
+  }
+
+  // Trouver le prochain palier dans le cycle
   for(var i=0; i<cycle.length; i++){
-    var prochainAbs = baseCycle + cycle[i].palier;
-    if(prochainAbs > indexDernier + 1){
+    if(cycle[i].palier > posInCycle){
       return {
         type: cycle[i].type,
-        echeanceAbs: prochainAbs,
-        intervalle: prochainAbs - indexDernier
+        echeanceAbs: baseCycle + cycle[i].palier,
+        intervalle: cycle[i].palier - posInCycle
       };
     }
   }
-  var prochainAbs = baseCycle + cycleTotal + cycle[0].palier;
+
+  // Fin de cycle d&eacute;pass&eacute; -> prochain cycle
   return {
     type: cycle[0].type,
-    echeanceAbs: prochainAbs,
-    intervalle: prochainAbs - indexDernier
+    echeanceAbs: baseCycle + cycleTotal + cycle[0].palier,
+    intervalle: cycleTotal - posInCycle + cycle[0].palier
   };
 }
 
@@ -721,29 +735,36 @@ function getStatutEntretien(m){
   var indexActuel = parseFloat(m.index_exploitation||0);
   var indexDernier = parseFloat(m.index_dernier_entretien||0);
 
-  if(indexActuel <= 0){
-    var p0 = getProchainEntretien(0, typeIdx);
-    return {statut:'sans_index', ecart:0, intervalle:p0.intervalle, pct:0,
-      restant:p0.echeanceAbs, unite:unite, typeIdx:typeIdx,
-      indexActuel:0, indexDernierEntretien:0,
-      prochainType:p0.type, prochainEcheance:p0.echeanceAbs};
-  }
-
+  // Calculer le prochain entretien bas&eacute; sur l'index du dernier entretien
   var prochain = getProchainEntretien(indexDernier, typeIdx);
   var ecart = indexActuel - indexDernier;
-  var intervalle = prochain.intervalle;
+  var intervalle = prochain.echeanceAbs - indexDernier;
   var pct = intervalle > 0 ? ecart / intervalle : 0;
   var restant = prochain.echeanceAbs - indexActuel;
 
-  var statut = 'ok';
-  if(pct >= 1.0) statut = 'du';
-  else if(pct >= SEUIL_ALERTE) statut = 'alerte';
+  var statut;
+  if(indexActuel <= 0){
+    statut = 'sans_index';
+  } else if(pct >= 1.0){
+    statut = 'du';
+  } else if(pct >= SEUIL_ALERTE){
+    statut = 'alerte';
+  } else {
+    statut = 'ok';
+  }
 
   return {
-    statut:statut, ecart:ecart, intervalle:intervalle, pct:pct, restant:restant,
-    indexActuel:indexActuel, indexDernierEntretien:indexDernier,
-    unite:unite, typeIdx:typeIdx,
-    prochainType:prochain.type, prochainEcheance:prochain.echeanceAbs
+    statut: statut,
+    ecart: ecart,
+    intervalle: intervalle,
+    pct: pct,
+    restant: restant,
+    indexActuel: indexActuel,
+    indexDernierEntretien: indexDernier,
+    unite: unite,
+    typeIdx: typeIdx,
+    prochainType: prochain.type,
+    prochainEcheance: prochain.echeanceAbs
   };
 }
 
