@@ -693,38 +693,30 @@ const CYCLE_TOTAL_H  = 2000;
 const CYCLE_TOTAL_KM = 40000;
 
 function getProchainEntretien(indexDernierEntretien, typeIdx){
-  var cycle = typeIdx.index==='horaire' ? CYCLE_H : CYCLE_KM;
-  var cycleTotal = typeIdx.index==='horaire' ? CYCLE_TOTAL_H : CYCLE_TOTAL_KM;
-  var intervalleBase = typeIdx.index==='horaire' ? INTERVALLE_H : INTERVALLE_KM;
+  var isHoraire = typeIdx.index === 'horaire';
+  var intervalle = isHoraire ? INTERVALLE_H : INTERVALLE_KM;
+  var cycleTotal = isHoraire ? CYCLE_TOTAL_H : CYCLE_TOTAL_KM;
 
-  var posInCycle = indexDernierEntretien % cycleTotal;
-  var baseCycle = Math.floor(indexDernierEntretien / cycleTotal) * cycleTotal;
+  // Prochain entretien = dernier + intervalle fixe (250h ou 5000km)
+  var echeanceAbs = indexDernierEntretien + intervalle;
 
-  // Fin de cycle exact (ex: 2000h, 4000h...) -> recommencer depuis le 1er palier
-  if(posInCycle === 0 && indexDernierEntretien > 0){
-    return {
-      type: cycle[0].type,
-      echeanceAbs: indexDernierEntretien + cycle[0].palier,
-      intervalle: cycle[0].palier
-    };
-  }
+  // D&eacute;terminer le TYPE selon la position de l'&eacute;ch&eacute;ance dans le cycle
+  var posInCycle = echeanceAbs % cycleTotal;
+  if(posInCycle === 0) posInCycle = cycleTotal;
 
-  // Trouver le prochain palier dans le cycle
+  var cycle = isHoraire ? CYCLE_H : CYCLE_KM;
+  var typeE = cycle[cycle.length-1].type; // d&eacute;faut: dernier du cycle
   for(var i=0; i<cycle.length; i++){
-    if(cycle[i].palier > posInCycle){
-      return {
-        type: cycle[i].type,
-        echeanceAbs: baseCycle + cycle[i].palier,
-        intervalle: cycle[i].palier - posInCycle
-      };
+    if(posInCycle <= cycle[i].palier){
+      typeE = cycle[i].type;
+      break;
     }
   }
 
-  // Fin de cycle d&eacute;pass&eacute; -> prochain cycle
   return {
-    type: cycle[0].type,
-    echeanceAbs: baseCycle + cycleTotal + cycle[0].palier,
-    intervalle: cycleTotal - posInCycle + cycle[0].palier
+    type: typeE,
+    echeanceAbs: echeanceAbs,
+    intervalle: intervalle
   };
 }
 
@@ -2021,7 +2013,7 @@ window.chargerMaintenance = async function(){
        '<span style="color:#DC2626;font-weight:700">D&Ucirc;</span>') : '--';
 
     var btns='';
-    if(ses.ravitailleur||ses.admin){
+    if(ses.ravitailleur){
       btns+='<button class="bn bs" data-idx="'+m.id+'" style="background:#EDE9FE;color:#5B21B6;border:0.5px solid #C4B5FD;font-size:11px;padding:4px 8px;margin-right:3px">&#128200; Index</button>';
     }
     // Bouton "Fait" et "Ech." : UNIQUEMENT responsables pays
