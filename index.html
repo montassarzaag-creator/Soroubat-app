@@ -2003,8 +2003,9 @@ window.chargerMaintenance = async function(){
     if(ses.ravitailleur||ses.admin){
       btns+='<button class="bn bs" data-idx="'+m.id+'" style="background:#EDE9FE;color:#5B21B6;border:0.5px solid #C4B5FD;font-size:11px;padding:4px 8px;margin-right:3px">&#128200; Index</button>';
     }
-    // Bouton "Fait" et "Ech." : UNIQUEMENT responsables pays (pas admin, pas ravitailleur)
-    if(!ses.ravitailleur && !ses.admin){
+    // Bouton "Fait" et "Ech." : UNIQUEMENT responsables pays
+    var estResponsablePays = (ses && !ses.admin && !ses.ravitailleur);
+    if(estResponsablePays){
       btns+='<button class="bn bs bv" data-entretien="'+m.id+'" style="font-size:11px;padding:4px 8px;margin-right:3px">&#10003; Fait</button>';
       btns+='<button class="bn bs" data-modifier-echeance="'+m.id+'" style="background:#F0F9FF;color:#0369A1;border:0.5px solid #BAE6FD;font-size:11px;padding:4px 8px">&#9998; &Eacute;ch.</button>';
     }
