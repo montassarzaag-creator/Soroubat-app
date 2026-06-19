@@ -728,6 +728,1681 @@ function getIndexType(machine){
 // ============================================================
 // CYCLES ET CALCULS ENTRETIEN PREVENTIF
 // ============================================================
+
+var CHECKLISTS_ENTRETIEN = {
+  'Entretien 250h': {
+    couleur: '#FEF3C7',
+    couleur_bord: '#F59E0B',
+    couleur_titre: '#92400E',
+    operations: [
+      { cat: 'MOTEUR', ops: [
+        'Vidange huile moteur + remplacement filtre huile',
+        'Remplacement filtre gasoil primaire',
+        'Controle et nettoyage filtre a air (prefiltre)',
+        'Verification niveau liquide de refroidissement',
+        'Inspection courroies d\'entrainement (tension et etat)',
+        'Controle etancheite (fuites huile, gasoil, eau)',
+      ]},
+      { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
+        'Verification niveau huile hydraulique',
+        'Verification niveau huile de transmission/boite',
+        'Controle etancheite circuits hydrauliques',
+      ]},
+      { cat: 'GRAISSAGE', ops: [
+        'Graissage de tous les points de lubrification',
+        'Graissage articulations de bras/lame/godet',
+        'Graissage pivot de direction (si applicable)',
+      ]},
+      { cat: 'STRUCTURE & SECURITE', ops: [
+        'Verification pression pneumatiques / tension chenilles',
+        'Controle boulonnerie (serrage)',
+        'Inspection visuelle structure (fissures, deformations)',
+        'Test eclairages, klaxon, alarme de recul',
+        'Verification extincteur et equipements de securite',
+      ]},
+    ]
+  },
+  'Entretien 500h': {
+    couleur: '#EDE9FE',
+    couleur_bord: '#7C3AED',
+    couleur_titre: '#4C1D95',
+    operations: [
+      { cat: 'TOUTES LES OPERATIONS 250h +', ops: [
+        'Toutes les operations de l\'entretien 250h',
+      ]},
+      { cat: 'MOTEUR', ops: [
+        'Remplacement filtre gasoil secondaire (separateur eau/gasoil)',
+        'Nettoyage/remplacement filtre a air principal',
+        'Purge circuit de refroidissement (verification antigel)',
+        'Controle injecteurs (fuites, etat visible)',
+        'Verification tension et etat courroie alternateur',
+      ]},
+      { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
+        'Remplacement filtre hydraulique',
+        'Vidange et remplacement huile de boite de vitesses',
+        'Verification jeu et usure accouplement transmission',
+      ]},
+      { cat: 'TRAIN ROULANT', ops: [
+        'Controle usure chenilles / pneus (profondeur)',
+        'Verification galets, roues guides, barbotin (chenilles)',
+        'Controle et reglage tension chenilles',
+      ]},
+      { cat: 'ELECTRIQUE', ops: [
+        'Controle etat et charge batterie',
+        'Nettoyage bornes de batterie',
+        'Verification cablage (isolation, connexions)',
+      ]},
+    ]
+  },
+  'Entretien 1000h': {
+    couleur: '#DBEAFE',
+    couleur_bord: '#2563EB',
+    couleur_titre: '#1E3A8A',
+    operations: [
+      { cat: 'TOUTES LES OPERATIONS 500h +', ops: [
+        'Toutes les operations de l\'entretien 500h',
+      ]},
+      { cat: 'MOTEUR', ops: [
+        'Controle et reglage jeu aux soupapes',
+        'Remplacement filtre a air complet (interieur + exterieur)',
+        'Controle et nettoyage radiateur (soufflage)',
+        'Controle pompe a eau (fuite, jeu)',
+        'Verification thermostat de refroidissement',
+      ]},
+      { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
+        'Vidange huile hydraulique complete',
+        'Remplacement filtre hydraulique haute pression',
+        'Controle pression hydraulique (tests)',
+        'Vidange pont avant/arriere (si applicable)',
+        'Controle usure disques de frein',
+      ]},
+      { cat: 'TRAIN ROULANT COMPLET', ops: [
+        'Inspection complete chassis et sous-carrosserie',
+        'Controle et remplacement si necessaire: galets porteurs et galets de roulement',
+        'Verification jeu de direction (jeu volant)',
+      ]},
+      { cat: 'CIRCUIT CARBURANT', ops: [
+        'Nettoyage reservoir carburant (decantation)',
+        'Controle pompe d\'injection (debit, pression)',
+        'Remplacement joints et flexibles carburant si necessaire',
+      ]},
+    ]
+  },
+  'Entretien majeur 2000h': {
+    couleur: '#FEE2E2',
+    couleur_bord: '#DC2626',
+    couleur_titre: '#7F1D1D',
+    operations: [
+      { cat: 'TOUTES LES OPERATIONS 1000h +', ops: [
+        'Toutes les operations de l\'entretien 1000h',
+      ]},
+      { cat: 'REVISION MOTEUR', ops: [
+        'Controle compression moteur (cylindres)',
+        'Verification turbocompresseur (jeu axial, etat ailettes)',
+        'Remplacement joints de culasse si necessaire',
+        'Controle et reglage injecteurs (banc)',
+        'Remplacement courroie de distribution (si applicable)',
+      ]},
+      { cat: 'REVISION HYDRAULIQUE', ops: [
+        'Vidange complete + remplacement tous filtres hydrauliques',
+        'Controle pompe hydraulique principale (debit, pression)',
+        'Inspection et remplacement flexibles hydrauliques',
+        'Controle verins (fuites tiges, jeu roulements)',
+      ]},
+      { cat: 'REVISION TRANSMISSION', ops: [
+        'Vidange complete boite de vitesses + convertisseur',
+        'Controle usure embrayages et disques de transmission',
+        'Verification pont de transmission (jeu, bruit)',
+        'Remplacement joints de transmission',
+      ]},
+      { cat: 'STRUCTURE COMPLETE', ops: [
+        'Inspection soudures cadre principal (magnetoscopie si doute)',
+        'Controle et remplacement bagues, silent-blocs, joints de cardan',
+        'Inspection complete train de roulement (mesure usure)',
+        'Peinture et traitement anticorrosion parties exposees',
+      ]},
+      { cat: 'ELECTRIQUE & CABINE', ops: [
+        'Controle et nettoyage systeme electrique complet',
+        'Remplacement batterie si necessaire',
+        'Verification climatisation (pression gaz, etat filtre cabine)',
+        'Test et calibration instruments de bord',
+      ]},
+    ]
+  },
+  'Entretien 5 000 km': {
+    couleur: '#F0FDF4',
+    couleur_bord: '#16A34A',
+    couleur_titre: '#14532D',
+    operations: [
+      { cat: 'MOTEUR', ops: [
+        'Vidange huile moteur + remplacement filtre huile',
+        'Remplacement filtre gasoil',
+        'Controle niveau liquide de refroidissement',
+        'Controle etancheite moteur',
+      ]},
+      { cat: 'FREINS & DIRECTION', ops: [
+        'Controle usure plaquettes et disques de frein',
+        'Verification liquide de frein (niveau + etat)',
+        'Controle jeu de direction',
+        'Verification geometrie (si necessaire)',
+      ]},
+      { cat: 'PNEUMATIQUES', ops: [
+        'Controle pression et etat pneus',
+        'Rotation des pneus si necessaire',
+        'Controle etat jantes et boulons de roue',
+      ]},
+      { cat: 'SECURITE', ops: [
+        'Test eclairages complets (phares, clignotants, feux stop)',
+        'Controle essuie-glaces et lave-glace',
+        'Verification klaxon et retroviseurs',
+        'Controle extincteur',
+      ]},
+    ]
+  },
+  'Entretien majeur 40 000 km': {
+    couleur: '#FEF3C7',
+    couleur_bord: '#D97706',
+    couleur_titre: '#78350F',
+    operations: [
+      { cat: 'REVISION COMPLETE MOTEUR', ops: [
+        'Vidange + remplacement filtres complets',
+        'Remplacement courroie de distribution',
+        'Controle compression cylindres',
+        'Controle et nettoyage injecteurs',
+        'Remplacement bougie de prechauffage',
+      ]},
+      { cat: 'TRANSMISSION', ops: [
+        'Vidange boite de vitesses',
+        'Controle embrayage (jeu, usure)',
+        'Vidange pont avant et arriere',
+      ]},
+      { cat: 'FREINAGE', ops: [
+        'Remplacement plaquettes et disques si necessaire',
+        'Purge circuit de freinage',
+        'Controle cable et frein a main',
+      ]},
+      { cat: 'SUSPENSION & DIRECTION', ops: [
+        'Controle amortisseurs (fuite, efficacite)',
+        'Remplacement rotules et silent-blocs si necessaire',
+        'Parallelisme et equilibrage',
+      ]},
+      { cat: 'ELECTRIQUE', ops: [
+        'Controle et remplacement batterie si necessaire',
+        'Verification alternateur et demarreur',
+        'Diagnostic electronique (codes defauts)',
+      ]},
+    ]
+  },
+};
+
+var FILTRES_MACHINES = {
+  'CATERPILLAR|BULLDOZER D8R': {
+    marque: 'CATERPILLAR',
+    type: 'BULLDOZER D8R',
+    filtres: {
+      air_interieur: 'P532506 / AF25136',
+      air_exterieur: 'AF25135',
+      huile_moteur: '1R-0716 / LF691 / 1R1808',
+      gasoil: 'FF 5320 / FF5319 / FF5264',
+      separateur: '326-1642 / 1R0769 / 3261644',
+      hydraulique: 'HF6098 / 1R0741 / 1R778 / HF35101 / PT8496-MP / 1R0721',
+      transmission: '1R773 / PT189 / 9M9740 / 1R0721',
+    }
+  },
+  'CATERPILLAR|BULLDOZER D6G': {
+    marque: 'CATERPILLAR',
+    type: 'BULLDOZER D6G',
+    filtres: {
+      air_interieur: 'AF25126 / 612501',
+      air_exterieur: 'AF25125 / P532501 / 612501',
+      huile_moteur: 'LF4006 / 1R1807 / LF3973 / P551807 / 1081153',
+      gasoil: '1R0750 / FF5320 / FF5300 / P551313',
+      separateur: 'FS1359',
+      hydraulique: 'HF6098 / 1R0741 / 1R778',
+    }
+  },
+  'CATERPILLAR|BULLDOZER D8L': {
+    marque: 'CATERPILLAR',
+    type: 'BULLDOZER D8L',
+    filtres: {
+      hydraulique: '1R0716',
+      boite: '1R0773',
+    }
+  },
+  'CATERPILLAR|BULLDOZER D7H': {
+    marque: 'CATERPILLAR',
+    type: 'BULLDOZER D7H',
+    filtres: {
+      air_interieur: 'AF25126',
+      air_exterieur: 'AF25125',
+      huile_moteur: 'LF667 / P554004',
+      gasoil: '1R-0750',
+      hydraulique: '1R0735 / HF6375',
+      boite: 'HF6098',
+    }
+  },
+  'CATERPILLAR|BULLDOZER D6R': {
+    marque: 'CATERPILLAR',
+    type: 'BULLDOZER D6R',
+    filtres: {
+      air_interieur: 'AF25126 / 612502',
+      air_exterieur: 'AF25125 / P532501 / 612501',
+      huile_moteur: 'LF691 / 1R0716 1R1808 / 1R0716',
+      gasoil: '1R0750 / FF5320 / FF5300 / P551313 / 1R0762 / FF2624',
+      separateur: '3261642 / 326-1644 / FS19843',
+      hydraulique: '139-1537',
+      boite: '328-3655',
+      climatisation: '6I-0988',
+    }
+  },
+  'CATERPILLAR|BULLDOZER D7G_': {
+    marque: 'CATERPILLAR',
+    type: 'BULLDOZER D7G_',
+    filtres: {
+      air_interieur: 'AF25132 / 6I-0274',
+      air_exterieur: 'AF25131 / 6I-0273 / 1243237 / 6H8021',
+      huile_moteur: 'LF667 / P554004',
+      gasoil: 'FF5320 / 1R-0750 / 9M2341',
+      hydraulique: '1R0722 / HF6202 / HF35101',
+      boite: '1R-0778 / 1R-0741 / 1328876',
+    }
+  },
+  'CATERPILLAR|BULLDOZER D7G': {
+    marque: 'CATERPILLAR',
+    type: 'BULLDOZER D7G',
+    filtres: {
+      air_interieur: 'AF25132 / 6I-0274',
+      air_exterieur: '6I-0273 / AF25131',
+      huile_moteur: 'LF667 / P554004 / HF35101',
+      gasoil: 'FF 5320 / 1R-0750',
+      hydraulique: '1R0722 / HF6202',
+      boite: '1R-0778 / 1R-0741 / 1328876',
+    }
+  },
+  'NEW HOLLAND|BULLDOZER D180': {
+    marque: 'NEW HOLLAND',
+    type: 'BULLDOZER D180',
+    filtres: {
+      huile_moteur: 'P550520',
+      gasoil: 'FF5421',
+      separateur: 'P559624 / FF4070',
+    }
+  },
+  'KOMATSU|BULLDOZER D155A-5': {
+    marque: 'KOMATSU',
+    type: 'BULLDOZER D155A-5',
+    filtres: {
+      air_interieur: 'K3047B / WG9719190001+002',
+      air_exterieur: 'K3047B / WG9719190001+002',
+      huile_moteur: 'LF9325 / 5605510-5027A / 471-00086 / LF3325',
+      gasoil: 'FF202 / 299202 / P550202',
+      eau: 'WF2054 / WF2074 / WF2073',
+    }
+  },
+  'KOMATSU|BULLDOZER D155A-6': {
+    marque: 'KOMATSU',
+    type: 'BULLDOZER D155A-6',
+    filtres: {
+      air_interieur: '6001856100',
+      air_exterieur: '6001856100',
+      huile_moteur: 'LF9070 / 600-211-1341',
+      gasoil: '600-311-384 / P502480 / 6003194540 / 6003114510 / 600-311-3841',
+      separateur: '6003194540',
+      hydraulique: '600-411-1191 / HF6101 / 07063-01100',
+      eau: 'WF2073',
+      pilotage: '2474-9041 / 2471-1154',
+    }
+  },
+  'HYUNDAI|CHARGEUSE HL770-7': {
+    marque: 'HYUNDAI',
+    type: 'CHARGEUSE HL770-7',
+    filtres: {
+      air_interieur: 'AF27843 / 14L1-01570',
+      air_exterieur: 'AF26664 / 14L1-01560',
+      huile_moteur: 'LF9009 / 1001',
+      gasoil: 'P551001 / FS1212',
+      separateur: 'P551858 / FS19591 / FS19737',
+      hydraulique: 'HF35140',
+      eau: 'WF2075',
+    }
+  },
+  'HYUNDAI|CHARGEUSE HL740-7': {
+    marque: 'HYUNDAI',
+    type: 'CHARGEUSE HL740-7',
+    filtres: {
+      air_interieur: '11E6-24520',
+      air_exterieur: '11EM-21051-A',
+      huile_moteur: 'LF3552',
+      gasoil: 'P551329 / FS1280 / P558000 / FS1001 / 1292226',
+      separateur: 'FS1022 / P551329 / FS1280',
+    }
+  },
+  'HYUNDAI|CHARGEUSE HL770-7A': {
+    marque: 'HYUNDAI',
+    type: 'CHARGEUSE HL770-7A',
+    filtres: {
+      huile_moteur: 'LF9009',
+      gasoil: 'FF5580',
+      separateur: 'FS1001',
+      hydraulique: '31L1.4041-A',
+      eau: 'WF2075',
+    }
+  },
+  'DOOSAN|CHARGEUSE DL 300A': {
+    marque: 'DOOSAN',
+    type: 'CHARGEUSE DL 300A',
+    filtres: {
+      air_interieur: 'AF25468 / 474-00037 / 400401-00093',
+      air_exterieur: 'AF 25468',
+      huile_moteur: 'LF3716 / 65055105020B / P502464',
+      gasoil: 'FS1001 / FS1212 / P558000 / P551000',
+      hydraulique: '2474-9016A / HF35526 / 400408-0049 / HF354998 A138746 / 050123154 / K1029612 / K9005929',
+      climatisation: '400402-00001',
+      pilotage: 'K1055161 / HF3555',
+      renifard: 'K1029257 / 400504-00217 / SA12655',
+    }
+  },
+  'DOOSAN|CHARGEUSE DL 420A': {
+    marque: 'DOOSAN',
+    type: 'CHARGEUSE DL 420A',
+    filtres: {
+      air_interieur: '2471-9051B / HF28910',
+      air_exterieur: '2471-9051B / HF28910',
+      huile_moteur: 'LF3716 / LF3325',
+      gasoil: 'FS1212 / P551001',
+      separateur: 'FS1212',
+      hydraulique: 'HF35526',
+      transmission: 'K1055161 / HF35555',
+      climatisation: '400402-00001',
+      pilotage: 'K1055161 / HF3555',
+      renifard: '1-1-245',
+    }
+  },
+  'CATERPILLAR|CHARGEUSE 938G': {
+    marque: 'CATERPILLAR',
+    type: 'CHARGEUSE 938G',
+    filtres: {
+      air_interieur: 'AF251129M / 1327166 / 25130',
+      air_exterieur: 'AF25129',
+      huile_moteur: '1R0739 / LF667 / GL312 / LF3477 / 1G8878 / HF6553 / SH56605',
+      gasoil: '1R0762 / FF5624 / P550625 / 3261644 / FS20007',
+      separateur: '326-1644',
+      hydraulique: '1R0722 / HF6202 / PT83 / HF6553',
+    }
+  },
+  'CATERPILLAR|CHARGEUSE 966 H': {
+    marque: 'CATERPILLAR',
+    type: 'CHARGEUSE 966 H',
+    filtres: {
+      air_interieur: 'AF26402 / AF25132',
+      air_exterieur: 'P782106 / AF26401 / 24593819 6I-0273',
+      huile_moteur: '1R-1808 / LF667',
+      gasoil: 'P550625 / 1R0762 / FF5624 / 1R-0750',
+      separateur: 'FS20007 / P550900 / 326-1644 / FS19737',
+      hydraulique: '144-0832 / 225-4118 / 272-4864',
+      boite: '1R1809 / 328-3655 / 1R-0778',
+    }
+  },
+  'DISD|CHARGEUSE SD 300': {
+    marque: 'DISD',
+    type: 'CHARGEUSE SD 300',
+    filtres: {
+      air_interieur: '400401-00136 KA18288 / 400401-00136',
+      air_exterieur: '400401-00136',
+      huile_moteur: 'P553771 / LF4054 / 400504-00028 / ELH4717 / 234486 / GL579 / 400504-0011',
+      gasoil: 'FF5421 / 40050400078 / 40040300126',
+      separateur: 'FS19769',
+      hydraulique: '400406-00013 / 400406-00013 / 400406-000',
+      eau: 'FS19769 / P550778 / K 1006529',
+      pilotage: '2474-9041 / 2474-1154',
+    }
+  },
+  'LIEBHERR|CHARGEUSE L544': {
+    marque: 'LIEBHERR',
+    type: 'CHARGEUSE L544',
+    filtres: {
+      air_interieur: 'P777868',
+      air_exterieur: 'K3047B / WG9719190001+002',
+      huile_moteur: 'LF3744',
+      gasoil: 'FS19599',
+      eau: 'WF 2072',
+    }
+  },
+  'DOOSAN|MEGE400-V CHARGEUSE': {
+    marque: 'DOOSAN',
+    type: 'MEGE400-V CHARGEUSE',
+    filtres: {
+      air_interieur: '400402-00001 / 474-00007',
+      air_exterieur: '474-00006',
+      huile_moteur: 'LF3716',
+      gasoil: 'FS1212',
+    }
+  },
+  'HYUNDAI|PELLE CHENILLE 290LC-7': {
+    marque: 'HYUNDAI',
+    type: 'PELLE CHENILLE 290LC-7',
+    filtres: {
+      air_interieur: '11EM-21050A',
+      air_exterieur: '11EM-21041-A',
+      huile_moteur: '31E9-1019 / LF3345',
+      gasoil: 'LF 03970 / FS1280 / FS19616',
+      separateur: 'P551329 / FS1212',
+    }
+  },
+  'HYUNDAI|PELLE CHENILLE 305LC-7': {
+    marque: 'HYUNDAI',
+    type: 'PELLE CHENILLE 305LC-7',
+    filtres: {
+      air_interieur: 'AF976',
+      air_exterieur: 'AF975',
+      huile_moteur: 'P553000 / LF9009',
+      gasoil: 'FF5018 / P553004',
+      separateur: 'FS19532 / FS1280',
+      hydraulique: 'HF28850 / P556005 / 31E9-0126A / SH60120 / SH60515 / E131-0214 / 31E9-1019-A / SH60090',
+      eau: '11NB-70210 / WF2075 / P551329',
+      pilotage: '31E3-0018 / HF28836',
+    }
+  },
+  'HYUNDAI|PELLE CHENILLE 450LC-7': {
+    marque: 'HYUNDAI',
+    type: 'PELLE CHENILLE 450LC-7',
+    filtres: {
+      air_interieur: '11NB20130 / AF27843',
+      air_exterieur: '11NB20120 / AF26664 / 11NB-20130 / AF27843',
+      huile_moteur: 'LF14000NN FL 9001',
+      gasoil: 'FS1212 / FS19532 / FS1022 / FS1000',
+      separateur: 'FS19532',
+      hydraulique: 'HF28850 / E131-0214-A / SH60090',
+      eau: 'WF2075',
+      pilotage: 'HF28836',
+    }
+  },
+  'DOOSAN|PELLE  CHENILLE DX 340LCA': {
+    marque: 'DOOSAN',
+    type: 'PELLE  CHENILLE DX 340LCA',
+    filtres: {
+      air_interieur: 'AF25468 / 474-00038',
+      air_exterieur: 'AF 25454 / 47400037 / 471-00119',
+      huile_moteur: 'LF3716 / P551670',
+      gasoil: 'FF5320 / P551319 / FF5319',
+      separateur: 'FS19769 / P550778 / FS19769',
+      hydraulique: 'SH60114 / K9005928 / P556005',
+      climatisation: 'K1030288',
+      pilotage: '2471-1154 / K1029257',
+    }
+  },
+  'DOOSAN|PELLE DX 340LCA-K': {
+    marque: 'DOOSAN',
+    type: 'PELLE DX 340LCA-K',
+    filtres: {
+      air_interieur: '471-00119 / K1030288 / AF55819 / 25454 / HP2511 / P77868',
+      air_exterieur: 'AF25468 / 474-00037 / 400401-00093',
+      huile_moteur: 'LF3716 / 65055105020B / P502464',
+      gasoil: 'FF5421 / 40050400078 / 40040300126',
+      separateur: 'FS19769 / P550778 / K1006529',
+      hydraulique: '400504-00225 / SH60607',
+      transmission: '2471-9401A / SH60114 / 400408-00048',
+      pilotage: '31E-0018 / HF28836',
+      renifard: 'K1029257 / 400502-00217 SA12655',
+    }
+  },
+  'DOOSAN|PELLE SOLAR 340LC-V': {
+    marque: 'DOOSAN',
+    type: 'PELLE SOLAR 340LC-V',
+    filtres: {
+      air_interieur: 'AF27869',
+      air_exterieur: 'AF26439',
+      huile_moteur: 'LF9325',
+      separateur: 'FS1001',
+      hydraulique: '2471-94011 / 2471-9051B',
+      pilotage: '2474-90415',
+      renifard: 'K1029257',
+    }
+  },
+  'DOOSAN|PELLE CHENILLE  DX 420LCA': {
+    marque: 'DOOSAN',
+    type: 'PELLE CHENILLE  DX 420LCA',
+    filtres: {
+      air_interieur: 'AF254668 / 474-00037 / 400401-00093',
+      air_exterieur: 'AF25454 HP2511 / P77868',
+      huile_moteur: 'LF3716 / 65055105020B / P502464 / LF3325 / P551670',
+      gasoil: 'FS19737 / SN9166030 / P559118 / FS1001 FS1212 / P558000 P551000 / FF5421',
+      separateur: 'P551329 / FS1280 / FS19914 / 1292226',
+      hydraulique: 'K9005928 / SH60114',
+      climatisation: '2471-9402A / SH60114 / 4000408-00048',
+      renifard: 'HF6319 / K9005928',
+    }
+  },
+  'DOOSAN|PELLE CHENILLE 470LC-V': {
+    marque: 'DOOSAN',
+    type: 'PELLE CHENILLE 470LC-V',
+    filtres: {
+      air_interieur: 'AF27869',
+      air_exterieur: 'AF26439',
+      huile_moteur: 'LF3716 / LF9325',
+      gasoil: 'FF5421',
+      separateur: 'FS1022',
+      hydraulique: 'K9005929 / SH60114 / HF6864 / 400408-00048',
+    }
+  },
+  'DOOSAN|PELLE CHENILLE DX 300LCA': {
+    marque: 'DOOSAN',
+    type: 'PELLE CHENILLE DX 300LCA',
+    filtres: {
+      air_interieur: 'AF25468',
+      air_exterieur: 'AF25454',
+      huile_moteur: 'LF3716',
+      gasoil: 'FF5285 / P551329 / FS1280 / FS1275',
+      separateur: 'K1006519 / K1044607 / FS19769',
+      climatisation: '400402-00038 / SC80114',
+      pilotage: 'HF28836 / 313-0018',
+    }
+  },
+  'NEW HOLLAND|PELLE CHENILLE 305B': {
+    marque: 'NEW HOLLAND',
+    type: 'PELLE CHENILLE 305B',
+    filtres: {
+      air_interieur: '474-00039 / AF26114',
+      air_exterieur: '474-00040 / 400401-00091 / P532966',
+      huile_moteur: 'LF16015 / 8780261 / P550520 / FF5135',
+      gasoil: 'FF4070 / ELG5502 / P559624',
+      separateur: 'FS196616 / 11LD-70010 / 3991498',
+      transmission: '2471-9401',
+    }
+  },
+  'NEW HOLLAND|PELLE CHENILLE E 215': {
+    marque: 'NEW HOLLAND',
+    type: 'PELLE CHENILLE E 215',
+    filtres: {
+      air_exterieur: 'AF4761 / P775510 / P770678A',
+      huile_moteur: 'LF16015 / 8780261 / P550520-A7000',
+      gasoil: 'FF4070 / EG5502 / P559624A-7000',
+      renifard: 'HF6319 / K9005928 / 474-0055A',
+    }
+  },
+  'HITACHI|PELLE CHLE ZX470LCH-3F': {
+    marque: 'HITACHI',
+    type: 'PELLE CHLE ZX470LCH-3F',
+    filtres: {
+      air_interieur: 'L4240295',
+      air_exterieur: 'L4240294',
+      huile_moteur: '4696643',
+      gasoil: 'FF5786 / 4676385',
+      separateur: '8-98152738-2',
+    }
+  },
+  'HYUNDAI|PELLE PNEUMATIQUE R170W-7': {
+    marque: 'HYUNDAI',
+    type: 'PELLE PNEUMATIQUE R170W-7',
+    filtres: {
+      air_interieur: '11EM21041',
+      air_exterieur: '11EM-21051-A',
+      huile_moteur: 'SL02-23-802',
+      gasoil: '3194341002 / 31945-41502',
+      separateur: 'FS19532',
+      hydraulique: 'SH60120',
+    }
+  },
+  'DOOSAN|PELLE PNEUMATIQUE SOLAR 180W-V': {
+    marque: 'DOOSAN',
+    type: 'PELLE PNEUMATIQUE SOLAR 180W-V',
+    filtres: {
+      air_interieur: 'AF4838 / AF4896 / 2474-9054A',
+      air_exterieur: 'AF4816 / 4004020000 / SC80008 / 2716050A / AF4838 / 2474-9053A / SA14788 GA477 / AF4841 / AR307 / P775804',
+      huile_moteur: 'LF3713 / LF3934 / P550909',
+      gasoil: 'FF5421 / 40050400078 / 40040300126 / 6512503508A FS1275 / FS1280 / P551329 / FF5285',
+      separateur: 'FS1001 / FS1212 / P558000 / P551000',
+      hydraulique: '2474-9016A / HF35526 / 400408-00049',
+      eau: 'SC80008',
+      climatisation: '400402-00001',
+      pilotage: '474-00009 / SH60082 / 2474-9041 / 2474-1154 / 471-00075A / PIN123-00119A / 12050100980',
+      renifard: 'K1029257 / 400504-00217 / SA12655',
+    }
+  },
+  'DOOSAN|PELLE PNQ 190WA': {
+    marque: 'DOOSAN',
+    type: 'PELLE PNQ 190WA',
+    filtres: {
+      air_interieur: '474-00039 / AF26114',
+      air_exterieur: '474-00040 / 400401-00091 / P532966',
+      huile_moteur: 'LF3713 / LF3934 / P550909',
+      gasoil: 'FF5285 / P551329 / FS1280 / FS1275',
+      separateur: 'FS19769 / P550778 / K1006529',
+      hydraulique: '2474-9016A / HF35526 / 400408-00049',
+      renifard: 'K1029257 / 400504-00217 / SA12655',
+    }
+  },
+  'CATERPILLAR|NIVELEUSE 12 H': {
+    marque: 'CATERPILLAR',
+    type: 'NIVELEUSE 12 H',
+    filtres: {
+      air_interieur: 'AF25132 / 6I2500 / AF25112 / RS3503 / 532500',
+      air_exterieur: 'AF25131 / 6I2499 / AF25111M / P532499 / AF3248',
+      huile_moteur: 'LF3973 / LF667 / 1R0739 / GL312 / LF3477',
+      gasoil: 'FS1212 / 1R-0750 / FF5320 / FF5300 / P551313',
+      hydraulique: '1R0722 / HF6202 / PT83',
+      transmission: '1R0773 / PT189 / 9M9740',
+    }
+  },
+  'CATERPILLAR|NIVELEUSE 140 H': {
+    marque: 'CATERPILLAR',
+    type: 'NIVELEUSE 140 H',
+    filtres: {
+      air_interieur: '610274E / AF25132M / RS3509',
+      air_exterieur: 'RS3508 / AF2513M / 610273',
+      huile_moteur: '1R0739 / LF667 / GL312 / LF3477 LF3973 / P551807',
+      gasoil: '1R0750 / FF5320 / FF5300 / P551313',
+      hydraulique: '1328875 / HF6341 / 1R0719 / P156238 / 1R722 / HF6202 / PT83',
+      boite: '1R-179',
+    }
+  },
+  'CATERPILLAR|NIVELEUSE 140K': {
+    marque: 'CATERPILLAR',
+    type: 'NIVELEUSE 140K',
+    filtres: {
+      air_interieur: 'AF26400 / 245-6376',
+      air_exterieur: 'AF26399',
+      huile_moteur: '1R0739 / 1R-1807',
+      gasoil: '1R0750',
+      separateur: '3261642 / 326-1644',
+      hydraulique: 'HF6202 / 1R-0774',
+      boite: '328-3655',
+    }
+  },
+  'CATERPILLAR|NIVELEUSE 120M': {
+    marque: 'CATERPILLAR',
+    type: 'NIVELEUSE 120M',
+    filtres: {
+      air_interieur: 'AF26398',
+      air_exterieur: 'P782104 / AF26397',
+      huile_moteur: '462-117 / 1R-0749',
+      gasoil: '299-8229 / FF261',
+      separateur: 'P550900 / 326-1642 / 326-1644',
+      hydraulique: '328-3655 / HF6553',
+    }
+  },
+  'CATERPILLAR|NIVELEUSE 130G': {
+    marque: 'CATERPILLAR',
+    type: 'NIVELEUSE 130G',
+    filtres: {
+      air_interieur: 'AF25112M / 612500 / AF25112 / RS3503 / P532500',
+      air_exterieur: 'AF25111M / 6IK499 / AF25125 / P532499 / 612499 / AF3248',
+      huile_moteur: 'LF667 / P551807 / P55400 / LF4006 / 1R0739 / GL312 / LF3477',
+      gasoil: 'P551313 / FF5320 / 9M2341 / 1R-0750 / P551807 FF5300',
+      hydraulique: '1R-0719 / 1328875 / HF6341 / P165238 / 1R0773',
+      boite: '1R-719',
+      transmission: '1R0770 / PT189 / 9M9740',
+    }
+  },
+  'NEW HOLLAND|NIVELEUSE F156.7': {
+    marque: 'NEW HOLLAND',
+    type: 'NIVELEUSE F156.7',
+    filtres: {
+      gasoil: 'FF5421',
+      separateur: 'FS19821',
+      hydraulique: 'HF35498',
+    }
+  },
+  'XGMA|NIVELEUSE XG3200S': {
+    marque: 'XGMA',
+    type: 'NIVELEUSE XG3200S',
+    filtres: {
+      huile_moteur: '1R0739 / LF667 / GL312 / LF3477',
+      gasoil: '1R0750 / FF5320 / 5300 / P551313 / 3261644 / FS20007',
+      separateur: '326-1644',
+      hydraulique: 'HF6141 / 0005-87374',
+      boite: 'HF6141',
+    }
+  },
+  'CATERPILLAR|TRACTOPELLE 428E': {
+    marque: 'CATERPILLAR',
+    type: 'TRACTOPELLE 428E',
+    filtres: {
+      air_interieur: '227-7449 / 293-4053',
+      air_exterieur: 'AF27873',
+      huile_moteur: '7W2326 / LF699 / SO242 / 1R1804',
+      gasoil: '361-9554 / 1R-1804',
+      separateur: 'FS19837',
+      hydraulique: 'HF6588 / 1194740',
+    }
+  },
+  'CATERPILLAR|TRACTOPELLE 428F': {
+    marque: 'CATERPILLAR',
+    type: 'TRACTOPELLE 428F',
+    filtres: {
+      air_interieur: 'SA17481 / 346-6688',
+      air_exterieur: '346-6687',
+      huile_moteur: '7W2326 / SO242 / LF699 / SO244',
+      gasoil: '361-9554',
+      hydraulique: '362-1163 SH66279 / 471-7003 / 4476968',
+      boite: '447-6968',
+    }
+  },
+  'CATERPILLAR|TRACTOPELLE 428F_': {
+    marque: 'CATERPILLAR',
+    type: 'TRACTOPELLE 428F_',
+    filtres: {
+      air_interieur: '211-2660',
+      huile_moteur: '902421 / 7W2326',
+    }
+  },
+  'CASE|RACTOPELLE 580SR': {
+    marque: 'CASE',
+    type: 'RACTOPELLE 580SR',
+    filtres: {
+      air_interieur: 'AF25558',
+      air_exterieur: 'AF25557',
+      huile_moteur: 'LF16015',
+      gasoil: 'FF231',
+    }
+  },
+  'CASE|TRACTOPELLE 520SL': {
+    marque: 'CASE',
+    type: 'TRACTOPELLE 520SL',
+    filtres: {
+      air_interieur: 'AF25521 / AF26245',
+      air_exterieur: 'AF25524 / AF26204',
+      huile_moteur: 'LF3830 / LF3977',
+      gasoil: 'FF5018   FF231',
+      separateur: 'FS19737',
+      hydraulique: 'HF35467  HF6553',
+      boite: 'HF35467',
+    }
+  },
+  'JCB4CX|TRACTOPELLE': {
+    marque: 'JCB4CX',
+    type: 'TRACTOPELLE',
+    filtres: {
+      air_exterieur: '2934053 / AF27873',
+      huile_moteur: 'LF3345 / P558616 / P558615 / LF17556 / 320041 / P502465 / LF16015 / 550520',
+      gasoil: '249-7669 / FS20049 / P553004',
+    }
+  },
+  'BOBCAT|TRACTOPELLE B730': {
+    marque: 'BOBCAT',
+    type: 'TRACTOPELLE B730',
+    filtres: {
+      air_interieur: 'AF25558',
+      air_exterieur: 'AF25557',
+      huile_moteur: 'LF699 / 16015',
+      gasoil: 'FF167 / 1R-1804 / FF231 / 5018',
+      separateur: 'FF167',
+      boite: 'HF35467 HF6553 / 471-7003',
+    }
+  },
+  'AMMANN|CYLINDRE ASC 100': {
+    marque: 'AMMANN',
+    type: 'CYLINDRE ASC 100',
+    filtres: {
+      air_interieur: 'AF4748',
+      air_exterieur: 'AF4103 / P119410',
+      huile_moteur: 'P558615 / LF3345',
+      gasoil: 'FF5018 / FF5285 / PP551329 / FS1280 / FS1275 / GF262 / FF5018 / FF5074 / P553004 / WK723',
+      separateur: 'P551329 / FS1280',
+    }
+  },
+  'AMMANN|CYLINDRE AV110X': {
+    marque: 'AMMANN',
+    type: 'CYLINDRE AV110X',
+    filtres: {
+      air_interieur: 'AF25558 / AF4748',
+      air_exterieur: 'AF25557 / AF4103',
+      huile_moteur: 'LF3345',
+      gasoil: 'FF226 / FS1280 / FF5018',
+      separateur: 'FS1280',
+      hydraulique: 'HF6553',
+    }
+  },
+  'HAMM 3411|CYLINDRE': {
+    marque: 'HAMM 3411',
+    type: 'CYLINDRE',
+    filtres: {
+      air_interieur: 'AF26396 / P780036',
+      air_exterieur: 'AF26395',
+      huile_moteur: 'GL579 / LF4054',
+      gasoil: 'FF5272 / 819341 / M336 / P550372',
+      separateur: 'FS19737 / 29454 / FS19591',
+      hydraulique: 'SH53305',
+    }
+  },
+  'HAMM|CYLINDRE HD110': {
+    marque: 'HAMM',
+    type: 'CYLINDRE HD110',
+    filtres: {
+      air_interieur: 'AF26396',
+      air_exterieur: 'AF26395',
+      huile_moteur: 'P55377 / LF4054',
+      gasoil: 'FF5272',
+      separateur: 'P551026 / FS19605 / P550900',
+      hydraulique: 'HF35237 / SH53305',
+    }
+  },
+  'BOMAG|CYLINDRE BW161AD-4': {
+    marque: 'BOMAG',
+    type: 'CYLINDRE BW161AD-4',
+    filtres: {
+      air_interieur: 'AF26396',
+      air_exterieur: 'AF26395',
+      huile_moteur: 'LF4054',
+      gasoil: 'GF262 / FF5018 / FF5074 / P553004 / WK723 / FS19737 / SN916030 / P559118',
+      separateur: 'FS19737',
+      hydraulique: '7993014',
+    }
+  },
+  'XCMG XS142J|CYLINDRE': {
+    marque: 'XCMG XS142J',
+    type: 'CYLINDRE',
+    filtres: {
+      huile_moteur: '1R1807 / LF4006',
+      separateur: 'FS1051',
+      eau: 'WF2075',
+    }
+  },
+  'AMMANN|COMPACTEUR AP 240': {
+    marque: 'AMMANN',
+    type: 'COMPACTEUR AP 240',
+    filtres: {
+      air_interieur: 'AF25558 / AF27817 / P775302',
+      air_exterieur: 'AF25557',
+      huile_moteur: 'LF3345 / LF3349',
+      gasoil: 'FF5285 / 851329 / FS1280 / FS1275 / GF262 / FF5018 P553004 / WK723 / P551329',
+      separateur: 'FS1280 / FS19914 / P559118',
+      hydraulique: 'HF6420',
+    }
+  },
+  'HAMM GRW18|COMPACTEUR': {
+    marque: 'HAMM GRW18',
+    type: 'COMPACTEUR',
+    filtres: {
+      air_interieur: 'AF25724 / AF26396 / P780036',
+      air_exterieur: 'P778994 / AF26395',
+      huile_moteur: 'LF4054 / ELH4717 / 234486 / GL579 / P553771 / W962',
+      gasoil: 'FF5272 / 819384 / M336 / P550372',
+      separateur: 'FS19605 81.12501-0030 / P502392 / P550900 / FS1083',
+      hydraulique: 'HF6420',
+      boite: 'HF6420',
+      eau: 'FS19591 / P551858 / P553771',
+    }
+  },
+  'CATERPILLAR|COMPACTEUR 815': {
+    marque: 'CATERPILLAR',
+    type: 'COMPACTEUR 815',
+    filtres: {
+      air_interieur: 'AF25126',
+      air_exterieur: 'AF25125',
+      huile_moteur: 'LF667',
+      gasoil: 'FF5320',
+      boite: '1R0773',
+    }
+  },
+  'CATERPILLAR|COMPACTEUR 825': {
+    marque: 'CATERPILLAR',
+    type: 'COMPACTEUR 825',
+    filtres: {
+      air_interieur: 'AF4748K / AF25132 / AF340',
+      air_exterieur: 'P119410 / AF4103 / AF25131 / AF336M',
+      huile_moteur: 'LF3716 / P502464 / 1R0716 1R-1808 / LF691A',
+      gasoil: 'FF5320',
+      hydraulique: '1R-0778',
+      boite: 'HF6018',
+    }
+  },
+  'CATERPILLAR|COMPACTEUR PS-300C': {
+    marque: 'CATERPILLAR',
+    type: 'COMPACTEUR PS-300C',
+    filtres: {
+      air_interieur: 'AF25558 / AF25485',
+      air_exterieur: 'AF25557',
+      huile_moteur: '7W-2326 / SO242 / LF699',
+      gasoil: '1R1804',
+      hydraulique: '123- / 189',
+    }
+  },
+  'BOMAG|COMPACTEUR BW20R': {
+    marque: 'BOMAG',
+    type: 'COMPACTEUR BW20R',
+    filtres: {
+      air_interieur: 'AF27817 / AF4748',
+      air_exterieur: 'AF 4103',
+      huile_moteur: 'LF3345',
+      gasoil: 'FF5018 / P553004',
+      separateur: 'FS1280',
+      hydraulique: 'HF6420',
+    }
+  },
+  'BOMAG|COMPACTEUR BW 24R': {
+    marque: 'BOMAG',
+    type: 'COMPACTEUR BW 24R',
+    filtres: {
+      gasoil: '1292226 / 2997378',
+      hydraulique: 'HF6420',
+    }
+  },
+  'LODIGO|COMPACTEUR TK220B': {
+    marque: 'LODIGO',
+    type: 'COMPACTEUR TK220B',
+    filtres: {
+      air_interieur: 'AF4748',
+      air_exterieur: 'AF4103',
+      huile_moteur: 'LF3345',
+      gasoil: 'FF5018 / FS1212 / FS1280',
+      separateur: 'FS19501',
+    }
+  },
+  'DIECI LH 679|AUTOBETONNIERE': {
+    marque: 'DIECI LH 679',
+    type: 'AUTOBETONNIERE',
+    filtres: {
+      air_interieur: 'AF4748',
+      air_exterieur: 'AF4103',
+      huile_moteur: 'LF16015',
+      gasoil: 'FF5018 / 1292226',
+      separateur: 'FS19737',
+    }
+  },
+  'MASSEY FERGUSSON|TRACTEUR AGRICOLE 440': {
+    marque: 'MASSEY FERGUSSON',
+    type: 'TRACTEUR AGRICOLE 440',
+    filtres: {
+      huile_moteur: '7W2326 / LF699 / SO242 / 6223537M1 / LF551A',
+      gasoil: 'FF4052A / ELG5205 / FF4779',
+      hydraulique: '6223537M1',
+    }
+  },
+  'NEW HOLLAND|TRACTEUR AGRICOLE TD 80': {
+    marque: 'NEW HOLLAND',
+    type: 'TRACTEUR AGRICOLE TD 80',
+    filtres: {
+      huile_moteur: 'LF667 / LF3314',
+      gasoil: 'FF5018',
+      separateur: 'FS19504',
+    }
+  },
+  'JOHN DEERE|TRACTEUR AGRICOLE MW3': {
+    marque: 'JOHN DEERE',
+    type: 'TRACTEUR AGRICOLE MW3',
+    filtres: {
+      air_interieur: 'AF26156',
+      air_exterieur: 'AF26155',
+      huile_moteur: 'LF16243 / P550779 / FHU809',
+      gasoil: 'FS19975 / P551435 / FC19864 / FS19976 / P551422',
+    }
+  },
+  'CASE|TRACTEUR AGRICOLE JX75T': {
+    marque: 'CASE',
+    type: 'TRACTEUR AGRICOLE JX75T',
+    filtres: {
+      air_interieur: 'AF25484',
+      air_exterieur: 'AF25308',
+      huile_moteur: '7W2326 / LF682',
+      gasoil: 'FF5135',
+    }
+  },
+  'DIECI 40.17|TELESCOUPIE': {
+    marque: 'DIECI 40.17',
+    type: 'TELESCOUPIE',
+    filtres: {
+      air_interieur: 'AF25120K / SA16511 / P771511',
+      air_exterieur: 'AF25120K / SA16511 / P771511',
+      huile_moteur: 'HF6177 / P550520 / LF16015 / 87803261',
+      gasoil: 'P553004 / FF5018 / GF262 / FF5074 / WK723',
+      hydraulique: 'P171620 / HF35082',
+    }
+  },
+  'CATERPILLAR RM 500|RECYCLEUSE DE CHAUSSEE': {
+    marque: 'CATERPILLAR RM 500',
+    type: 'RECYCLEUSE DE CHAUSSEE',
+    filtres: {
+      air_interieur: 'AF25138',
+      air_exterieur: 'AF25137',
+      huile_moteur: '1R-1808',
+      gasoil: 'FF5624',
+      separateur: '326-1644',
+      hydraulique: '144-6691 / 9U-6984',
+    }
+  },
+  'CATERPILLAR|FINISHER AP300': {
+    marque: 'CATERPILLAR',
+    type: 'FINISHER AP300',
+    filtres: {
+      huile_moteur: 'SO242 / LF699',
+      gasoil: '1R-1804',
+      separateur: '1R-1804',
+    }
+  },
+  'V_GELE|FINISHER SUPER 1300-2': {
+    marque: 'V_GELE',
+    type: 'FINISHER SUPER 1300-2',
+    filtres: {
+      air_interieur: 'AF26394 / AF25722',
+      air_exterieur: 'AF26393 / AF25721',
+      huile_moteur: 'LF3766 / 01183358 / HF6177 / SH63161 / 5801649910 / P550148 / LF3766',
+      gasoil: 'FF5135 / 2091354 / 51338617 / FS125',
+      hydraulique: 'P550148 / HF6177',
+    }
+  },
+  'V_GELE|FINISHER SUPER 2100-3': {
+    marque: 'V_GELE',
+    type: 'FINISHER SUPER 2100-3',
+    filtres: {
+      air_exterieur: 'AF55014',
+      huile_moteur: 'LF3970',
+      gasoil: 'FF5421',
+    }
+  },
+  'WIRTGEN|FRAISEUSE W200': {
+    marque: 'WIRTGEN',
+    type: 'FRAISEUSE W200',
+    filtres: {
+      air_interieur: 'P782109 / AF26402',
+      air_exterieur: 'P782106 / AF26401',
+      huile_moteur: 'LF9070',
+      gasoil: 'FS1041 / FS1041',
+      separateur: 'FS19737 / 19914',
+      eau: 'WF2126',
+    }
+  },
+  'V_GELE|ALIMENTATEUR MT 1000-1': {
+    marque: 'V_GELE',
+    type: 'ALIMENTATEUR MT 1000-1',
+    filtres: {
+      gasoil: '4612130012',
+      separateur: 'FS19605',
+    }
+  },
+  'TEREX BENDINI|GRUE  A300': {
+    marque: 'TEREX BENDINI',
+    type: 'GRUE  A300',
+    filtres: {
+      air_interieur: 'AF25964',
+      air_exterieur: 'AF25491',
+      huile_moteur: 'LF3806 / LF3349',
+      gasoil: 'FF5018 / FF5329',
+      separateur: 'FS1280',
+    }
+  },
+  'TEREX BENDINI|GRUE A450': {
+    marque: 'TEREX BENDINI',
+    type: 'GRUE A450',
+    filtres: {
+      air_interieur: 'AF25964',
+      air_exterieur: 'AF25491',
+      huile_moteur: 'LF3349',
+      gasoil: '1R0750 / FF5320 / FS19616',
+      separateur: 'FS19616',
+      hydraulique: 'HF28857',
+    }
+  },
+  'TEREX BENDINI|GRUE A350': {
+    marque: 'TEREX BENDINI',
+    type: 'GRUE A350',
+    filtres: {
+      air_interieur: '2051200 / AF25964',
+      air_exterieur: 'AF25491 / 2051202',
+      huile_moteur: 'LF16015 / 8780326 P550520',
+      gasoil: 'FF231 / H215WK / P554620',
+      hydraulique: 'SH63372',
+    }
+  },
+  'DOOSAN 450 PLUS|MINI CHARGEUSE': {
+    marque: 'DOOSAN 450 PLUS',
+    type: 'MINI CHARGEUSE',
+    filtres: {
+      air_interieur: 'A213938',
+      air_exterieur: 'A213939 / AF25308 / 400401-00088',
+      huile_moteur: 'A408489 LF16011',
+      gasoil: 'A408491 / FF226',
+      separateur: 'P559118',
+      hydraulique: 'HF5553',
+    }
+  },
+  'HAMM HD10W|MINI CYLINDRE': {
+    marque: 'HAMM HD10W',
+    type: 'MINI CYLINDRE',
+    filtres: {
+      air_interieur: 'AF26338',
+      air_exterieur: 'AF26387',
+      gasoil: 'GE676',
+      separateur: 'FS1235 / FS29627',
+    }
+  },
+  'CLARK|CHARIOT ELEVATEUR C40D': {
+    marque: 'CLARK',
+    type: 'CHARIOT ELEVATEUR C40D',
+    filtres: {
+      air_interieur: 'AF25558',
+      air_exterieur: 'P772580 / AF25557',
+      huile_moteur: 'LF551 / TO-118 / P550008',
+      gasoil: 'FS19616',
+      separateur: 'P550929',
+      hydraulique: 'SH66052 / HF6580',
+    }
+  },
+  'ATLAS COPCO|COMPRESSEUR XAS 97': {
+    marque: 'ATLAS COPCO',
+    type: 'COMPRESSEUR XAS 97',
+    filtres: {
+      air_interieur: 'AF26395',
+      air_exterieur: 'AF26396',
+      huile_moteur: 'SO9021 / 1626832100 / LF4054',
+      gasoil: 'P553004 / FF5018 / 1R9925',
+      hydraulique: 'HF6205 / 1626832100',
+    }
+  },
+  'COMPAIR|COMPRESSEUR C50': {
+    marque: 'COMPAIR',
+    type: 'COMPRESSEUR C50',
+    filtres: {
+      air_interieur: 'SA14087 / AF4137 / AF3161',
+      air_exterieur: 'AF25424',
+      huile_moteur: 'LF17508 / LF4054',
+      gasoil: 'FF5087',
+    }
+  },
+  'COMPAIR|COMPRESSEUR 366CD': {
+    marque: 'COMPAIR',
+    type: 'COMPRESSEUR 366CD',
+    filtres: {
+      air_interieur: 'AF26402',
+      air_exterieur: 'P782106 / AF26401',
+      huile_moteur: '1R0716 / LF3345',
+      gasoil: 'FF5324 / 31945-41502',
+      separateur: 'WK1080 / FS20402 / OA1215',
+      hydraulique: 'H35315',
+    }
+  },
+  'COMPAIR|COMPRESSEUR C38': {
+    marque: 'COMPAIR',
+    type: 'COMPRESSEUR C38',
+    filtres: {
+      air_interieur: 'SA14087 / AF4137',
+      air_exterieur: 'AF25424',
+      huile_moteur: 'LF17508',
+      gasoil: 'FF5087',
+    }
+  },
+  'PEUGEOT PARTNER|VEHICULE DE DIRECTION': {
+    marque: 'PEUGEOT PARTNER',
+    type: 'VEHICULE DE DIRECTION',
+    filtres: {
+      air_exterieur: 'A1159',
+      huile_moteur: 'LF3624 / LS867B / P550935',
+      gasoil: 'C446 / PU1021',
+    }
+  },
+  'HYUNDAI|CAMONNETTE': {
+    marque: 'HYUNDAI',
+    type: 'CAMONNETTE',
+    filtres: {
+      air_exterieur: '281305H002 / SA8457',
+      huile_moteur: 'LF3830 / 26311-45010 / MD069782 / P502008',
+      gasoil: 'FF5087 / 319454002 / ZP3001 / P550048',
+    }
+  },
+  'HYUNDAI|MINI BUS': {
+    marque: 'HYUNDAI',
+    type: 'MINI BUS',
+    filtres: {
+      air_exterieur: '281305H-000',
+      huile_moteur: 'MD069782 / LF3830 / P502008 / 26311-4510',
+      gasoil: 'FF5087 / P550048 / 3194541002 / ZP3001',
+    }
+  },
+  'DAEWOO|BUS': {
+    marque: 'DAEWOO',
+    type: 'BUS',
+    filtres: {
+      air_exterieur: 'AF4927',
+      huile_moteur: 'LF3716',
+      gasoil: 'FS1001 / P551001',
+    }
+  },
+  'FORD RANGER|PICK UP 4X4': {
+    marque: 'FORD RANGER',
+    type: 'PICK UP 4X4',
+    filtres: {
+      air_exterieur: 'SA8047',
+      huile_moteur: 'LF3830',
+      gasoil: 'FF5089',
+    }
+  },
+  'TOYOTA|PICK UP 4X2': {
+    marque: 'TOYOTA',
+    type: 'PICK UP 4X2',
+    filtres: {
+      air_exterieur: 'AF26501 / P902609 / P902311 / 923701',
+      huile_moteur: '260340-0540 / LF551A',
+      gasoil: 'FF5764 / 23390-OL010 / P505973',
+      climatisation: 'P787450 / AF26146',
+    }
+  },
+  'PEUGEOT|AMBULANCE': {
+    marque: 'PEUGEOT',
+    type: 'AMBULANCE',
+    filtres: {
+      air_exterieur: '1444WN',
+      huile_moteur: 'LF3098',
+      gasoil: '58937',
+      climatisation: '6479A7',
+    }
+  },
+  'IVECO 440|CAMION': {
+    marque: 'IVECO 440',
+    type: 'CAMION',
+    filtres: {
+      air_interieur: 'P787247 / AF26245',
+      air_exterieur: 'AF25062 / P787157 / AF26204',
+      huile_moteur: 'LF3977',
+      gasoil: 'FF231 / P554620',
+      separateur: 'FS19914 / FS19737 / P559118',
+      hydraulique: 'AF25062',
+      secheur_air: 'AF27817',
+    }
+  },
+  'RENAULT|CAMION CITERNE A GASOIL': {
+    marque: 'RENAULT',
+    type: 'CAMION CITERNE A GASOIL',
+    filtres: {
+      air_interieur: 'AF26398',
+      air_exterieur: 'AF26397 / RS3994 / P782104',
+      huile_moteur: 'P554004 / LF667',
+      gasoil: 'FF5018',
+    }
+  },
+  'MAN|REPANDEUSE TGA28.460': {
+    marque: 'MAN',
+    type: 'REPANDEUSE TGA28.460',
+    filtres: {
+      air_interieur: 'AF25896',
+      air_exterieur: 'AF25894',
+      huile_moteur: 'LF3867 / 5105504-0098',
+      gasoil: 'FF3867 / FF5481',
+      separateur: '81125030085',
+    }
+  },
+  'GENLYON|REPANDEUSE': {
+    marque: 'GENLYON',
+    type: 'REPANDEUSE',
+    filtres: {
+      air_interieur: 'AF26204 / P787157',
+      air_exterieur: 'P787247',
+      huile_moteur: 'LF6177 / HF6177',
+      gasoil: 'FF4070',
+      separateur: 'P550778',
+    }
+  },
+  'DAEWOO|REPANDEUSE': {
+    marque: 'DAEWOO',
+    type: 'REPANDEUSE',
+    filtres: {
+      huile_moteur: 'P551670 / LF332',
+      gasoil: 'P551001 / FS1212',
+    }
+  },
+  'IVECO|EPANDEUR CIMENT 380': {
+    marque: 'IVECO',
+    type: 'EPANDEUR CIMENT 380',
+    filtres: {
+      air_interieur: '3252',
+      air_exterieur: 'P780006 / AF2506',
+      huile_moteur: 'LF3977 / 2992544',
+      gasoil: 'FF231',
+      separateur: 'WK1080 / FS19737',
+      climatisation: 'AF26146 / 2995964 / P78450',
+    }
+  },
+  'HONGYAN|CITERNE D\'ARROSAGE': {
+    marque: 'HONGYAN',
+    type: 'CITERNE D\'ARROSAGE',
+    filtres: {
+      air_interieur: 'P787247 / AF26245',
+      air_exterieur: 'P787157 / AF26204',
+      huile_moteur: 'LF6177 / HF6177',
+      gasoil: 'FS4070 / SN80064 / ELG5502 / P559624',
+      separateur: 'FS19769 / P550778 / K1006529',
+      climatisation: 'AF26146 / 2995964 / P787450',
+      secheur_air: 'AF27817',
+    }
+  },
+  'RENAULT|CAMION GRUE': {
+    marque: 'RENAULT',
+    type: 'CAMION GRUE',
+    filtres: {
+      air_interieur: 'AF4927',
+      air_exterieur: 'AF4867',
+      huile_moteur: 'LF4006 / LF667 / LF4054',
+      gasoil: 'FF5018',
+    }
+  },
+  'STEYR|CAMION TOUPIE': {
+    marque: 'STEYR',
+    type: 'CAMION TOUPIE',
+    filtres: {
+      air_interieur: '27869',
+      air_exterieur: '27439',
+      huile_moteur: 'W692 / LF4054',
+      gasoil: 'FF5421 / FF19769',
+      separateur: 'P550778',
+    }
+  },
+  'IVECO|CAMION TOUPIE': {
+    marque: 'IVECO',
+    type: 'CAMION TOUPIE',
+    filtres: {
+      separateur: 'P551026',
+    }
+  },
+  'DAEWOO|CAMION TOUPIE': {
+    marque: 'DAEWOO',
+    type: 'CAMION TOUPIE',
+    filtres: {
+      air_interieur: '27869',
+      air_exterieur: '26439',
+      huile_moteur: 'LF3349',
+      gasoil: 'FS1212 / P551001',
+    }
+  },
+  'VOLVO|CAMION TOUPIE': {
+    marque: 'VOLVO',
+    type: 'CAMION TOUPIE',
+    filtres: {
+      gasoil: 'CS137 / FF254 / FF199200 / CS0082',
+    }
+  },
+  'RENAULT|TRACTEUR ROUTIER KERAX 385': {
+    marque: 'RENAULT',
+    type: 'TRACTEUR ROUTIER KERAX 385',
+    filtres: {
+      air_interieur: 'AF25439',
+      air_exterieur: 'AF25382',
+      huile_moteur: 'LF667',
+      gasoil: 'FF5018',
+    }
+  },
+  'RENAULT|TRACTEUR ROUTIER CLM 385': {
+    marque: 'RENAULT',
+    type: 'TRACTEUR ROUTIER CLM 385',
+    filtres: {
+      air_interieur: 'AF4867 / PA3566 / 5010064372 / P123007',
+      air_exterieur: 'GA477 / AF4841 / AR307 / P775804',
+      huile_moteur: '1R0739 / LF667 / GL312 / LF3477',
+      gasoil: 'GF262 / FF5018 / FF5074 / P553004 / WK723',
+    }
+  },
+  'RENAULT PREMUIM 340|TRACTEUR ROUTIER': {
+    marque: 'RENAULT PREMUIM 340',
+    type: 'TRACTEUR ROUTIER',
+    filtres: {
+      air_exterieur: 'AF25333',
+      huile_moteur: 'LF667',
+      gasoil: 'FF5018 / P553004 / GF262',
+      separateur: 'FS1251',
+    }
+  },
+  'DAF|TT47WS 95': {
+    marque: 'DAF',
+    type: 'TT47WS 95',
+    filtres: {
+      air_interieur: 'AF25132',
+      air_exterieur: 'AF25066',
+      huile_moteur: 'LF691',
+      gasoil: 'FF231',
+      hydraulique: 'HF6162',
+    }
+  },
+  'IVECO|TRACTEUR ROUTIER': {
+    marque: 'IVECO',
+    type: 'TRACTEUR ROUTIER',
+    filtres: {
+      air_interieur: 'AF26245 / P787247',
+      air_exterieur: 'AF26204 / P787157',
+      huile_moteur: 'SO8036 / P95488',
+      gasoil: 'FF231 / WK940 / P554620',
+      separateur: 'FS19737 / P551026',
+      bain_huile: 'SAO7079',
+    }
+  },
+  'DAEWOO|TRACTEUR ROUTIER': {
+    marque: 'DAEWOO',
+    type: 'TRACTEUR ROUTIER',
+    filtres: {
+      air_exterieur: 'AF26439 / P902311 / 2474-9051',
+      huile_moteur: 'LF3716 / 65055105020B / P502464',
+      gasoil: 'FS1001 / FS1212 / P558000 / FF5320',
+    }
+  },
+  'HONGYAN|TRACTEUR ROUTIER': {
+    marque: 'HONGYAN',
+    type: 'TRACTEUR ROUTIER',
+    filtres: {
+      air_interieur: 'P787247',
+      air_exterieur: 'K3252 / 1109-40001 / AF27817 / P187157',
+      huile_moteur: '504797640 / SO8034 / 29965705801592275',
+      gasoil: '326144 / FS20007 / SN80064 / P552044 / FS20402 / P551110',
+      separateur: 'FS19769 / P550778 / K1006529',
+      bain_huile: 'W400002415 / SAO7079',
+    }
+  },
+  'GENLYON|TRACTEUR ROUTIER': {
+    marque: 'GENLYON',
+    type: 'TRACTEUR ROUTIER',
+    filtres: {
+      air_interieur: 'P787247 / AF26245',
+      air_exterieur: 'P787157 / AF26204',
+      huile_moteur: 'HF35082 / P171620',
+      gasoil: 'FF4070 / SN80064 / FS20007',
+      separateur: 'P551026 / FS19737 / WK1080 / PL420X FS19769',
+    }
+  },
+  'SINOTRUK|TRACTEUR ROUTIER': {
+    marque: 'SINOTRUK',
+    type: 'TRACTEUR ROUTIER',
+    filtres: {
+      air_interieur: 'PU2841',
+      air_exterieur: 'K2841 / VG9725190102-03 / AA90134 / PU2841',
+      huile_moteur: 'LF3977 / 2992544 / P550639 / SO8015 / 2992544',
+      gasoil: 'VG1540080110  3261644 / FS20007 / P550900',
+    }
+  },
+  'IVAN|VRAQUIER': {
+    marque: 'IVAN',
+    type: 'VRAQUIER',
+    filtres: {
+      huile_moteur: 'LF4056 / 601000070005 / 01182001',
+      gasoil: 'FF5074 / FF5018 / FF5135',
+    }
+  },
+  'MIR TRAILER|VRAQUIER NS45': {
+    marque: 'MIR TRAILER',
+    type: 'VRAQUIER NS45',
+    filtres: {
+      huile_moteur: 'LF4056',
+      gasoil: 'P553004 / FF5018',
+    }
+  },
+  'CIMC|VRAQUIER KS9531GFL': {
+    marque: 'CIMC',
+    type: 'VRAQUIER KS9531GFL',
+    filtres: {
+      gasoil: 'FF5018 / FF5135',
+    }
+  },
+  'SITAR|TANKER': {
+    marque: 'SITAR',
+    type: 'TANKER',
+    filtres: {
+      huile_moteur: 'SO9021',
+    }
+  },
+  'BMTP|BETONNIERE RM 1000': {
+    marque: 'BMTP',
+    type: 'Betonniere RM 1000',
+    filtres: {
+      air_exterieur: 'AF4137 / SA14087 / FA3164',
+      huile_moteur: '7W2326 / LF600 / SO242 / LF699',
+    }
+  },
+  '250KVA|GENSETS': {
+    marque: '250KVA',
+    type: 'GENSETS',
+    filtres: {
+      air_interieur: 'AF4867',
+      air_exterieur: 'AF4841',
+      huile_moteur: 'LF90009',
+      gasoil: 'FS1001',
+      separateur: 'FS19737',
+      eau: 'WF2073',
+    }
+  },
+  '22 KVA|OLYMPIAN': {
+    marque: '22 KVA',
+    type: 'OLYMPIAN',
+    filtres: {
+      air_exterieur: 'AF27867 / P629560',
+      huile_moteur: 'LF3335 / WLY4-14302 / GL233 / P550335',
+      gasoil: 'FF167 / P556245 / CAV296',
+    }
+  },
+  '22 KVA|FG WILSON': {
+    marque: '22 KVA',
+    type: 'FG WILSON',
+    filtres: {
+      air_exterieur: '27867',
+      huile_moteur: 'LF716',
+      gasoil: 'GF262 / FF5018 / P553004 / WK723 / P556245 / FF167',
+    }
+  },
+  '22 KVA|WFM GENERATORS': {
+    marque: '22 KVA',
+    type: 'WFM GENERATORS',
+    filtres: {
+      huile_moteur: 'LF716',
+      gasoil: 'FF5018',
+    }
+  },
+  '20 KVA|OLYMPIAN': {
+    marque: '20 KVA',
+    type: 'OLYMPIAN',
+    filtres: {
+      huile_moteur: '260340-2540 / LF551',
+      gasoil: 'P556245 / FF167',
+    }
+  },
+  '11_,5KVA|SDMO T12K': {
+    marque: '11_,5KVA',
+    type: 'SDMO T12K',
+    filtres: {
+      air_exterieur: 'AH8925',
+      huile_moteur: 'P508067 / LF3925',
+    }
+  },
+  '21KVA|SDMO': {
+    marque: '21KVA',
+    type: 'SDMO',
+    filtres: {
+      air_exterieur: 'AH9825',
+      huile_moteur: 'LF716',
+      gasoil: 'FF5087 / FF149',
+    }
+  },
+  '30.5KVA|PRAMAC': {
+    marque: '30.5KVA',
+    type: 'PRAMAC',
+    filtres: {
+      air_interieur: '9971303 / AF25484 / 6666376',
+      air_exterieur: 'AF25291 / P772579 / 9971304',
+      huile_moteur: 'LF3624 / LS867B / P550935',
+      gasoil: 'FF5087 / 3194541002 / ZP3001 / P550048',
+    }
+  },
+  '33 KVA|GENERATOR   M200SE-WJ': {
+    marque: '33 KVA',
+    type: 'GENERATOR   M200SE-WJ',
+    filtres: {
+      air_interieur: 'AF25526',
+      air_exterieur: 'AF213939',
+      huile_moteur: 'P550020',
+    }
+  },
+  '1000 KVA|DIESEL GENERATOR     WT-P1100': {
+    marque: '1000 KVA',
+    type: 'DIESEL GENERATOR     WT-P1100',
+    filtres: {
+      air_exterieur: 'PA1706',
+      huile_moteur: 'LF4054',
+      separateur: 'FS19737',
+    }
+  },
+  '900 KVA|CATERPILLAR': {
+    marque: '900 KVA',
+    type: 'CATERPILLAR',
+    filtres: {
+      air_interieur: 'AF26402',
+      air_exterieur: 'AF26401',
+      huile_moteur: '1R0716',
+      gasoil: '1R0762',
+      separateur: '133-5673',
+    }
+  },
+  '750KVA|GENSETS': {
+    marque: '750KVA',
+    type: 'GENSETS',
+    filtres: {
+      air_exterieur: 'AF25278',
+      huile_moteur: 'LF777 / LF3716',
+      gasoil: 'P550202',
+      separateur: 'P551026',
+      eau: 'WF2076',
+    }
+  },
+  '550 KVA|KOHLER SDMO': {
+    marque: '550 KVA',
+    type: 'KOHLER SDMO',
+    filtres: {
+      air_interieur: 'AF25962',
+      gasoil: 'FS10001 / FS1212 / P558000 / P551000',
+    }
+  },
+  '400KVA|CATERPILLAR': {
+    marque: '400KVA',
+    type: 'CATERPILLAR',
+    filtres: {
+      air_interieur: 'AF25468',
+      air_exterieur: 'AF25454',
+      huile_moteur: 'LF3325',
+      gasoil: 'FF202',
+      eau: 'WF2075',
+    }
+  },
+  '44 KVA|KOHLER SDMO': {
+    marque: '44 KVA',
+    type: 'KOHLER SDMO',
+    filtres: {
+      air_exterieur: 'AH1198 / 30801047801 / C085001',
+    }
+  },
+  '320KVA|CATERPILLAR 350': {
+    marque: '320KVA',
+    type: 'CATERPILLAR 350',
+    filtres: {
+      air_interieur: 'AF25468 / AF27843 / 11NB-20130',
+      air_exterieur: 'AF25454 / 11NB-20120 / AF26664',
+      huile_moteur: '1R1805',
+      gasoil: 'FF5319',
+      separateur: 'FS19591',
+    }
+  },
+  '250KVA|RENAULT LPR22': {
+    marque: '250KVA',
+    type: 'RENAULT LPR22',
+    filtres: {
+      huile_moteur: 'LF4054 / ELH471 / 234486 / GL579 / P55377',
+      gasoil: 'GF262 / FF5018 / FF5074 / P553004 / WK723',
+    }
+  },
+};
+
+
 const SEUIL_ALERTE = 0.80;
 const INTERVALLE_H = 250;
 const INTERVALLE_KM = 5000;
@@ -1015,66 +2690,117 @@ function ouvrirFicheEntretien(machineId){
   var se = getStatutEntretien(m);
   var unite = se ? se.unite : 'h';
   var typeEntretien = se ? (se.prochainType||'Entretien 250h') : 'Entretien 250h';
-  var echeance = se ? se.prochainEcheance : '--';
-  var restant = se ? se.restant : '--';
+  var echeance = se && se.prochainEcheance ? se.prochainEcheance : 0;
+  var restant = se ? se.restant : 0;
   var indexActuel = se ? se.indexActuel : 0;
+  var enRetard = restant < 0;
 
-  document.getElementById('fiche-titre').textContent =
-    typeEntretien+'  -  '+m.code_machine;
+  document.getElementById('fiche-titre').textContent = typeEntretien + ' - ' + m.code_machine;
 
-  // Contenu de la fiche (&agrave; compl&eacute;ter ensemble)
+  // Chercher les filtres
+  var marque = (m.marque||'').toUpperCase().trim();
+  var typeMat = (m.type_machine||m.sous_famille||'').toUpperCase().trim();
+  var filtresData = FILTRES_MACHINES[marque+'|'+typeMat] || null;
+  var checklist = CHECKLISTS_ENTRETIEN[typeEntretien] || CHECKLISTS_ENTRETIEN['Entretien 250h'];
+
   var c = document.getElementById('fiche-contenu');
-  c.innerHTML =
-    // En-t&ecirc;te machine
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">'+
-      '<div style="background:#F8FAFC;border-radius:8px;padding:14px">'+
-        '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">Identification machine</div>'+
-        '<table style="width:100%;font-size:12px;border-collapse:collapse">'+
-          '<tr><td style="color:#64748B;padding:3px 0;width:45%">Code machine</td><td style="font-weight:700">'+m.code_machine+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">D&eacute;signation</td><td>'+(m.type_machine||m.sous_famille||'-')+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">Marque / Mod&egrave;le</td><td>'+(m.marque||'-')+' '+(m.modele||'')+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">N&deg; S&eacute;rie</td><td>'+(m.numero_serie||'-')+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">Chantier</td><td>'+(m.chantier||'-')+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">Pays</td><td>'+(PN[m.pays_id]||m.pays_id)+'</td></tr>'+
-        '</table>'+
-      '</div>'+
-      '<div style="background:#F8FAFC;border-radius:8px;padding:14px">'+
-        '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">Informations entretien</div>'+
-        '<table style="width:100%;font-size:12px;border-collapse:collapse">'+
-          '<tr><td style="color:#64748B;padding:3px 0;width:45%">Type entretien</td><td style="font-weight:700;color:#0F172A">'+typeEntretien+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">Index actuel</td><td style="font-weight:700">'+indexActuel.toLocaleString('fr-FR')+' '+unite+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">&Eacute;ch&eacute;ance</td><td style="font-weight:700;color:'+(restant<0?'#DC2626':'#059669')+'">'+echeance.toLocaleString('fr-FR')+' '+unite+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">Restant</td><td style="font-weight:700;color:'+(restant<0?'#DC2626':'#D97706')+'">'+(restant<0?'EN RETARD '+Math.abs(restant)+' '+unite:restant.toLocaleString('fr-FR')+' '+unite)+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">Dernier entretien</td><td>'+(se&&se.indexDernierEntretien>0?se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite:'Jamais')+'</td></tr>'+
-          '<tr><td style="color:#64748B;padding:3px 0">Date dernier</td><td>'+(m.date_dernier_entretien?m.date_dernier_entretien.slice(0,10):'--')+'</td></tr>'+
-        '</table>'+
-      '</div>'+
-    '</div>'+
+  var h = '';
 
-    // Zone checklist op&eacute;rations (contenu &agrave; d&eacute;finir ensemble)
-    '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:16px;margin-bottom:20px">'+
-      '<div style="font-size:10px;font-weight:600;color:#92400E;text-transform:uppercase;margin-bottom:10px">&#9000; Op&eacute;rations &agrave; r&eacute;aliser &mdash; '+typeEntretien+'</div>'+
-      '<div id="fiche-checklist" style="font-size:13px;color:#78350F">'+
-        '<em>Checklist &agrave; d&eacute;finir...</em>'+
-      '</div>'+
-    '</div>'+
+  // BANDEAU STATUT
+  var bgBandeau = enRetard ? '#FEE2E2' : '#FEF3C7';
+  var bdBandeau = enRetard ? '#DC2626' : '#F59E0B';
+  var icoBandeau = enRetard ? '&#128680;' : '&#9888;';
+  var txtBandeau = enRetard ?
+    'ENTRETIEN EN RETARD de '+Math.abs(restant).toLocaleString('fr-FR')+' '+unite :
+    'Entretien dans '+restant.toLocaleString('fr-FR')+' '+unite;
+  h += '<div style="background:'+bgBandeau+';border-left:4px solid '+bdBandeau+';border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">'+
+    '<span style="font-size:20px">'+icoBandeau+'</span>'+
+    '<div><strong style="color:'+bdBandeau+'">'+txtBandeau+'</strong><br>'+
+    '<span style="font-size:11px;color:#64748B">Echeance: '+echeance.toLocaleString('fr-FR')+' '+unite+'</span></div></div>';
 
-    // Zone signature
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">'+
-      '<div style="border:1px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">'+
-        '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Technicien r&eacute;alisateur</div>'+
-        '<div style="border-top:1px solid #94A3B8;padding-top:6px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div>'+
-      '</div>'+
-      '<div style="border:1px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">'+
-        '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Responsable pays</div>'+
-        '<div style="border-top:1px solid #94A3B8;padding-top:6px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div>'+
-      '</div>'+
-      '<div style="border:1px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">'+
-        '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:16px">Date r&eacute;alisation</div>'+
-        '<div style="border:1px solid #CBD5E1;border-radius:6px;padding:6px;font-size:12px;color:#94A3B8">____ / ____ / ______</div>'+
-      '</div>'+
-    '</div>';
+  // INFOS MACHINE
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">';
+  h += '<div style="background:#F8FAFC;border-radius:8px;padding:14px">';
+  h += '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">IDENTIFICATION MACHINE</div>';
+  h += '<table style="width:100%;font-size:12px"><tbody>';
+  h += '<tr><td style="color:#64748B;padding:3px 0;width:45%">Code</td><td><strong>'+m.code_machine+'</strong></td></tr>';
+  h += '<tr><td style="color:#64748B;padding:3px 0">D&eacute;signation</td><td>'+(m.type_machine||m.sous_famille||'-')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:3px 0">Marque / Mod&egrave;le</td><td>'+(m.marque||'-')+' '+(m.modele||'')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:3px 0">N&deg; S&eacute;rie</td><td>'+(m.numero_serie||'-')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:3px 0">Chantier</td><td>'+(m.chantier||'-')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:3px 0">Pays</td><td>'+(PN[m.pays_id]||m.pays_id)+'</td></tr>';
+  h += '</tbody></table></div>';
+  h += '<div style="background:#F8FAFC;border-radius:8px;padding:14px">';
+  h += '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">INFORMATIONS ENTRETIEN</div>';
+  h += '<table style="width:100%;font-size:12px"><tbody>';
+  h += '<tr><td style="color:#64748B;padding:3px 0;width:45%">Type</td><td><strong>'+typeEntretien+'</strong></td></tr>';
+  h += '<tr><td style="color:#64748B;padding:3px 0">Index actuel</td><td><strong>'+indexActuel.toLocaleString('fr-FR')+' '+unite+'</strong></td></tr>';
+  var coulEch = enRetard ? '#DC2626' : '#059669';
+  h += '<tr><td style="color:#64748B;padding:3px 0">Ech&eacute;ance</td><td><strong style="color:'+coulEch+'">'+echeance.toLocaleString('fr-FR')+' '+unite+'</strong></td></tr>';
+  var dernIdx = se&&se.indexDernierEntretien>0 ? se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite : 'Jamais';
+  h += '<tr><td style="color:#64748B;padding:3px 0">Dernier entretien</td><td>'+dernIdx+'</td></tr>';
+  var dateDern = m.date_dernier_entretien ? m.date_dernier_entretien.slice(0,10) : '--';
+  h += '<tr><td style="color:#64748B;padding:3px 0">Date dernier</td><td>'+dateDern+'</td></tr>';
+  h += '</tbody></table></div>';
+  h += '</div>';
 
+  // REFERENCES FILTRES
+  if(filtresData){
+    var labelsF = {
+      air_interieur:'Filtre air int.',air_exterieur:'Filtre air ext.',
+      huile_moteur:'Filtre huile moteur',gasoil:'Filtre gasoil',
+      separateur:'Separateur gasoil',hydraulique:'Filtre hydraulique',
+      boite:'Filtre boite',transmission:'Filtre transmission',
+      eau:'Filtre eau',climatisation:'Filtre clim',
+      pilotage:'Filtre pilotage',renifard:'Renifard',
+      secheur_air:'Secheur air',bain_huile:'Bain huile'
+    };
+    h += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:14px;margin-bottom:16px">';
+    h += '<div style="font-size:10px;font-weight:600;color:#065F46;text-transform:uppercase;margin-bottom:10px">&#128722; R&Eacute;F&Eacute;RENCES FILTRES &mdash; '+filtresData.marque+' '+filtresData.type+'</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">';
+    Object.keys(filtresData.filtres).forEach(function(fk){
+      var fv = filtresData.filtres[fk];
+      if(fv){
+        h += '<div style="background:#fff;border:1px solid #D1FAE5;border-radius:6px;padding:6px 8px">'+
+          '<div style="font-size:9px;color:#059669;font-weight:600;text-transform:uppercase">'+(labelsF[fk]||fk)+'</div>'+
+          '<div style="color:#0F172A;font-weight:600;font-size:11px;margin-top:2px">'+fv+'</div></div>';
+      }
+    });
+    h += '</div></div>';
+  }
+
+  // CHECKLIST OPERATIONS
+  if(checklist){
+    h += '<div style="border:2px solid '+checklist.couleur_bord+';border-radius:8px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="background:'+checklist.couleur_bord+';color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase">';
+    h += '&#9000; OPERATIONS A REALISER &mdash; '+typeEntretien+'</div>';
+    checklist.operations.forEach(function(catOps){
+      h += '<div style="padding:10px 14px;border-bottom:1px solid #F1F5F9;background:#fff">';
+      h += '<div style="font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;margin-bottom:6px;background:'+checklist.couleur+';padding:4px 8px;border-radius:4px">'+catOps.cat+'</div>';
+      catOps.ops.forEach(function(op, opIdx){
+        h += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;padding:4px">'+
+          '<input type="checkbox" id="op-'+opIdx+'" style="margin-top:2px;width:15px;height:15px;accent-color:'+checklist.couleur_bord+';flex-shrink:0">'+
+          '<label for="op-'+opIdx+'" style="font-size:12px;color:#374151;cursor:pointer;line-height:1.4">'+op+'</label></div>';
+      });
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ZONES SIGNATURE
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:4px">';
+  h += '<div style="border:1.5px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">';
+  h += '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Technicien r&eacute;alisateur</div>';
+  h += '<div style="border-top:1.5px solid #94A3B8;padding-top:8px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div></div>';
+  h += '<div style="border:1.5px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">';
+  h += '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Responsable Pays</div>';
+  h += '<div style="border-top:1.5px solid #94A3B8;padding-top:8px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div></div>';
+  h += '<div style="border:1.5px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">';
+  h += '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:16px">Date r&eacute;alisation</div>';
+  h += '<div style="border:1px solid #CBD5E1;border-radius:6px;padding:8px;font-size:13px;color:#94A3B8">____ / ____ / ______</div></div>';
+  h += '</div>';
+
+  c.innerHTML = h;
   oM('mod-fiche-entretien');
 }
 
