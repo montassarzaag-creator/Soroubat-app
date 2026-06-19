@@ -636,6 +636,40 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
   </div>
 </div></div>
 
+<!-- MODAL FICHE ENTRETIEN -->
+<div class="mo" id="mod-fiche-entretien"><div class="md" style="max-width:700px">
+  <div class="mh" style="background:#0F172A;border-radius:12px 12px 0 0">
+    <div>
+      <h3 style="color:#fff;font-size:15px">&#128196; Fiche d&apos;entretien pr&eacute;ventif</h3>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px" id="fiche-subtitle"></div>
+    </div>
+    <button class="mx" id="close-mod-fiche" style="color:#fff">&#215;</button>
+  </div>
+  <div class="mb" id="fiche-body"></div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-fiche">Fermer</button>
+    <button class="bn bp" onclick="window.imprimerFicheEntretien()" style="background:#0F172A">&#128438; Imprimer / PDF</button>
+  </div>
+</div></div>
+
+<!-- MODAL FICHE ENTRETIEN -->
+<div class="mo" id="mod-fiche-entretien"><div class="md" style="max-width:680px;max-height:90vh;overflow-y:auto">
+  <div class="mh" style="background:#0F172A;color:#fff;border-radius:10px 10px 0 0;padding:16px 20px">
+    <div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px">Fiche d&apos;entretien pr&eacute;ventif</div>
+      <h3 style="color:#fff;margin:4px 0 0;font-size:16px" id="fiche-titre">---</h3>
+    </div>
+    <button class="mx" id="close-mod-fiche" style="color:#fff;background:rgba(255,255,255,.15);border-radius:6px;width:28px;height:28px">&#215;</button>
+  </div>
+  <div class="mb" id="fiche-contenu" style="padding:20px">
+    <!-- Contenu généré dynamiquement -->
+  </div>
+  <div class="mf" style="border-top:1px solid #E2E8F0;padding:14px 20px;display:flex;gap:10px;justify-content:flex-end">
+    <button class="bn" style="background:#F1F5F9;color:#475569" id="cancel-mod-fiche">Fermer</button>
+    <button class="bn" style="background:#0F172A;color:#fff" onclick="imprimerFiche()">&#128438; Imprimer</button>
+  </div>
+</div></div>
+
 <div id="toast"></div>
 
 <script type="module">
@@ -897,6 +931,155 @@ function logout(){
   document.getElementById('p').value='';
 }
 
+
+
+function getFicheOperations(typeEntretien, typeMachine){
+  // Op&eacute;rations selon le type d'entretien
+  var ops250 = [
+    'Vidange huile moteur + remplacement filtre',
+    'Contr&ocirc;le niveau liquide de refroidissement',
+    'Contr&ocirc;le niveau huile hydraulique',
+    'Graissage g&eacute;n&eacute;ral (points de graissage)',
+    'Contr&ocirc;le pression des pneumatiques',
+    'Nettoyage filtre &agrave; air',
+    'Contr&ocirc;le tension courroies',
+    'Inspection g&eacute;n&eacute;rale visuelle'
+  ];
+  var ops500 = ops250.concat([
+    'Remplacement filtre &agrave; carburant',
+    'Remplacement filtre hydraulique',
+    'Contr&ocirc;le batterie et connexions',
+    'Contr&ocirc;le syst&egrave;me de freinage',
+    'Contr&ocirc;le &eacute;clairage et signalisation'
+  ]);
+  var ops1000 = ops500.concat([
+    'Vidange huile bo&icirc;te de vitesses',
+    'Vidange huile pont arri&egrave;re',
+    'Remplacement courroie de distribution (si applicable)',
+    'Contr&ocirc;le et r&eacute;glage soupapes',
+    'Contr&ocirc;le injecteurs'
+  ]);
+  var ops2000 = ops1000.concat([
+    'R&eacute;vision g&eacute;n&eacute;rale moteur',
+    'Remplacement joints et garnitures',
+    'Contr&ocirc;le et r&eacute;glage embrayage',
+    'Inspection compl&egrave;te du ch&acirc;ssis',
+    'Rapport complet de l\'&eacute;tat de la machine'
+  ]);
+  var ops5000km = [
+    'Vidange huile moteur + filtre',
+    'Contr&ocirc;le pression pneus',
+    'Contr&ocirc;le niveaux (frein, direction, refroidissement)',
+    'Graissage g&eacute;n&eacute;ral',
+    'Contr&ocirc;le visuel g&eacute;n&eacute;ral'
+  ];
+  var ops40000km = ops5000km.concat([
+    'Remplacement filtres (air, carburant, huile)',
+    'Contr&ocirc;le syst&egrave;me de freinage complet',
+    'Remplacement courroie de distribution',
+    'R&eacute;vision compl&egrave;te suspension'
+  ]);
+
+  if(!typeEntretien) return ops250;
+  if(typeEntretien.includes('majeur') || typeEntretien.includes('2000')) return ops2000;
+  if(typeEntretien.includes('1000')) return ops1000;
+  if(typeEntretien.includes('500')) return ops500;
+  if(typeEntretien.includes('40 000')) return ops40000km;
+  if(typeEntretien.includes('10 000') || typeEntretien.includes('20 000')) return ops5000km.concat(['Remplacement filtres','Contr&ocirc;le freins']);
+  return ops250;
+}
+
+window.imprimerFicheEntretien = function(){
+  var body = document.getElementById('fiche-body').innerHTML;
+  var subtitle = document.getElementById('fiche-subtitle').textContent;
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>Fiche Entretien - SOROUBAT</title>'+
+    '<style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:24px;font-size:13px;color:#0F172A}'+
+    '.dl{font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:3px}'+
+    '.dv{font-size:14px;font-weight:600}'+
+    'input[type=checkbox]{width:14px;height:14px}'+
+    '@media print{button{display:none}}</style></head><body>'+
+    '<div style="background:#0F172A;color:#fff;padding:16px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">'+
+    '<div><div style="font-size:18px;font-weight:700;letter-spacing:1px">SOROUBAT</div>'+
+    '<div style="font-size:13px;opacity:.8">Fiche d&apos;entretien pr&eacute;ventif</div></div>'+
+    '<div style="text-align:right;font-size:12px;opacity:.7">'+subtitle+'</div></div>'+
+    body+
+    '<scr'+'ipt>window.onload=function(){window.print();}<'+'/scr'+'ipt>'+
+    '</body></html>');
+  win.document.close();
+};
+
+function ouvrirFicheEntretien(machineId){
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  var se = getStatutEntretien(m);
+  var unite = se ? se.unite : 'h';
+  var typeEntretien = se ? (se.prochainType||'Entretien 250h') : 'Entretien 250h';
+  var echeance = se ? se.prochainEcheance : '--';
+  var restant = se ? se.restant : '--';
+  var indexActuel = se ? se.indexActuel : 0;
+
+  document.getElementById('fiche-titre').textContent =
+    typeEntretien+'  -  '+m.code_machine;
+
+  // Contenu de la fiche (&agrave; compl&eacute;ter ensemble)
+  var c = document.getElementById('fiche-contenu');
+  c.innerHTML =
+    // En-t&ecirc;te machine
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">'+
+      '<div style="background:#F8FAFC;border-radius:8px;padding:14px">'+
+        '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">Identification machine</div>'+
+        '<table style="width:100%;font-size:12px;border-collapse:collapse">'+
+          '<tr><td style="color:#64748B;padding:3px 0;width:45%">Code machine</td><td style="font-weight:700">'+m.code_machine+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">D&eacute;signation</td><td>'+(m.type_machine||m.sous_famille||'-')+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">Marque / Mod&egrave;le</td><td>'+(m.marque||'-')+' '+(m.modele||'')+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">N&deg; S&eacute;rie</td><td>'+(m.numero_serie||'-')+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">Chantier</td><td>'+(m.chantier||'-')+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">Pays</td><td>'+(PN[m.pays_id]||m.pays_id)+'</td></tr>'+
+        '</table>'+
+      '</div>'+
+      '<div style="background:#F8FAFC;border-radius:8px;padding:14px">'+
+        '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">Informations entretien</div>'+
+        '<table style="width:100%;font-size:12px;border-collapse:collapse">'+
+          '<tr><td style="color:#64748B;padding:3px 0;width:45%">Type entretien</td><td style="font-weight:700;color:#0F172A">'+typeEntretien+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">Index actuel</td><td style="font-weight:700">'+indexActuel.toLocaleString('fr-FR')+' '+unite+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">&Eacute;ch&eacute;ance</td><td style="font-weight:700;color:'+(restant<0?'#DC2626':'#059669')+'">'+echeance.toLocaleString('fr-FR')+' '+unite+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">Restant</td><td style="font-weight:700;color:'+(restant<0?'#DC2626':'#D97706')+'">'+(restant<0?'EN RETARD '+Math.abs(restant)+' '+unite:restant.toLocaleString('fr-FR')+' '+unite)+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">Dernier entretien</td><td>'+(se&&se.indexDernierEntretien>0?se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite:'Jamais')+'</td></tr>'+
+          '<tr><td style="color:#64748B;padding:3px 0">Date dernier</td><td>'+(m.date_dernier_entretien?m.date_dernier_entretien.slice(0,10):'--')+'</td></tr>'+
+        '</table>'+
+      '</div>'+
+    '</div>'+
+
+    // Zone checklist op&eacute;rations (contenu &agrave; d&eacute;finir ensemble)
+    '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:16px;margin-bottom:20px">'+
+      '<div style="font-size:10px;font-weight:600;color:#92400E;text-transform:uppercase;margin-bottom:10px">&#9000; Op&eacute;rations &agrave; r&eacute;aliser &mdash; '+typeEntretien+'</div>'+
+      '<div id="fiche-checklist" style="font-size:13px;color:#78350F">'+
+        '<em>Checklist &agrave; d&eacute;finir...</em>'+
+      '</div>'+
+    '</div>'+
+
+    // Zone signature
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">'+
+      '<div style="border:1px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">'+
+        '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Technicien r&eacute;alisateur</div>'+
+        '<div style="border-top:1px solid #94A3B8;padding-top:6px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div>'+
+      '</div>'+
+      '<div style="border:1px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">'+
+        '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Responsable pays</div>'+
+        '<div style="border-top:1px solid #94A3B8;padding-top:6px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div>'+
+      '</div>'+
+      '<div style="border:1px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">'+
+        '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:16px">Date r&eacute;alisation</div>'+
+        '<div style="border:1px solid #CBD5E1;border-radius:6px;padding:6px;font-size:12px;color:#94A3B8">____ / ____ / ______</div>'+
+      '</div>'+
+    '</div>';
+
+  oM('mod-fiche-entretien');
+}
+
+
+
 function saisirEntretien(machineId){
   // V&eacute;rification: uniquement les responsables pays
   if(!ses || ses.admin || ses.ravitailleur){
@@ -968,11 +1151,15 @@ function start(){
   document.getElementById('fp-interv').addEventListener('change',function(){ chargerInterventions(); });
   document.getElementById('btn-sauver-detail').addEventListener('click',sauverDetail);
   document.getElementById('btn-sauver-index').addEventListener('click',sauverIndex);
+  document.getElementById('close-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
+  document.getElementById('cancel-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
   document.getElementById('close-mod-index').addEventListener('click',function(){ cM('mod-index'); });
   document.getElementById('cancel-mod-index').addEventListener('click',function(){ cM('mod-index'); });
   document.getElementById('btn-confirmer-entretien').addEventListener('click',confirmerEntretien);
   document.getElementById('close-mod-entretien').addEventListener('click',function(){ cM('mod-entretien'); });
   document.getElementById('cancel-mod-entretien').addEventListener('click',function(){ cM('mod-entretien'); });
+  document.getElementById('close-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
+  document.getElementById('cancel-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
   // Listeners modification d'&eacute;ch&eacute;ance
   document.getElementById('btn-etape1-echeance').addEventListener('click', function(){
     var motif = document.getElementById('echeance-motif').value.trim();
@@ -2077,7 +2264,10 @@ window.chargerMaintenance = async function(){
       td(se.indexActuel>0?'<strong>'+se.indexActuel.toLocaleString('fr-FR')+'</strong> '+unite:'<span style="color:#94A3B8">--</span>',true)+
       td(se.indexDernierEntretien>0?se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite:'<span style="color:#94A3B8">Jamais</span>',true)+
       td('<span style="font-size:11px;color:#64748B">'+dateDE+'</span>',true)+
-      td('<span style="font-weight:700;font-size:11px">'+(se.prochainType||'Entretien 250h')+'</span>')+
+      td('<div style="display:flex;align-items:center;gap:6px">'+
+        '<button class="bn bs" data-fiche="'+m.id+'" style="background:#0F172A;color:#fff;font-size:10px;padding:3px 8px;white-space:nowrap" title="Voir la fiche d&apos;entretien">&#128196; Fiche</button>'+
+        '<span style="font-weight:700;font-size:11px">'+(se.prochainType||'Entretien 250h')+'</span>'+
+        '</div>')+
       td(se.prochainEcheance?'<strong>'+se.prochainEcheance.toLocaleString('fr-FR')+'</strong> '+unite:'--',true)+
       td(restantTxt,true)+
       td(statBadge,true)+
@@ -2096,6 +2286,9 @@ window.chargerMaintenance = async function(){
   });
   cont.querySelectorAll('[data-modifier-echeance]').forEach(function(btn){
     btn.addEventListener('click',function(){ ouvrirModifEcheance(btn.dataset.modifierEcheance); });
+  });
+  cont.querySelectorAll('[data-fiche]').forEach(function(btn){
+    btn.addEventListener('click',function(){ ouvrirFicheEntretien(btn.dataset.fiche); });
   });
   }catch(mainErr){
     cont.innerHTML = '<div class="em" style="color:#DC2626;font-size:12px">Erreur: '+mainErr.message+'<br><small>'+mainErr.stack.split('\n')[0]+'</small></div>';
