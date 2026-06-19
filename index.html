@@ -133,7 +133,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
 
     <!-- BANDEAU ALERTES -->
     <div id="bandeau-alertes" style="display:none;margin-bottom:16px;cursor:pointer">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
         <!-- Bloc En panne -->
         <div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
           <div style="display:flex;align-items:center;gap:10px">
@@ -173,6 +173,34 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
           </div>
           <div style="text-align:right">
             <div style="font-size:36px;font-weight:800;color:#fff" id="bandeau-nb-rep">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.7)">machines</div>
+          </div>
+        </div>
+        <!-- Bloc Entretien DÛ -->
+        <div style="background:linear-gradient(135deg,#7C3AED,#8B5CF6);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">&#128308;</span>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Entretien D&Ucirc;</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px" id="bandeau-detail-entretien">-</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:36px;font-weight:800;color:#fff" id="bandeau-nb-entretien">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.7)">machines</div>
+          </div>
+        </div>
+        <!-- Bloc Alerte Entretien -->
+        <div style="background:linear-gradient(135deg,#B45309,#D97706);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">&#128992;</span>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Alerte Entretien</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px" id="bandeau-detail-alerte-entretien">&gt;80% du cycle</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:36px;font-weight:800;color:#fff" id="bandeau-nb-alerte-entretien">0</div>
             <div style="font-size:10px;color:rgba(255,255,255,.7)">machines</div>
           </div>
         </div>
@@ -1149,10 +1177,25 @@ function stat(){
     document.getElementById('bandeau-detail-panne').textContent=nbPanneLocal>0?'machines en panne':'Aucune';
     document.getElementById('bandeau-detail-pdr').textContent=nbPdrLocal>0?'en attente de pieces':'Aucune';
     document.getElementById('bandeau-detail-rep').textContent=nbRepLocal>0?'en cours de reparation':'Aucune';
-    if(nbPanneLocal>0||nbPdrLocal>0||nbRepLocal>0){
+
+    // Compter entretiens dus et alertes depuis all[]
+    var nbEntretienDu = 0, nbEntretienAlerte = 0;
+    src.forEach(function(m){
+      var se = getStatutEntretien(m);
+      if(!se) return;
+      if(se.statut==='du') nbEntretienDu++;
+      else if(se.statut==='alerte') nbEntretienAlerte++;
+    });
+    document.getElementById('bandeau-nb-entretien').textContent = nbEntretienDu;
+    document.getElementById('bandeau-nb-alerte-entretien').textContent = nbEntretienAlerte;
+    document.getElementById('bandeau-detail-entretien').textContent =
+      nbEntretienDu>0 ? nbEntretienDu+' machine'+(nbEntretienDu>1?'s':'')+' en retard' : 'Aucun';
+
+    if(nbPanneLocal>0||nbPdrLocal>0||nbRepLocal>0||nbEntretienDu>0||nbEntretienAlerte>0){
       document.getElementById('bandeau-alertes').style.display='block';
+      var totalAlertes = nbPanneLocal+nbPdrLocal+nbRepLocal+nbEntretienDu+nbEntretienAlerte;
       const badgeEl=document.getElementById('badge-alertes');
-      if(badgeEl){badgeEl.style.display='';badgeEl.textContent=nbPanneLocal+nbPdrLocal+nbRepLocal;}
+      if(badgeEl){badgeEl.style.display='';badgeEl.textContent=totalAlertes;}
       const tabBtn=document.getElementById('tab-alertes');
       if(tabBtn) tabBtn.style.display='';
     }
