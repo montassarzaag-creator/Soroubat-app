@@ -856,6 +856,41 @@ function logout(){
   document.getElementById('p').value='';
 }
 
+function saisirEntretien(machineId){
+  // V&eacute;rification: uniquement les responsables pays
+  if(!ses || ses.admin || ses.ravitailleur){
+    toast('Acc&egrave;s non autoris&eacute;','ko');
+    return;
+  }
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  var se = getStatutEntretien(m);
+  var unite = se ? se.unite : '';
+  var indexActuel = se ? se.indexActuel : 0;
+
+  document.getElementById('entretien-machine-id').value = machineId;
+  document.getElementById('entretien-machine-label').textContent =
+    m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.type_machine||m.sous_famille||'');
+  document.getElementById('entretien-index-actuel').textContent =
+    indexActuel.toLocaleString('fr-FR')+' '+unite;
+  document.getElementById('entretien-ecart').textContent =
+    se ? se.ecart.toLocaleString('fr-FR')+' '+unite+' depuis le dernier entretien' : '--';
+  document.getElementById('entretien-index-saisi').value = indexActuel;
+  document.getElementById('entretien-remarque').value = '';
+
+  var prochainCalc = document.getElementById('prochain-calcule');
+  var typeIdxM = se ? se.typeIdx : null;
+  if(prochainCalc && typeIdxM){
+    var pObj = getProchainEntretien(indexActuel, typeIdxM);
+    prochainCalc.textContent = pObj.type+' &agrave; '+pObj.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
+    document.getElementById('entretien-index-saisi').addEventListener('input', function(){
+      var v = parseFloat(this.value)||0;
+      var pObj2 = getProchainEntretien(v, typeIdxM);
+      prochainCalc.textContent = pObj2.type+' &agrave; '+pObj2.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
+    });
+  }
+  oM('mod-entretien');
+}
+
 function start(){
   document.getElementById('lg').style.display='none';
   document.getElementById('ap').style.display='block';
@@ -962,35 +997,7 @@ function start(){
   });
   
   // Saisir index du dernier entretien (responsable pays)
-  function saisirEntretien(machineId){
-    const m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
-    const se = getStatutEntretien(m);
-    const unite = se ? se.unite : '';
-    const indexActuel = se ? se.indexActuel : 0;
   
-    // Cr&eacute;er un mini-modal de confirmation
-    // confirmation affich&eacute;e dans le modal
-  
-    document.getElementById('entretien-machine-id').value = machineId;
-    document.getElementById('entretien-machine-label').textContent = m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.type_machine||m.sous_famille||'');
-    document.getElementById('entretien-index-actuel').textContent = indexActuel.toLocaleString('fr-FR')+' '+unite;
-    document.getElementById('entretien-ecart').textContent = se ? se.ecart.toLocaleString('fr-FR')+' '+unite+' depuis le dernier entretien' : '--';
-    document.getElementById('entretien-index-saisi').value = indexActuel;
-    document.getElementById('entretien-remarque').value = '';
-    // Calculer prochain entretien en temps r&eacute;el
-    var prochainCalc = document.getElementById('prochain-calcule');
-    var typeIdxM = se ? se.typeIdx : null;
-    if(prochainCalc && typeIdxM){
-      var pObj = getProchainEntretien(indexActuel, typeIdxM);
-      prochainCalc.textContent = pObj.type+' &agrave; '+pObj.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
-      document.getElementById('entretien-index-saisi').addEventListener('input', function(){
-        var v = parseFloat(this.value)||0;
-        var pObj2 = getProchainEntretien(v, typeIdxM);
-        prochainCalc.textContent = pObj2.type+' &agrave; '+pObj2.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
-      });
-    }
-    oM('mod-entretien');
-  }
   document.getElementById('fp-maint').addEventListener('change',function(){ window.chargerMaintenance(); });
   document.getElementById('filtre-urgence').addEventListener('change',function(){ window.chargerMaintenance(); });
   if(!ses.admin){ document.getElementById('filtre-maint-pays-wrap').style.display='none'; }
@@ -1996,10 +2003,9 @@ window.chargerMaintenance = async function(){
     if(ses.ravitailleur||ses.admin){
       btns+='<button class="bn bs" data-idx="'+m.id+'" style="background:#EDE9FE;color:#5B21B6;border:0.5px solid #C4B5FD;font-size:11px;padding:4px 8px;margin-right:3px">&#128200; Index</button>';
     }
-    if(!ses.ravitailleur){
+    // Bouton "Fait" et "Ech." : UNIQUEMENT responsables pays (pas admin, pas ravitailleur)
+    if(!ses.ravitailleur && !ses.admin){
       btns+='<button class="bn bs bv" data-entretien="'+m.id+'" style="font-size:11px;padding:4px 8px;margin-right:3px">&#10003; Fait</button>';
-    }
-    if(!ses.ravitailleur&&!ses.admin){
       btns+='<button class="bn bs" data-modifier-echeance="'+m.id+'" style="background:#F0F9FF;color:#0369A1;border:0.5px solid #BAE6FD;font-size:11px;padding:4px 8px">&#9998; &Eacute;ch.</button>';
     }
 
