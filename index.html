@@ -648,7 +648,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
   <div class="mb" id="fiche-contenu" style="padding:0"></div>
   <div class="mf">
     <button class="bn" style="background:var(--gr)" id="cancel-mod-fiche">Fermer</button>
-    <button class="bn bp" onclick="window.imprimerFicheEntretien()" style="background:#0F172A">&#128438; Imprimer / PDF</button>
+    <button class="bn bp" onclick="imprimerFiche()" style="background:#0F172A">&#128438; Imprimer / PDF</button>
   </div>
 </div></div>
 
@@ -2781,6 +2781,8 @@ function ouvrirFicheEntretien(machineId){
   if(checklist){
     // Stocker la checklist editable dans une variable globale
     window._ficheChecklist = JSON.parse(JSON.stringify(checklist.operations));
+    window._ficheMachine = m;
+    window._ficheSE = se;
     window._ficheType = typeEntretien;
     window._ficheAccent = accentColor;
     window._ficheAccentLight = accentLight;
@@ -3374,83 +3376,104 @@ async function copierHistorique(id){
 async function imprimerFiche(){
   var titre = document.getElementById('fiche-titre').textContent;
   var accentColor = window._ficheAccent || '#0F172A';
+  var m = window._ficheMachine;
+  var se = window._ficheSE;
 
-  // Capturer les noms saisis
-  var inputs = document.getElementById('fiche-contenu').querySelectorAll('input[type="text"]');
-  var noms = Array.from(inputs).map(function(i){ return i.value.trim(); });
+  // Noms saisis dans le modal
+  var cont = document.getElementById('fiche-contenu');
+  var inputs = cont ? cont.querySelectorAll('input[type="text"]') : [];
+  var noms = Array.from(inputs).map(function(inp){ return inp.value.trim(); });
 
-  // Construire le HTML d'impression
+  // Operations checklist
   var opsHtml = '';
   if(window._ficheChecklist){
     window._ficheChecklist.forEach(function(catOps){
-      opsHtml += '<tr><td colspan="2" style="background:'+accentColor+';color:#fff;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase">'+catOps.cat+'</td></tr>';
+      opsHtml += '<tr><td colspan="2" style="background:'+accentColor+';color:#fff;padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase">'+catOps.cat+'</td></tr>';
       catOps.ops.forEach(function(op){
-        opsHtml += '<tr><td style="width:24px;text-align:center;border:1px solid #E2E8F0;padding:5px">&#9633;</td><td style="border:1px solid #E2E8F0;padding:5px 8px;font-size:12px">'+op+'</td></tr>';
+        opsHtml += '<tr><td style="width:26px;text-align:center;border:1px solid #ddd;padding:4px;font-size:14px">&#9633;</td><td style="border:1px solid #ddd;padding:4px 8px;font-size:11px">'+op+'</td></tr>';
       });
     });
   }
 
-  var w = window.open('','_blank');
-  w.document.write(
-    '<html><head><title>'+titre+'</title>'+
-    '<style>'+
-    'body{font-family:Arial,sans-serif;padding:20px;font-size:12px;color:#0F172A}'+
-    'h1{font-size:16px;margin:0 0 4px}'+
-    '.sub{font-size:11px;color:#64748B;margin-bottom:16px}'+
-    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}'+
-    '.box{border:1px solid #E2E8F0;border-radius:6px;padding:10px}'+
-    '.box-title{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:6px}'+
-    'table{width:100%;border-collapse:collapse}'+
-    'td{padding:3px 0;font-size:11px}'+
-    'td:first-child{color:#64748B;width:45%}'+
-    '.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}'+
-    '.sig-box{border:1px solid #E2E8F0;border-radius:6px;padding:10px}'+
-    '.sig-title{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:8px}'+
-    '.sig-name{font-size:11px;border-bottom:1px solid #CBD5E1;padding-bottom:2px;margin-bottom:12px;min-height:20px}'+
-    '.sig-line{border-bottom:1px dashed #CBD5E1;height:40px;margin-top:6px}'+
-    '.accent-bar{height:4px;background:'+accentColor+';border-radius:4px;margin-bottom:12px}'+
-    '@media print{button{display:none}}'+
-    '</style></head><body>'+
+  // Infos machine
+  var unite = se ? se.unite : 'h';
+  var indexActuel = se ? se.indexActuel : 0;
+  var echeance = se && se.prochainEcheance ? se.prochainEcheance : 0;
+  var dernIdx = se&&se.indexDernierEntretien>0 ? se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite : 'Jamais';
+  var dateDern = m && m.date_dernier_entretien ? m.date_dernier_entretien.slice(0,10) : '--';
 
-    '<div class="accent-bar"></div>'+
-    '<h1>'+titre+'</h1>'+
-    '<div class="sub">Fiche d\'entretien preventif SOROUBAT International</div>'+
+  var rowM = function(label, val){
+    return '<tr><td style="color:#666;padding:2px 0;width:45%;font-size:11px">'+label+'</td><td style="font-size:11px">'+val+'</td></tr>';
+  };
 
-    '<div class="grid">'+
-    '<div class="box"><div class="box-title">Identification machine</div>'+
-    document.getElementById('fiche-contenu').querySelectorAll('.box table')[0].outerHTML+
+  var infoMachine = m ?
+    rowM('Code','<strong>'+m.code_machine+'</strong>')+
+    rowM('Designation',(m.type_machine||m.sous_famille||'-'))+
+    rowM('Marque/Modele',(m.marque||'-')+' '+(m.modele||''))+
+    rowM('N Serie',(m.numero_serie||'-'))+
+    rowM('Chantier',(m.chantier||'-'))+
+    rowM('Pays',(PN[m.pays_id]||m.pays_id)) : '';
+
+  var infoEntretien =
+    rowM('Type','<strong>'+window._ficheType+'</strong>')+
+    rowM('Index actuel','<strong>'+indexActuel.toLocaleString('fr-FR')+' '+unite+'</strong>')+
+    rowM('Echeance','<strong>'+echeance.toLocaleString('fr-FR')+' '+unite+'</strong>')+
+    rowM('Dernier entretien', dernIdx)+
+    rowM('Date dernier', dateDern);
+
+  // Construire le HTML d'impression
+  var printHtml =
+    '<div style="height:4px;background:'+accentColor+';border-radius:3px;margin-bottom:12px"></div>'+
+    '<h2 style="font-size:15px;margin:0 0 3px;font-family:Arial,sans-serif">'+titre+'</h2>'+
+    '<p style="font-size:11px;color:#666;margin:0 0 14px;font-family:Arial,sans-serif">Fiche entretien preventif - SOROUBAT International</p>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'+
+    '<div style="border:1px solid #ddd;border-radius:6px;padding:10px">'+
+    '<div style="font-size:9px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:6px;font-family:Arial">Identification machine</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-family:Arial"><tbody>'+infoMachine+'</tbody></table></div>'+
+    '<div style="border:1px solid #ddd;border-radius:6px;padding:10px">'+
+    '<div style="font-size:9px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:6px;font-family:Arial">Informations entretien</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-family:Arial"><tbody>'+infoEntretien+'</tbody></table></div>'+
     '</div>'+
-    '<div class="box"><div class="box-title">Informations entretien</div>'+
-    (document.getElementById('fiche-contenu').querySelectorAll('.box table')[1]||{outerHTML:''}).outerHTML+
-    '</div></div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:14px;border:1.5px solid '+accentColor+'">'+
+    '<thead><tr><td colspan="2" style="background:'+accentColor+';color:#fff;padding:6px 10px;font-size:10px;font-weight:700;font-family:Arial">Operations a realiser - '+window._ficheType+'</td></tr></thead>'+
+    '<tbody>'+opsHtml+'</tbody></table>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+
+    '<div style="border:1px solid #ddd;border-radius:6px;padding:10px;font-family:Arial">'+
+    '<div style="font-size:9px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:6px">Technicien 1</div>'+
+    '<div style="font-size:11px;border-bottom:1px solid #ccc;padding-bottom:2px;margin-bottom:10px;min-height:16px">Nom: '+(noms[0]||'')+'</div>'+
+    '<div style="font-size:10px;color:#666;margin-bottom:3px">Signature:</div>'+
+    '<div style="border-bottom:1.5px dashed #ccc;height:40px"></div></div>'+
+    '<div style="border:1px solid #ddd;border-radius:6px;padding:10px;font-family:Arial">'+
+    '<div style="font-size:9px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:6px">Technicien 2</div>'+
+    '<div style="font-size:11px;border-bottom:1px solid #ccc;padding-bottom:2px;margin-bottom:10px;min-height:16px">Nom: '+(noms[1]||'')+'</div>'+
+    '<div style="font-size:10px;color:#666;margin-bottom:3px">Signature:</div>'+
+    '<div style="border-bottom:1.5px dashed #ccc;height:40px"></div></div>'+
+    '<div style="border:1px solid #F59E0B;border-radius:6px;padding:10px;background:#FFFBEB;font-family:Arial">'+
+    '<div style="font-size:9px;font-weight:700;color:#92400E;text-transform:uppercase;margin-bottom:6px">Chef de parc - Validation</div>'+
+    '<div style="font-size:11px;border-bottom:1px solid #ccc;padding-bottom:2px;margin-bottom:6px;min-height:16px">Nom: '+(noms[2]||'')+'</div>'+
+    '<div style="font-size:10px;color:#666;margin-bottom:3px">Signature:</div>'+
+    '<div style="border-bottom:1.5px dashed #D97706;height:40px"></div></div>'+
+    '</div>';
 
-    '<table style="margin-bottom:14px;border:1px solid '+accentColor+'">'+opsHtml+'</table>'+
+  // Injecter dans la zone impression cachee
+  var pz = document.getElementById('print-zone');
+  if(!pz){
+    pz = document.createElement('div');
+    pz.id = 'print-zone';
+    document.body.appendChild(pz);
+  }
+  pz.innerHTML = printHtml;
 
-    '<div class="sig-grid">'+
-    '<div class="sig-box">'+
-    '<div class="sig-title">Technicien 1</div>'+
-    '<div class="sig-name">Nom: '+(noms[0]||'')+'</div>'+
-    '<div style="font-size:10px;color:#64748B">Signature:</div>'+
-    '<div class="sig-line"></div></div>'+
+  // Ajouter style @media print dynamiquement si absent
+  if(!document.getElementById('print-style')){
+    var st = document.createElement('style');
+    st.id = 'print-style';
+    st.textContent = '@media print{body>*:not(#print-zone){display:none!important}#print-zone{display:block!important;font-family:Arial,sans-serif;font-size:12px;color:#0F172A;padding:10px}@page{margin:15mm;size:A4}}#print-zone{display:none}';
+    document.head.appendChild(st);
+  }
 
-    '<div class="sig-box">'+
-    '<div class="sig-title">Technicien 2</div>'+
-    '<div class="sig-name">Nom: '+(noms[1]||'')+'</div>'+
-    '<div style="font-size:10px;color:#64748B">Signature:</div>'+
-    '<div class="sig-line"></div></div>'+
-
-    '<div class="sig-box" style="background:#FFFBEB;border-color:#F59E0B">'+
-    '<div class="sig-title" style="color:#92400E">Chef de parc (validation)</div>'+
-    '<div class="sig-name">Nom: '+(noms[2]||'')+'</div>'+
-    '<div style="font-size:10px;color:#64748B">Date: '+(noms[3]?noms[3]:'____ / ____ / ______')+'</div>'+
-    '<div style="font-size:10px;color:#64748B;margin-top:6px">Signature:</div>'+
-    '<div class="sig-line" style="border-color:#D97706"></div></div>'+
-    '</div>'+
-
-    '<script>window.onload=function(){window.print()}<\/script>'+
-    '</body></html>'
-  );
-  w.document.close();
+  // Imprimer
+  window.print();
 }
 
 // DETAIL STATUT PAYS
