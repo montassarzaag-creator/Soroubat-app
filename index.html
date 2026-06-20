@@ -648,7 +648,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
   <div class="mb" id="fiche-contenu" style="padding:0"></div>
   <div class="mf">
     <button class="bn" style="background:var(--gr)" id="cancel-mod-fiche">Fermer</button>
-    <button class="bn bp" onclick="window.print()" style="background:#0F172A">&#128438; Imprimer / PDF</button>
+    <button class="bn bp" onclick="doPrint()" style="background:#0F172A">&#128438; Imprimer / PDF</button>
   </div>
 </div></div>
 
@@ -662,7 +662,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     <button class="mx" id="close-mod-fiche" style="color:#fff;background:rgba(255,255,255,.15);border-radius:6px;width:28px;height:28px">&#215;</button>
   </div>
   <div class="mb" id="fiche-contenu" style="padding:20px">
-    <!-- Contenu généré dynamiquement -->
+    <!-- Contenu genere dynamiquement -->
   </div>
   <div class="mf" style="border-top:1px solid #E2E8F0;padding:14px 20px;display:flex;gap:10px;justify-content:flex-end">
     <button class="bn" style="background:#F1F5F9;color:#475569" id="cancel-mod-fiche">Fermer</button>
@@ -731,7 +731,9 @@ function getIndexType(machine){
 
 var CHECKLISTS_ENTRETIEN = {
   'Entretien 250h': {
-    couleur: '#FEF9EC', couleur_bord: '#F59E0B', couleur_titre: '#92400E',
+    couleur: '#FEF3C7',
+    couleur_bord: '#F59E0B',
+    couleur_titre: '#92400E',
     operations: [
       { cat: 'MOTEUR', ops: [
         'Vidange huile moteur + remplacement filtre huile',
@@ -739,285 +741,198 @@ var CHECKLISTS_ENTRETIEN = {
         'Controle et nettoyage filtre a air (prefiltre)',
         'Verification niveau liquide de refroidissement',
         'Inspection courroies d\'entrainement (tension et etat)',
-        'Controle etancheite moteur (fuites huile, gasoil, eau)'
+        'Controle etancheite (fuites huile, gasoil, eau)',
       ]},
       { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
         'Verification niveau huile hydraulique',
-        'Verification niveau huile de transmission / boite de vitesses',
-        'Controle etancheite circuits hydrauliques'
+        'Verification niveau huile de transmission/boite',
+        'Controle etancheite circuits hydrauliques',
       ]},
       { cat: 'GRAISSAGE', ops: [
         'Graissage de tous les points de lubrification',
-        'Graissage articulations de bras / lame / godet',
-        'Graissage pivot de direction (si applicable)'
+        'Graissage articulations de bras/lame/godet',
+        'Graissage pivot de direction (si applicable)',
       ]},
       { cat: 'STRUCTURE & SECURITE', ops: [
         'Verification pression pneumatiques / tension chenilles',
-        'Controle boulonnerie (serrage general)',
+        'Controle boulonnerie (serrage)',
         'Inspection visuelle structure (fissures, deformations)',
         'Test eclairages, klaxon, alarme de recul',
-        'Verification extincteur et equipements de securite'
-      ]}
+        'Verification extincteur et equipements de securite',
+      ]},
     ]
   },
-
   'Entretien 500h': {
-    couleur: '#EFF6FF', couleur_bord: '#2563EB', couleur_titre: '#1E3A8A',
+    couleur: '#EDE9FE',
+    couleur_bord: '#7C3AED',
+    couleur_titre: '#4C1D95',
     operations: [
-      { cat: 'MOTEUR (operations 250h incluses)', ops: [
-        'Vidange huile moteur + remplacement filtre huile',
-        'Remplacement filtre gasoil primaire',
+      { cat: 'TOUTES LES OPERATIONS 250h +', ops: [
+        'Toutes les operations de l\'entretien 250h',
+      ]},
+      { cat: 'MOTEUR', ops: [
         'Remplacement filtre gasoil secondaire (separateur eau/gasoil)',
-        'Nettoyage / remplacement filtre a air principal',
-        'Controle et nettoyage filtre a air (prefiltre)',
+        'Nettoyage/remplacement filtre a air principal',
         'Purge circuit de refroidissement (verification antigel)',
-        'Verification niveau liquide de refroidissement',
         'Controle injecteurs (fuites, etat visible)',
         'Verification tension et etat courroie alternateur',
-        'Inspection courroies d\'entrainement (tension et etat)',
-        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
       { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
         'Remplacement filtre hydraulique',
         'Vidange et remplacement huile de boite de vitesses',
         'Verification jeu et usure accouplement transmission',
-        'Verification niveau huile hydraulique',
-        'Controle etancheite circuits hydrauliques'
       ]},
       { cat: 'TRAIN ROULANT', ops: [
         'Controle usure chenilles / pneus (profondeur)',
         'Verification galets, roues guides, barbotin (chenilles)',
-        'Controle et reglage tension chenilles'
-      ]},
-      { cat: 'GRAISSAGE', ops: [
-        'Graissage de tous les points de lubrification',
-        'Graissage articulations de bras / lame / godet',
-        'Graissage pivot de direction (si applicable)'
+        'Controle et reglage tension chenilles',
       ]},
       { cat: 'ELECTRIQUE', ops: [
         'Controle etat et charge batterie',
         'Nettoyage bornes de batterie',
-        'Verification cablage (isolation, connexions)'
+        'Verification cablage (isolation, connexions)',
       ]},
-      { cat: 'STRUCTURE & SECURITE', ops: [
-        'Verification pression pneumatiques / tension chenilles',
-        'Controle boulonnerie (serrage general)',
-        'Inspection visuelle structure (fissures, deformations)',
-        'Test eclairages, klaxon, alarme de recul',
-        'Verification extincteur et equipements de securite'
-      ]}
     ]
   },
-
   'Entretien 1000h': {
-    couleur: '#F0FDF4', couleur_bord: '#16A34A', couleur_titre: '#14532D',
+    couleur: '#DBEAFE',
+    couleur_bord: '#2563EB',
+    couleur_titre: '#1E3A8A',
     operations: [
-      { cat: 'MOTEUR (operations 500h incluses)', ops: [
-        'Vidange huile moteur + remplacement filtre huile',
-        'Remplacement filtre gasoil primaire',
-        'Remplacement filtre gasoil secondaire (separateur eau/gasoil)',
+      { cat: 'TOUTES LES OPERATIONS 500h +', ops: [
+        'Toutes les operations de l\'entretien 500h',
+      ]},
+      { cat: 'MOTEUR', ops: [
+        'Controle et reglage jeu aux soupapes',
         'Remplacement filtre a air complet (interieur + exterieur)',
         'Controle et nettoyage radiateur (soufflage)',
-        'Purge circuit de refroidissement (verification antigel)',
-        'Verification niveau liquide de refroidissement',
-        'Controle et reglage jeu aux soupapes',
         'Controle pompe a eau (fuite, jeu)',
         'Verification thermostat de refroidissement',
-        'Controle injecteurs (fuites, etat visible)',
-        'Verification tension et etat courroie alternateur',
-        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
       { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
         'Vidange huile hydraulique complete',
         'Remplacement filtre hydraulique haute pression',
         'Controle pression hydraulique (tests)',
-        'Vidange pont avant / arriere (si applicable)',
+        'Vidange pont avant/arriere (si applicable)',
         'Controle usure disques de frein',
-        'Vidange et remplacement huile de boite de vitesses',
-        'Verification jeu et usure accouplement transmission'
+      ]},
+      { cat: 'TRAIN ROULANT COMPLET', ops: [
+        'Inspection complete chassis et sous-carrosserie',
+        'Controle et remplacement si necessaire: galets porteurs et galets de roulement',
+        'Verification jeu de direction (jeu volant)',
       ]},
       { cat: 'CIRCUIT CARBURANT', ops: [
         'Nettoyage reservoir carburant (decantation)',
         'Controle pompe d\'injection (debit, pression)',
-        'Remplacement joints et flexibles carburant si necessaire'
+        'Remplacement joints et flexibles carburant si necessaire',
       ]},
-      { cat: 'TRAIN ROULANT COMPLET', ops: [
-        'Inspection complete chassis et sous-carrosserie',
-        'Controle et remplacement si necessaire: galets porteurs et de roulement',
-        'Verification jeu de direction (jeu volant)',
-        'Controle usure chenilles / pneus (profondeur)',
-        'Verification galets, roues guides, barbotin (chenilles)',
-        'Controle et reglage tension chenilles'
-      ]},
-      { cat: 'GRAISSAGE', ops: [
-        'Graissage de tous les points de lubrification',
-        'Graissage articulations de bras / lame / godet',
-        'Graissage pivot de direction (si applicable)'
-      ]},
-      { cat: 'ELECTRIQUE', ops: [
-        'Controle etat et charge batterie',
-        'Nettoyage bornes de batterie',
-        'Verification cablage (isolation, connexions)'
-      ]},
-      { cat: 'STRUCTURE & SECURITE', ops: [
-        'Verification pression pneumatiques / tension chenilles',
-        'Controle boulonnerie (serrage general)',
-        'Inspection visuelle structure (fissures, deformations)',
-        'Test eclairages, klaxon, alarme de recul',
-        'Verification extincteur et equipements de securite'
-      ]}
     ]
   },
-
   'Entretien majeur 2000h': {
-    couleur: '#FEF2F2', couleur_bord: '#DC2626', couleur_titre: '#7F1D1D',
+    couleur: '#FEE2E2',
+    couleur_bord: '#DC2626',
+    couleur_titre: '#7F1D1D',
     operations: [
-      { cat: 'MOTEUR - REVISION COMPLETE (operations 1000h incluses)', ops: [
-        'Vidange huile moteur + remplacement filtre huile',
-        'Remplacement filtre gasoil primaire et secondaire',
-        'Remplacement filtre a air complet (interieur + exterieur)',
+      { cat: 'TOUTES LES OPERATIONS 1000h +', ops: [
+        'Toutes les operations de l\'entretien 1000h',
+      ]},
+      { cat: 'REVISION MOTEUR', ops: [
         'Controle compression moteur (cylindres)',
         'Verification turbocompresseur (jeu axial, etat ailettes)',
         'Remplacement joints de culasse si necessaire',
         'Controle et reglage injecteurs (banc)',
         'Remplacement courroie de distribution (si applicable)',
-        'Controle et reglage jeu aux soupapes',
-        'Controle et nettoyage radiateur (soufflage)',
-        'Controle pompe a eau (fuite, jeu)',
-        'Verification thermostat de refroidissement',
-        'Purge circuit de refroidissement + remplacement liquide antigel',
-        'Verification tension et etat courroie alternateur',
-        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
-      { cat: 'HYDRAULIQUE - REVISION COMPLETE', ops: [
+      { cat: 'REVISION HYDRAULIQUE', ops: [
         'Vidange complete + remplacement tous filtres hydrauliques',
         'Controle pompe hydraulique principale (debit, pression)',
         'Inspection et remplacement flexibles hydrauliques',
         'Controle verins (fuites tiges, jeu roulements)',
-        'Controle pression hydraulique (tests complets)'
       ]},
-      { cat: 'TRANSMISSION - REVISION COMPLETE', ops: [
+      { cat: 'REVISION TRANSMISSION', ops: [
         'Vidange complete boite de vitesses + convertisseur',
         'Controle usure embrayages et disques de transmission',
         'Verification pont de transmission (jeu, bruit)',
         'Remplacement joints de transmission',
-        'Vidange pont avant / arriere',
-        'Controle usure disques de frein'
       ]},
-      { cat: 'CIRCUIT CARBURANT', ops: [
-        'Nettoyage reservoir carburant (decantation)',
-        'Controle pompe d\'injection (debit, pression)',
-        'Remplacement joints et flexibles carburant'
-      ]},
-      { cat: 'TRAIN ROULANT - INSPECTION COMPLETE', ops: [
-        'Inspection complete chassis et sous-carrosserie',
-        'Controle et remplacement: galets porteurs et de roulement',
-        'Inspection soudures cadre principal',
+      { cat: 'STRUCTURE COMPLETE', ops: [
+        'Inspection soudures cadre principal (magnetoscopie si doute)',
         'Controle et remplacement bagues, silent-blocs, joints de cardan',
         'Inspection complete train de roulement (mesure usure)',
-        'Controle et reglage tension chenilles',
-        'Verification jeu de direction (jeu volant)'
-      ]},
-      { cat: 'GRAISSAGE GENERAL', ops: [
-        'Graissage de tous les points de lubrification',
-        'Graissage articulations de bras / lame / godet',
-        'Graissage pivot de direction'
+        'Peinture et traitement anticorrosion parties exposees',
       ]},
       { cat: 'ELECTRIQUE & CABINE', ops: [
         'Controle et nettoyage systeme electrique complet',
         'Remplacement batterie si necessaire',
         'Verification climatisation (pression gaz, etat filtre cabine)',
         'Test et calibration instruments de bord',
-        'Verification cablage (isolation, connexions)'
       ]},
-      { cat: 'STRUCTURE & FINITIONS', ops: [
-        'Peinture et traitement anticorrosion parties exposees',
-        'Controle boulonnerie (serrage general)',
-        'Inspection visuelle structure (fissures, deformations)',
-        'Test eclairages, klaxon, alarme de recul',
-        'Verification extincteur et equipements de securite'
-      ]}
     ]
   },
-
   'Entretien 5 000 km': {
-    couleur: '#F0FDF4', couleur_bord: '#059669', couleur_titre: '#064E3B',
+    couleur: '#F0FDF4',
+    couleur_bord: '#16A34A',
+    couleur_titre: '#14532D',
     operations: [
       { cat: 'MOTEUR', ops: [
         'Vidange huile moteur + remplacement filtre huile',
         'Remplacement filtre gasoil',
         'Controle niveau liquide de refroidissement',
-        'Controle etancheite moteur (fuites huile, gasoil, eau)'
+        'Controle etancheite moteur',
       ]},
       { cat: 'FREINS & DIRECTION', ops: [
         'Controle usure plaquettes et disques de frein',
         'Verification liquide de frein (niveau + etat)',
         'Controle jeu de direction',
-        'Verification geometrie si necessaire'
+        'Verification geometrie (si necessaire)',
       ]},
       { cat: 'PNEUMATIQUES', ops: [
         'Controle pression et etat pneus',
         'Rotation des pneus si necessaire',
-        'Controle etat jantes et boulons de roue'
+        'Controle etat jantes et boulons de roue',
       ]},
       { cat: 'SECURITE', ops: [
         'Test eclairages complets (phares, clignotants, feux stop)',
         'Controle essuie-glaces et lave-glace',
         'Verification klaxon et retroviseurs',
-        'Controle extincteur'
-      ]}
+        'Controle extincteur',
+      ]},
     ]
   },
-
   'Entretien majeur 40 000 km': {
-    couleur: '#FFF7ED', couleur_bord: '#EA580C', couleur_titre: '#7C2D12',
+    couleur: '#FEF3C7',
+    couleur_bord: '#D97706',
+    couleur_titre: '#78350F',
     operations: [
-      { cat: 'MOTEUR - REVISION COMPLETE (operations 5 000 km incluses)', ops: [
-        'Vidange huile moteur + remplacement filtre huile',
-        'Remplacement filtre gasoil complet',
+      { cat: 'REVISION COMPLETE MOTEUR', ops: [
+        'Vidange + remplacement filtres complets',
         'Remplacement courroie de distribution',
         'Controle compression cylindres',
         'Controle et nettoyage injecteurs',
         'Remplacement bougie de prechauffage',
-        'Purge circuit de refroidissement + remplacement antigel',
-        'Controle etancheite moteur'
       ]},
       { cat: 'TRANSMISSION', ops: [
         'Vidange boite de vitesses',
         'Controle embrayage (jeu, usure)',
-        'Vidange pont avant et arriere'
+        'Vidange pont avant et arriere',
       ]},
-      { cat: 'FREINAGE COMPLET', ops: [
+      { cat: 'FREINAGE', ops: [
         'Remplacement plaquettes et disques si necessaire',
-        'Purge complete circuit de freinage',
+        'Purge circuit de freinage',
         'Controle cable et frein a main',
-        'Controle usure plaquettes et disques de frein',
-        'Verification liquide de frein (niveau + etat)'
       ]},
       { cat: 'SUSPENSION & DIRECTION', ops: [
         'Controle amortisseurs (fuite, efficacite)',
         'Remplacement rotules et silent-blocs si necessaire',
         'Parallelisme et equilibrage',
-        'Controle jeu de direction'
-      ]},
-      { cat: 'PNEUMATIQUES', ops: [
-        'Controle pression et etat pneus',
-        'Rotation des pneus si necessaire',
-        'Controle etat jantes et boulons de roue'
       ]},
       { cat: 'ELECTRIQUE', ops: [
         'Controle et remplacement batterie si necessaire',
         'Verification alternateur et demarreur',
-        'Diagnostic electronique (codes defauts)'
+        'Diagnostic electronique (codes defauts)',
       ]},
-      { cat: 'SECURITE', ops: [
-        'Test eclairages complets (phares, clignotants, feux stop)',
-        'Controle essuie-glaces et lave-glace',
-        'Verification klaxon et retroviseurs',
-        'Controle extincteur'
-      ]}
     ]
-  }
+  },
 };
 
 var FILTRES_MACHINES = {
@@ -2749,26 +2664,7 @@ function getFicheOperations(typeEntretien, typeMachine){
   return ops250;
 }
 
-window.imprimerFicheEntretien = function(){
-  var body = document.getElementById('fiche-body').innerHTML;
-  var subtitle = document.getElementById('fiche-subtitle').textContent;
-  var win = window.open('','_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'+
-    '<title>Fiche Entretien - SOROUBAT</title>'+
-    '<style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:24px;font-size:13px;color:#0F172A}'+
-    '.dl{font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:3px}'+
-    '.dv{font-size:14px;font-weight:600}'+
-    'input[type=checkbox]{width:14px;height:14px}'+
-    '@media print{button{display:none}}</style></head><body>'+
-    '<div style="background:#0F172A;color:#fff;padding:16px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">'+
-    '<div><div style="font-size:18px;font-weight:700;letter-spacing:1px">SOROUBAT</div>'+
-    '<div style="font-size:13px;opacity:.8">Fiche d&apos;entretien pr&eacute;ventif</div></div>'+
-    '<div style="text-align:right;font-size:12px;opacity:.7">'+subtitle+'</div></div>'+
-    body+
-    '<scr'+'ipt>window.onload=function(){window.print();}<'+'/scr'+'ipt>'+
-    '</body></html>');
-  win.document.close();
-};
+;
 
 function ouvrirFicheEntretien(machineId){
   try{
@@ -2866,6 +2762,8 @@ function ouvrirFicheEntretien(machineId){
   if(checklist){
     // Stocker la checklist editable dans une variable globale
     window._ficheChecklist = JSON.parse(JSON.stringify(checklist.operations));
+    window._ficheMachine = m;
+    window._ficheSE = se;
     window._ficheType = typeEntretien;
     window._ficheAccent = accentColor;
     window._ficheAccentLight = accentLight;
@@ -3456,87 +3354,7 @@ async function copierHistorique(id){
   }catch(e){ toast('Erreur copie: '+e.message,'ko'); }
 }
 
-async function imprimerFiche(){
-  var titre = document.getElementById('fiche-titre').textContent;
-  var accentColor = window._ficheAccent || '#0F172A';
 
-  // Capturer les noms saisis
-  var inputs = document.getElementById('fiche-contenu').querySelectorAll('input[type="text"]');
-  var noms = Array.from(inputs).map(function(i){ return i.value.trim(); });
-
-  // Construire le HTML d'impression
-  var opsHtml = '';
-  if(window._ficheChecklist){
-    window._ficheChecklist.forEach(function(catOps){
-      opsHtml += '<tr><td colspan="2" style="background:'+accentColor+';color:#fff;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase">'+catOps.cat+'</td></tr>';
-      catOps.ops.forEach(function(op){
-        opsHtml += '<tr><td style="width:24px;text-align:center;border:1px solid #E2E8F0;padding:5px">&#9633;</td><td style="border:1px solid #E2E8F0;padding:5px 8px;font-size:12px">'+op+'</td></tr>';
-      });
-    });
-  }
-
-  var w = window.open('','_blank');
-  w.document.write(
-    '<html><head><title>'+titre+'</title>'+
-    '<style>'+
-    'body{font-family:Arial,sans-serif;padding:20px;font-size:12px;color:#0F172A}'+
-    'h1{font-size:16px;margin:0 0 4px}'+
-    '.sub{font-size:11px;color:#64748B;margin-bottom:16px}'+
-    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}'+
-    '.box{border:1px solid #E2E8F0;border-radius:6px;padding:10px}'+
-    '.box-title{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:6px}'+
-    'table{width:100%;border-collapse:collapse}'+
-    'td{padding:3px 0;font-size:11px}'+
-    'td:first-child{color:#64748B;width:45%}'+
-    '.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}'+
-    '.sig-box{border:1px solid #E2E8F0;border-radius:6px;padding:10px}'+
-    '.sig-title{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:8px}'+
-    '.sig-name{font-size:11px;border-bottom:1px solid #CBD5E1;padding-bottom:2px;margin-bottom:12px;min-height:20px}'+
-    '.sig-line{border-bottom:1px dashed #CBD5E1;height:40px;margin-top:6px}'+
-    '.accent-bar{height:4px;background:'+accentColor+';border-radius:4px;margin-bottom:12px}'+
-    '@media print{button{display:none}}'+
-    '</style></head><body>'+
-
-    '<div class="accent-bar"></div>'+
-    '<h1>'+titre+'</h1>'+
-    '<div class="sub">Fiche d\'entretien preventif SOROUBAT International</div>'+
-
-    '<div class="grid">'+
-    '<div class="box"><div class="box-title">Identification machine</div>'+
-    document.getElementById('fiche-contenu').querySelectorAll('.box table')[0].outerHTML+
-    '</div>'+
-    '<div class="box"><div class="box-title">Informations entretien</div>'+
-    (document.getElementById('fiche-contenu').querySelectorAll('.box table')[1]||{outerHTML:''}).outerHTML+
-    '</div></div>'+
-
-    '<table style="margin-bottom:14px;border:1px solid '+accentColor+'">'+opsHtml+'</table>'+
-
-    '<div class="sig-grid">'+
-    '<div class="sig-box">'+
-    '<div class="sig-title">Technicien 1</div>'+
-    '<div class="sig-name">Nom: '+(noms[0]||'')+'</div>'+
-    '<div style="font-size:10px;color:#64748B">Signature:</div>'+
-    '<div class="sig-line"></div></div>'+
-
-    '<div class="sig-box">'+
-    '<div class="sig-title">Technicien 2</div>'+
-    '<div class="sig-name">Nom: '+(noms[1]||'')+'</div>'+
-    '<div style="font-size:10px;color:#64748B">Signature:</div>'+
-    '<div class="sig-line"></div></div>'+
-
-    '<div class="sig-box" style="background:#FFFBEB;border-color:#F59E0B">'+
-    '<div class="sig-title" style="color:#92400E">Chef de parc (validation)</div>'+
-    '<div class="sig-name">Nom: '+(noms[2]||'')+'</div>'+
-    '<div style="font-size:10px;color:#64748B">Date: '+(noms[3]?noms[3]:'____ / ____ / ______')+'</div>'+
-    '<div style="font-size:10px;color:#64748B;margin-top:6px">Signature:</div>'+
-    '<div class="sig-line" style="border-color:#D97706"></div></div>'+
-    '</div>'+
-
-    '<script>window.onload=function(){window.print()}<\/script>'+
-    '</body></html>'
-  );
-  w.document.close();
-}
 
 // DETAIL STATUT PAYS
 function saisirDetail(id){
@@ -4245,6 +4063,94 @@ window.chargerMaintenance = async function(){
     cont.innerHTML = '<div class="em" style="color:#DC2626;font-size:12px">Erreur: '+mainErr.message+'<br><small>'+mainErr.stack.split('\n')[0]+'</small></div>';
   }
 };
+
+function doPrint(){
+  var titre = document.getElementById('fiche-titre').textContent;
+  var acc = window._ficheAccent || '#0F172A';
+  var m = window._ficheMachine;
+  var se = window._ficheSE;
+  var cont = document.getElementById('fiche-contenu');
+  var noms = cont ? Array.from(cont.querySelectorAll('input[type="text"]')).map(function(i){return i.value.trim();}) : [];
+
+  var ops = '';
+  if(window._ficheChecklist){
+    window._ficheChecklist.forEach(function(cat){
+      ops += '<tr><td colspan="2" style="background:'+acc+';color:#fff;padding:5px 8px;font-size:9px;font-weight:bold;text-transform:uppercase">'+cat.cat+'</td></tr>';
+      cat.ops.forEach(function(op){
+        ops += '<tr><td style="width:22px;text-align:center;border:1px solid #ddd;padding:3px;font-size:13px">&#9633;</td>'
+             + '<td style="border:1px solid #ddd;padding:3px 7px;font-size:10px">'+op+'</td></tr>';
+      });
+    });
+  }
+
+  var u  = se ? se.unite : 'h';
+  var ia = se ? se.indexActuel : 0;
+  var ec = se && se.prochainEcheance ? se.prochainEcheance : 0;
+  var de = se && se.indexDernierEntretien > 0 ? se.indexDernierEntretien.toLocaleString('fr-FR')+' '+u : 'Jamais';
+  var dd = m && m.date_dernier_entretien ? m.date_dernier_entretien.slice(0,10) : '--';
+  var py = m ? (PN[m.pays_id]||m.pays_id) : '';
+  var ty = window._ficheType || '';
+
+  var r = function(l,v){ return '<tr><td style="color:#555;width:44%;padding:2px 0;font-size:10px">'+l+'</td><td style="font-size:10px">'+v+'</td></tr>'; };
+
+  var iM = m ? r('Code','<b>'+m.code_machine+'</b>')+r('Designation',(m.type_machine||m.sous_famille||'-'))+r('Marque',(m.marque||'-')+' '+(m.modele||''))+r('N Serie',(m.numero_serie||'-'))+r('Chantier',(m.chantier||'-'))+r('Pays',py) : '';
+  var iE = r('Type','<b>'+ty+'</b>')+r('Index actuel','<b>'+ia.toLocaleString('fr-FR')+' '+u+'</b>')+r('Echeance','<b>'+ec.toLocaleString('fr-FR')+' '+u+'</b>')+r('Dernier entretien',de)+r('Date dernier',dd);
+
+  var sg = function(nom,bc,bg,t){
+    return '<div style="border:1px solid '+bc+';border-radius:5px;padding:8px;background:'+bg+'">'
+      +'<div style="font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:5px;color:#555">'+t+'</div>'
+      +'<div style="font-size:10px;border-bottom:1px solid #ccc;margin-bottom:8px;padding-bottom:2px;min-height:14px">Nom: '+nom+'</div>'
+      +'<div style="font-size:9px;color:#666">Signature :</div>'
+      +'<div style="border-bottom:1.5px dashed '+bc+';height:36px;margin-top:3px"></div>'
+      +'</div>';
+  };
+
+  var page = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    + '<title>'+titre+'</title>'
+    + '<style>'
+    + 'body{font-family:Arial,sans-serif;margin:0;padding:20px;font-size:11px;color:#111}'
+    + 'h2{font-size:14px;margin:0 0 2px}'
+    + '.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}'
+    + '.box{border:1px solid #ddd;border-radius:5px;padding:8px}'
+    + '.bt{font-size:8px;font-weight:bold;color:#666;text-transform:uppercase;margin-bottom:5px}'
+    + 'table{width:100%;border-collapse:collapse}'
+    + '.ops{margin-bottom:10px;border:1.5px solid '+acc+'}'
+    + '.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}'
+    + '@media print{body{padding:0}button{display:none}}'
+    + '</style></head><body>'
+    + '<div style="height:4px;background:'+acc+';border-radius:3px;margin-bottom:10px"></div>'
+    + '<h2>'+titre+'</h2>'
+    + '<p style="font-size:9px;color:#666;margin:0 0 12px">Fiche entretien preventif - SOROUBAT International - '+new Date().toLocaleDateString('fr-FR')+'</p>'
+    + '<div class="g2">'
+    + '<div class="box"><div class="bt">Identification machine</div><table><tbody>'+iM+'</tbody></table></div>'
+    + '<div class="box"><div class="bt">Informations entretien</div><table><tbody>'+iE+'</tbody></table></div>'
+    + '</div>'
+    + '<table class="ops"><thead><tr><td colspan="2" style="background:'+acc+';color:#fff;padding:5px 8px;font-size:9px;font-weight:bold">Operations - '+ty+'</td></tr></thead><tbody>'+ops+'</tbody></table>'
+    + '<div class="sg">'
+    + sg(noms[0]||'','#ccc','#fff','Technicien 1')
+    + sg(noms[1]||'','#ccc','#fff','Technicien 2')
+    + sg(noms[2]||'','#F59E0B','#FFFBEB','Chef de parc - Validation')
+    + '</div>'
+    + '<script>window.onload=function(){window.print();}<\/script>'
+    + '</body></html>';
+
+  // Ouvrir via blob - contourne le popup blocker
+  var blob = new Blob([page], {type:'text/html;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var win  = window.open(url,'_blank');
+  if(!win){
+    // Fallback: lien temporaire
+    var a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
+}
+window.doPrint = doPrint;
 
 </script>
 </body>
