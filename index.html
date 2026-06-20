@@ -731,208 +731,287 @@ function getIndexType(machine){
 
 var CHECKLISTS_ENTRETIEN = {
   'Entretien 250h': {
-    couleur: '#FEF3C7',
-    couleur_bord: '#F59E0B',
-    couleur_titre: '#92400E',
-    operations: [
-      { cat: 'MOTEUR', ops: [
+    couleur:'#FEF9EC',couleur_bord:'#F59E0B',couleur_titre:'#92400E',
+    operations:[
+      {cat:'MOTEUR',ops:[
         'Vidange huile moteur + remplacement filtre huile',
         'Remplacement filtre gasoil primaire',
         'Controle et nettoyage filtre a air (prefiltre)',
         'Verification niveau liquide de refroidissement',
         'Inspection courroies d\'entrainement (tension et etat)',
-        'Controle etancheite (fuites huile, gasoil, eau)',
+        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
-      { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
+      {cat:'TRANSMISSION & HYDRAULIQUE',ops:[
         'Verification niveau huile hydraulique',
-        'Verification niveau huile de transmission/boite',
-        'Controle etancheite circuits hydrauliques',
+        'Verification niveau huile de transmission / boite de vitesses',
+        'Controle etancheite circuits hydrauliques'
       ]},
-      { cat: 'GRAISSAGE', ops: [
+      {cat:'GRAISSAGE',ops:[
         'Graissage de tous les points de lubrification',
-        'Graissage articulations de bras/lame/godet',
-        'Graissage pivot de direction (si applicable)',
+        'Graissage articulations de bras / lame / godet',
+        'Graissage pivot de direction (si applicable)'
       ]},
-      { cat: 'STRUCTURE & SECURITE', ops: [
+      {cat:'STRUCTURE & SECURITE',ops:[
         'Verification pression pneumatiques / tension chenilles',
-        'Controle boulonnerie (serrage)',
+        'Controle boulonnerie (serrage general)',
         'Inspection visuelle structure (fissures, deformations)',
         'Test eclairages, klaxon, alarme de recul',
-        'Verification extincteur et equipements de securite',
-      ]},
+        'Verification extincteur et equipements de securite'
+      ]}
     ]
   },
   'Entretien 500h': {
-    couleur: '#EDE9FE',
-    couleur_bord: '#7C3AED',
-    couleur_titre: '#4C1D95',
-    operations: [
-      { cat: 'TOUTES LES OPERATIONS 250h +', ops: [
-        'Toutes les operations de l\'entretien 250h',
-      ]},
-      { cat: 'MOTEUR', ops: [
+    couleur:'#EFF6FF',couleur_bord:'#2563EB',couleur_titre:'#1E3A8A',
+    operations:[
+      {cat:'MOTEUR (250h + complements 500h)',ops:[
+        'Vidange huile moteur + remplacement filtre huile',
+        'Remplacement filtre gasoil primaire',
         'Remplacement filtre gasoil secondaire (separateur eau/gasoil)',
-        'Nettoyage/remplacement filtre a air principal',
+        'Nettoyage / remplacement filtre a air principal',
+        'Controle et nettoyage filtre a air (prefiltre)',
         'Purge circuit de refroidissement (verification antigel)',
+        'Verification niveau liquide de refroidissement',
         'Controle injecteurs (fuites, etat visible)',
         'Verification tension et etat courroie alternateur',
+        'Inspection courroies d\'entrainement (tension et etat)',
+        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
-      { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
+      {cat:'TRANSMISSION & HYDRAULIQUE',ops:[
         'Remplacement filtre hydraulique',
         'Vidange et remplacement huile de boite de vitesses',
         'Verification jeu et usure accouplement transmission',
+        'Verification niveau huile hydraulique',
+        'Controle etancheite circuits hydrauliques'
       ]},
-      { cat: 'TRAIN ROULANT', ops: [
+      {cat:'TRAIN ROULANT',ops:[
         'Controle usure chenilles / pneus (profondeur)',
         'Verification galets, roues guides, barbotin (chenilles)',
-        'Controle et reglage tension chenilles',
+        'Controle et reglage tension chenilles'
       ]},
-      { cat: 'ELECTRIQUE', ops: [
+      {cat:'GRAISSAGE',ops:[
+        'Graissage de tous les points de lubrification',
+        'Graissage articulations de bras / lame / godet',
+        'Graissage pivot de direction (si applicable)'
+      ]},
+      {cat:'ELECTRIQUE',ops:[
         'Controle etat et charge batterie',
         'Nettoyage bornes de batterie',
-        'Verification cablage (isolation, connexions)',
+        'Verification cablage (isolation, connexions)'
       ]},
+      {cat:'STRUCTURE & SECURITE',ops:[
+        'Verification pression pneumatiques / tension chenilles',
+        'Controle boulonnerie (serrage general)',
+        'Inspection visuelle structure (fissures, deformations)',
+        'Test eclairages, klaxon, alarme de recul',
+        'Verification extincteur et equipements de securite'
+      ]}
     ]
   },
   'Entretien 1000h': {
-    couleur: '#DBEAFE',
-    couleur_bord: '#2563EB',
-    couleur_titre: '#1E3A8A',
-    operations: [
-      { cat: 'TOUTES LES OPERATIONS 500h +', ops: [
-        'Toutes les operations de l\'entretien 500h',
-      ]},
-      { cat: 'MOTEUR', ops: [
-        'Controle et reglage jeu aux soupapes',
+    couleur:'#F0FDF4',couleur_bord:'#16A34A',couleur_titre:'#14532D',
+    operations:[
+      {cat:'MOTEUR (500h + complements 1000h)',ops:[
+        'Vidange huile moteur + remplacement filtre huile',
+        'Remplacement filtre gasoil primaire',
+        'Remplacement filtre gasoil secondaire (separateur eau/gasoil)',
         'Remplacement filtre a air complet (interieur + exterieur)',
         'Controle et nettoyage radiateur (soufflage)',
+        'Purge circuit de refroidissement (verification antigel)',
+        'Verification niveau liquide de refroidissement',
+        'Controle et reglage jeu aux soupapes',
         'Controle pompe a eau (fuite, jeu)',
         'Verification thermostat de refroidissement',
+        'Controle injecteurs (fuites, etat visible)',
+        'Verification tension et etat courroie alternateur',
+        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
-      { cat: 'TRANSMISSION & HYDRAULIQUE', ops: [
+      {cat:'TRANSMISSION & HYDRAULIQUE',ops:[
         'Vidange huile hydraulique complete',
         'Remplacement filtre hydraulique haute pression',
         'Controle pression hydraulique (tests)',
-        'Vidange pont avant/arriere (si applicable)',
+        'Vidange pont avant / arriere (si applicable)',
         'Controle usure disques de frein',
+        'Vidange et remplacement huile de boite de vitesses',
+        'Verification jeu et usure accouplement transmission'
       ]},
-      { cat: 'TRAIN ROULANT COMPLET', ops: [
-        'Inspection complete chassis et sous-carrosserie',
-        'Controle et remplacement si necessaire: galets porteurs et galets de roulement',
-        'Verification jeu de direction (jeu volant)',
-      ]},
-      { cat: 'CIRCUIT CARBURANT', ops: [
+      {cat:'CIRCUIT CARBURANT',ops:[
         'Nettoyage reservoir carburant (decantation)',
         'Controle pompe d\'injection (debit, pression)',
-        'Remplacement joints et flexibles carburant si necessaire',
+        'Remplacement joints et flexibles carburant si necessaire'
       ]},
+      {cat:'TRAIN ROULANT COMPLET',ops:[
+        'Inspection complete chassis et sous-carrosserie',
+        'Controle et remplacement si necessaire: galets porteurs et de roulement',
+        'Verification jeu de direction (jeu volant)',
+        'Controle usure chenilles / pneus (profondeur)',
+        'Verification galets, roues guides, barbotin (chenilles)',
+        'Controle et reglage tension chenilles'
+      ]},
+      {cat:'GRAISSAGE',ops:[
+        'Graissage de tous les points de lubrification',
+        'Graissage articulations de bras / lame / godet',
+        'Graissage pivot de direction (si applicable)'
+      ]},
+      {cat:'ELECTRIQUE',ops:[
+        'Controle etat et charge batterie',
+        'Nettoyage bornes de batterie',
+        'Verification cablage (isolation, connexions)'
+      ]},
+      {cat:'STRUCTURE & SECURITE',ops:[
+        'Verification pression pneumatiques / tension chenilles',
+        'Controle boulonnerie (serrage general)',
+        'Inspection visuelle structure (fissures, deformations)',
+        'Test eclairages, klaxon, alarme de recul',
+        'Verification extincteur et equipements de securite'
+      ]}
     ]
   },
   'Entretien majeur 2000h': {
-    couleur: '#FEE2E2',
-    couleur_bord: '#DC2626',
-    couleur_titre: '#7F1D1D',
-    operations: [
-      { cat: 'TOUTES LES OPERATIONS 1000h +', ops: [
-        'Toutes les operations de l\'entretien 1000h',
-      ]},
-      { cat: 'REVISION MOTEUR', ops: [
+    couleur:'#FEF2F2',couleur_bord:'#DC2626',couleur_titre:'#7F1D1D',
+    operations:[
+      {cat:'MOTEUR - REVISION COMPLETE (1000h + complements)',ops:[
+        'Vidange huile moteur + remplacement filtre huile',
+        'Remplacement filtre gasoil primaire et secondaire',
+        'Remplacement filtre a air complet (interieur + exterieur)',
         'Controle compression moteur (cylindres)',
         'Verification turbocompresseur (jeu axial, etat ailettes)',
         'Remplacement joints de culasse si necessaire',
         'Controle et reglage injecteurs (banc)',
         'Remplacement courroie de distribution (si applicable)',
+        'Controle et reglage jeu aux soupapes',
+        'Controle et nettoyage radiateur (soufflage)',
+        'Controle pompe a eau (fuite, jeu)',
+        'Verification thermostat de refroidissement',
+        'Purge circuit de refroidissement + remplacement liquide antigel',
+        'Verification tension et etat courroie alternateur',
+        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
-      { cat: 'REVISION HYDRAULIQUE', ops: [
+      {cat:'HYDRAULIQUE - REVISION COMPLETE',ops:[
         'Vidange complete + remplacement tous filtres hydrauliques',
         'Controle pompe hydraulique principale (debit, pression)',
         'Inspection et remplacement flexibles hydrauliques',
         'Controle verins (fuites tiges, jeu roulements)',
+        'Controle pression hydraulique (tests complets)'
       ]},
-      { cat: 'REVISION TRANSMISSION', ops: [
+      {cat:'TRANSMISSION - REVISION COMPLETE',ops:[
         'Vidange complete boite de vitesses + convertisseur',
         'Controle usure embrayages et disques de transmission',
         'Verification pont de transmission (jeu, bruit)',
         'Remplacement joints de transmission',
+        'Vidange pont avant / arriere',
+        'Controle usure disques de frein'
       ]},
-      { cat: 'STRUCTURE COMPLETE', ops: [
-        'Inspection soudures cadre principal (magnetoscopie si doute)',
+      {cat:'CIRCUIT CARBURANT',ops:[
+        'Nettoyage reservoir carburant (decantation)',
+        'Controle pompe d\'injection (debit, pression)',
+        'Remplacement joints et flexibles carburant'
+      ]},
+      {cat:'TRAIN ROULANT - INSPECTION COMPLETE',ops:[
+        'Inspection complete chassis et sous-carrosserie',
+        'Controle et remplacement: galets porteurs et de roulement',
+        'Inspection soudures cadre principal',
         'Controle et remplacement bagues, silent-blocs, joints de cardan',
         'Inspection complete train de roulement (mesure usure)',
-        'Peinture et traitement anticorrosion parties exposees',
+        'Controle et reglage tension chenilles',
+        'Verification jeu de direction (jeu volant)'
       ]},
-      { cat: 'ELECTRIQUE & CABINE', ops: [
+      {cat:'GRAISSAGE GENERAL',ops:[
+        'Graissage de tous les points de lubrification',
+        'Graissage articulations de bras / lame / godet',
+        'Graissage pivot de direction'
+      ]},
+      {cat:'ELECTRIQUE & CABINE',ops:[
         'Controle et nettoyage systeme electrique complet',
         'Remplacement batterie si necessaire',
         'Verification climatisation (pression gaz, etat filtre cabine)',
         'Test et calibration instruments de bord',
+        'Verification cablage (isolation, connexions)'
       ]},
+      {cat:'STRUCTURE & FINITIONS',ops:[
+        'Peinture et traitement anticorrosion parties exposees',
+        'Controle boulonnerie (serrage general)',
+        'Inspection visuelle structure (fissures, deformations)',
+        'Test eclairages, klaxon, alarme de recul',
+        'Verification extincteur et equipements de securite'
+      ]}
     ]
   },
   'Entretien 5 000 km': {
-    couleur: '#F0FDF4',
-    couleur_bord: '#16A34A',
-    couleur_titre: '#14532D',
-    operations: [
-      { cat: 'MOTEUR', ops: [
+    couleur:'#F0FDF4',couleur_bord:'#059669',couleur_titre:'#064E3B',
+    operations:[
+      {cat:'MOTEUR',ops:[
         'Vidange huile moteur + remplacement filtre huile',
         'Remplacement filtre gasoil',
         'Controle niveau liquide de refroidissement',
-        'Controle etancheite moteur',
+        'Controle etancheite moteur (fuites huile, gasoil, eau)'
       ]},
-      { cat: 'FREINS & DIRECTION', ops: [
+      {cat:'FREINS & DIRECTION',ops:[
         'Controle usure plaquettes et disques de frein',
         'Verification liquide de frein (niveau + etat)',
         'Controle jeu de direction',
-        'Verification geometrie (si necessaire)',
+        'Verification geometrie si necessaire'
       ]},
-      { cat: 'PNEUMATIQUES', ops: [
+      {cat:'PNEUMATIQUES',ops:[
         'Controle pression et etat pneus',
         'Rotation des pneus si necessaire',
-        'Controle etat jantes et boulons de roue',
+        'Controle etat jantes et boulons de roue'
       ]},
-      { cat: 'SECURITE', ops: [
+      {cat:'SECURITE',ops:[
         'Test eclairages complets (phares, clignotants, feux stop)',
         'Controle essuie-glaces et lave-glace',
         'Verification klaxon et retroviseurs',
-        'Controle extincteur',
-      ]},
+        'Controle extincteur'
+      ]}
     ]
   },
   'Entretien majeur 40 000 km': {
-    couleur: '#FEF3C7',
-    couleur_bord: '#D97706',
-    couleur_titre: '#78350F',
-    operations: [
-      { cat: 'REVISION COMPLETE MOTEUR', ops: [
-        'Vidange + remplacement filtres complets',
+    couleur:'#FFF7ED',couleur_bord:'#EA580C',couleur_titre:'#7C2D12',
+    operations:[
+      {cat:'MOTEUR - REVISION COMPLETE (5 000 km + complements)',ops:[
+        'Vidange huile moteur + remplacement filtre huile',
+        'Remplacement filtre gasoil complet',
         'Remplacement courroie de distribution',
         'Controle compression cylindres',
         'Controle et nettoyage injecteurs',
         'Remplacement bougie de prechauffage',
+        'Purge circuit de refroidissement + remplacement antigel',
+        'Controle etancheite moteur'
       ]},
-      { cat: 'TRANSMISSION', ops: [
+      {cat:'TRANSMISSION',ops:[
         'Vidange boite de vitesses',
         'Controle embrayage (jeu, usure)',
-        'Vidange pont avant et arriere',
+        'Vidange pont avant et arriere'
       ]},
-      { cat: 'FREINAGE', ops: [
+      {cat:'FREINAGE COMPLET',ops:[
         'Remplacement plaquettes et disques si necessaire',
-        'Purge circuit de freinage',
+        'Purge complete circuit de freinage',
         'Controle cable et frein a main',
+        'Verification liquide de frein (niveau + etat)'
       ]},
-      { cat: 'SUSPENSION & DIRECTION', ops: [
+      {cat:'SUSPENSION & DIRECTION',ops:[
         'Controle amortisseurs (fuite, efficacite)',
         'Remplacement rotules et silent-blocs si necessaire',
         'Parallelisme et equilibrage',
+        'Controle jeu de direction'
       ]},
-      { cat: 'ELECTRIQUE', ops: [
+      {cat:'PNEUMATIQUES',ops:[
+        'Controle pression et etat pneus',
+        'Rotation des pneus si necessaire',
+        'Controle etat jantes et boulons de roue'
+      ]},
+      {cat:'ELECTRIQUE',ops:[
         'Controle et remplacement batterie si necessaire',
         'Verification alternateur et demarreur',
-        'Diagnostic electronique (codes defauts)',
+        'Diagnostic electronique (codes defauts)'
       ]},
+      {cat:'SECURITE',ops:[
+        'Test eclairages complets (phares, clignotants, feux stop)',
+        'Controle essuie-glaces et lave-glace',
+        'Verification klaxon et retroviseurs',
+        'Controle extincteur'
+      ]}
     ]
-  },
+  }
 };
 
 var FILTRES_MACHINES = {
