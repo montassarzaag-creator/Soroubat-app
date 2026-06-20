@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<!-- BUILD:1781788671 | v1781788570 -->
+<!-- BUILD:1781952869 | v1781952869 -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOROUBAT v4</title>
+<title>SOROUBAT v1781952869</title>
 <style>
 :root{--bl:#0F172A;--bl2:#1E293B;--blp:#F1F5F9;--ve:#16A34A;--ro:#DC2626;--or:#D97706;--gr:#F8FAFC;--bo:#E2E8F0;--te:#0F172A;--t2:#64748B;--om:0 1px 3px rgba(0,0,0,.08);--r:10px;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -2697,54 +2697,61 @@ function ouvrirFicheEntretien(machineId){
 
   document.getElementById('fiche-titre').textContent = typeEntretien + ' - ' + m.code_machine;
 
-  // Chercher les filtres
   var marque = (m.marque||'').toUpperCase().trim();
   var typeMat = (m.type_machine||m.sous_famille||'').toUpperCase().trim();
   var filtresData = FILTRES_MACHINES[marque+'|'+typeMat] || null;
   var checklist = CHECKLISTS_ENTRETIEN[typeEntretien] || CHECKLISTS_ENTRETIEN['Entretien 250h'];
 
   var c = document.getElementById('fiche-contenu');
+
+  // Couleur accent selon type
+  var accentColor = checklist ? checklist.couleur_bord : '#0F172A';
+  var accentLight = checklist ? checklist.couleur : '#F8FAFC';
+
   var h = '';
 
+  // BARRE COULEUR TOP
+  h += '<div style="height:4px;border-radius:4px;background:'+accentColor+';margin-bottom:14px"></div>';
+
   // BANDEAU STATUT
-  var bgBandeau = enRetard ? '#FEE2E2' : '#FEF3C7';
-  var bdBandeau = enRetard ? '#DC2626' : '#F59E0B';
-  var icoBandeau = enRetard ? '&#128680;' : '&#9888;';
-  var txtBandeau = enRetard ?
+  var bgB = enRetard ? '#FEE2E2' : '#FEF3C7';
+  var bdB = enRetard ? '#DC2626' : '#F59E0B';
+  var icoB = enRetard ? '&#128680;' : '&#9888;';
+  var txtB = enRetard ?
     'ENTRETIEN EN RETARD de '+Math.abs(restant).toLocaleString('fr-FR')+' '+unite :
     'Entretien dans '+restant.toLocaleString('fr-FR')+' '+unite;
-  h += '<div style="background:'+bgBandeau+';border-left:4px solid '+bdBandeau+';border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">'+
-    '<span style="font-size:20px">'+icoBandeau+'</span>'+
-    '<div><strong style="color:'+bdBandeau+'">'+txtBandeau+'</strong><br>'+
+  h += '<div style="background:'+bgB+';border-left:4px solid '+bdB+';border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">'+
+    '<span style="font-size:18px">'+icoB+'</span>'+
+    '<div><strong style="color:'+bdB+'">'+txtB+'</strong><br>'+
     '<span style="font-size:11px;color:#64748B">Echeance: '+echeance.toLocaleString('fr-FR')+' '+unite+'</span></div></div>';
 
-  // INFOS MACHINE
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">';
-  h += '<div style="background:#F8FAFC;border-radius:8px;padding:14px">';
-  h += '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">IDENTIFICATION MACHINE</div>';
-  h += '<table style="width:100%;font-size:12px"><tbody>';
-  h += '<tr><td style="color:#64748B;padding:3px 0;width:45%">Code</td><td><strong>'+m.code_machine+'</strong></td></tr>';
-  h += '<tr><td style="color:#64748B;padding:3px 0">D&eacute;signation</td><td>'+(m.type_machine||m.sous_famille||'-')+'</td></tr>';
-  h += '<tr><td style="color:#64748B;padding:3px 0">Marque / Mod&egrave;le</td><td>'+(m.marque||'-')+' '+(m.modele||'')+'</td></tr>';
-  h += '<tr><td style="color:#64748B;padding:3px 0">N&deg; S&eacute;rie</td><td>'+(m.numero_serie||'-')+'</td></tr>';
-  h += '<tr><td style="color:#64748B;padding:3px 0">Chantier</td><td>'+(m.chantier||'-')+'</td></tr>';
-  h += '<tr><td style="color:#64748B;padding:3px 0">Pays</td><td>'+(PN[m.pays_id]||m.pays_id)+'</td></tr>';
+  // INFOS MACHINE 2 colonnes
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
+  h += '<div style="background:#F8FAFC;border-radius:8px;padding:12px;border:0.5px solid #E2E8F0">';
+  h += '<div style="font-size:9px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Identification machine</div>';
+  h += '<table style="width:100%;font-size:11px;border-collapse:collapse"><tbody>';
+  h += '<tr><td style="color:#64748B;padding:2px 0;width:45%">Code</td><td style="font-weight:700">'+m.code_machine+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Designation</td><td>'+(m.type_machine||m.sous_famille||'-')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Marque/Modele</td><td>'+(m.marque||'-')+' '+(m.modele||'')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">N Serie</td><td>'+(m.numero_serie||'-')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Chantier</td><td>'+(m.chantier||'-')+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Pays</td><td>'+(PN[m.pays_id]||m.pays_id)+'</td></tr>';
   h += '</tbody></table></div>';
-  h += '<div style="background:#F8FAFC;border-radius:8px;padding:14px">';
-  h += '<div style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;margin-bottom:8px">INFORMATIONS ENTRETIEN</div>';
-  h += '<table style="width:100%;font-size:12px"><tbody>';
-  h += '<tr><td style="color:#64748B;padding:3px 0;width:45%">Type</td><td><strong>'+typeEntretien+'</strong></td></tr>';
-  h += '<tr><td style="color:#64748B;padding:3px 0">Index actuel</td><td><strong>'+indexActuel.toLocaleString('fr-FR')+' '+unite+'</strong></td></tr>';
-  var coulEch = enRetard ? '#DC2626' : '#059669';
-  h += '<tr><td style="color:#64748B;padding:3px 0">Ech&eacute;ance</td><td><strong style="color:'+coulEch+'">'+echeance.toLocaleString('fr-FR')+' '+unite+'</strong></td></tr>';
+
+  h += '<div style="background:#F8FAFC;border-radius:8px;padding:12px;border:0.5px solid #E2E8F0">';
+  h += '<div style="font-size:9px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Informations entretien</div>';
+  h += '<table style="width:100%;font-size:11px;border-collapse:collapse"><tbody>';
+  h += '<tr><td style="color:#64748B;padding:2px 0;width:45%">Type</td><td style="font-weight:700;color:'+accentColor+'">'+typeEntretien+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Index actuel</td><td style="font-weight:700">'+indexActuel.toLocaleString('fr-FR')+' '+unite+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Echeance</td><td style="font-weight:700;color:'+(enRetard?'#DC2626':'#059669')+'">'+echeance.toLocaleString('fr-FR')+' '+unite+'</td></tr>';
   var dernIdx = se&&se.indexDernierEntretien>0 ? se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite : 'Jamais';
-  h += '<tr><td style="color:#64748B;padding:3px 0">Dernier entretien</td><td>'+dernIdx+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Dernier entretien</td><td>'+dernIdx+'</td></tr>';
   var dateDern = m.date_dernier_entretien ? m.date_dernier_entretien.slice(0,10) : '--';
-  h += '<tr><td style="color:#64748B;padding:3px 0">Date dernier</td><td>'+dateDern+'</td></tr>';
+  h += '<tr><td style="color:#64748B;padding:2px 0">Date dernier</td><td>'+dateDern+'</td></tr>';
   h += '</tbody></table></div>';
   h += '</div>';
 
-  // REFERENCES FILTRES
+  // FILTRES
   if(filtresData){
     var labelsF = {
       air_interieur:'Filtre air int.',air_exterieur:'Filtre air ext.',
@@ -2755,53 +2762,123 @@ function ouvrirFicheEntretien(machineId){
       pilotage:'Filtre pilotage',renifard:'Renifard',
       secheur_air:'Secheur air',bain_huile:'Bain huile'
     };
-    h += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:14px;margin-bottom:16px">';
-    h += '<div style="font-size:10px;font-weight:600;color:#065F46;text-transform:uppercase;margin-bottom:10px">&#128722; R&Eacute;F&Eacute;RENCES FILTRES &mdash; '+filtresData.marque+' '+filtresData.type+'</div>';
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">';
+    h += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;margin-bottom:14px">';
+    h += '<div style="font-size:9px;font-weight:600;color:#065F46;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128722; References filtres &mdash; '+filtresData.marque+' '+filtresData.type+'</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:5px">';
     Object.keys(filtresData.filtres).forEach(function(fk){
       var fv = filtresData.filtres[fk];
       if(fv){
-        h += '<div style="background:#fff;border:1px solid #D1FAE5;border-radius:6px;padding:6px 8px">'+
+        h += '<div style="background:#fff;border:1px solid #D1FAE5;border-radius:6px;padding:5px 8px">'+
           '<div style="font-size:9px;color:#059669;font-weight:600;text-transform:uppercase">'+(labelsF[fk]||fk)+'</div>'+
-          '<div style="color:#0F172A;font-weight:600;font-size:11px;margin-top:2px">'+fv+'</div></div>';
+          '<div style="color:#0F172A;font-weight:600;font-size:11px;margin-top:1px">'+fv+'</div></div>';
       }
     });
     h += '</div></div>';
   }
 
-  // CHECKLIST OPERATIONS
+  // CHECKLIST EDITABLE
   if(checklist){
-    h += '<div style="border:2px solid '+checklist.couleur_bord+';border-radius:8px;overflow:hidden;margin-bottom:16px">';
-    h += '<div style="background:'+checklist.couleur_bord+';color:#fff;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase">';
-    h += '&#9000; OPERATIONS A REALISER &mdash; '+typeEntretien+'</div>';
-    checklist.operations.forEach(function(catOps){
-      h += '<div style="padding:10px 14px;border-bottom:1px solid #F1F5F9;background:#fff">';
-      h += '<div style="font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;margin-bottom:6px;background:'+checklist.couleur+';padding:4px 8px;border-radius:4px">'+catOps.cat+'</div>';
-      catOps.ops.forEach(function(op, opIdx){
-        h += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;padding:4px">'+
-          '<input type="checkbox" id="op-'+opIdx+'" style="margin-top:2px;width:15px;height:15px;accent-color:'+checklist.couleur_bord+';flex-shrink:0">'+
-          '<label for="op-'+opIdx+'" style="font-size:12px;color:#374151;cursor:pointer;line-height:1.4">'+op+'</label></div>';
-      });
-      h += '</div>';
-    });
+    // Stocker la checklist editable dans une variable globale
+    window._ficheChecklist = JSON.parse(JSON.stringify(checklist.operations));
+    window._ficheType = typeEntretien;
+    window._ficheAccent = accentColor;
+    window._ficheAccentLight = accentLight;
+
+    h += '<div style="border:1.5px solid '+accentColor+';border-radius:8px;overflow:hidden;margin-bottom:14px" id="fiche-checklist-container">';
+    h += '<div style="background:'+accentColor+';color:#fff;padding:9px 14px;font-size:10px;font-weight:700;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center">';
+    h += '<span>&#9000; Operations a realiser &mdash; '+typeEntretien+'</span>';
+    h += '<span style="font-size:9px;opacity:.8">Vous pouvez ajouter ou supprimer des operations</span>';
+    h += '</div>';
+    h += '<div id="fiche-ops-list" style="background:#fff"></div>';
+    h += '<div style="padding:10px 12px;background:#F8FAFC;border-top:0.5px solid #E2E8F0">';
+    h += '<div style="display:flex;gap:6px">';
+    h += '<input type="text" id="fiche-new-op" placeholder="Ajouter une nouvelle operation..." style="flex:1;padding:6px 10px;font-size:12px;border:0.5px solid #CBD5E1;border-radius:6px">';
+    h += '<button onclick="ficheAddOp()" style="padding:6px 12px;font-size:12px;background:'+accentColor+';color:#fff;border:none;border-radius:6px;cursor:pointer">+ Ajouter</button>';
+    h += '</div></div>';
     h += '</div>';
   }
 
-  // ZONES SIGNATURE
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:4px">';
-  h += '<div style="border:1.5px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">';
-  h += '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Technicien r&eacute;alisateur</div>';
-  h += '<div style="border-top:1.5px solid #94A3B8;padding-top:8px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div></div>';
-  h += '<div style="border:1.5px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">';
-  h += '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:30px">Responsable Pays</div>';
-  h += '<div style="border-top:1.5px solid #94A3B8;padding-top:8px;font-size:10px;color:#94A3B8">Nom &amp; Signature</div></div>';
-  h += '<div style="border:1.5px solid #E2E8F0;border-radius:8px;padding:14px;text-align:center">';
-  h += '<div style="font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;margin-bottom:16px">Date r&eacute;alisation</div>';
-  h += '<div style="border:1px solid #CBD5E1;border-radius:6px;padding:8px;font-size:13px;color:#94A3B8">____ / ____ / ______</div></div>';
-  h += '</div>';
+  // SIGNATURES
+  h += '<div style="border:1.5px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:4px">';
+  h += '<div style="background:#0F172A;color:#fff;padding:9px 14px;font-size:10px;font-weight:700;text-transform:uppercase">Signatures</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0">';
+
+  // Intervenant 1
+  h += '<div style="padding:14px;border-right:0.5px solid #E2E8F0">';
+  h += '<div style="font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:8px">Technicien 1</div>';
+  h += '<div style="font-size:11px;color:#64748B;margin-bottom:4px">Nom:</div>';
+  h += '<input type="text" placeholder="Nom du technicien" style="width:100%;padding:5px 8px;font-size:11px;border:0.5px solid #CBD5E1;border-radius:5px;margin-bottom:8px">';
+  h += '<div style="font-size:11px;color:#64748B;margin-bottom:4px">Signature:</div>';
+  h += '<div style="height:50px;border:0.5px dashed #CBD5E1;border-radius:5px"></div></div>';
+
+  // Intervenant 2
+  h += '<div style="padding:14px;border-right:0.5px solid #E2E8F0">';
+  h += '<div style="font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:8px">Technicien 2 (si applicable)</div>';
+  h += '<div style="font-size:11px;color:#64748B;margin-bottom:4px">Nom:</div>';
+  h += '<input type="text" placeholder="Nom du technicien" style="width:100%;padding:5px 8px;font-size:11px;border:0.5px solid #CBD5E1;border-radius:5px;margin-bottom:8px">';
+  h += '<div style="font-size:11px;color:#64748B;margin-bottom:4px">Signature:</div>';
+  h += '<div style="height:50px;border:0.5px dashed #CBD5E1;border-radius:5px"></div></div>';
+
+  // Chef de parc
+  h += '<div style="padding:14px;background:#FFFBEB">';
+  h += '<div style="font-size:9px;font-weight:700;color:#92400E;text-transform:uppercase;margin-bottom:8px">Chef de parc (validation)</div>';
+  h += '<div style="font-size:11px;color:#64748B;margin-bottom:4px">Nom:</div>';
+  h += '<input type="text" placeholder="Nom du chef de parc" style="width:100%;padding:5px 8px;font-size:11px;border:0.5px solid #CBD5E1;border-radius:5px;margin-bottom:4px">';
+  h += '<div style="font-size:11px;color:#64748B;margin-bottom:4px">Date:</div>';
+  h += '<div style="border:0.5px solid #CBD5E1;border-radius:5px;padding:5px 8px;font-size:11px;color:#94A3B8;margin-bottom:4px">____ / ____ / ______</div>';
+  h += '<div style="font-size:11px;color:#64748B;margin-bottom:4px">Signature:</div>';
+  h += '<div style="height:40px;border:0.5px dashed #D97706;border-radius:5px"></div></div>';
+
+  h += '</div></div>';
 
   c.innerHTML = h;
+
+  // Rendre la checklist
+  fichRenderOps();
   oM('mod-fiche-entretien');
+}
+
+// Rendre les operations editables
+function fichRenderOps(){
+  var container = document.getElementById('fiche-ops-list');
+  if(!container) return;
+  var accentColor = window._ficheAccent || '#0F172A';
+  var accentLight = window._ficheAccentLight || '#F8FAFC';
+  var h = '';
+  window._ficheChecklist.forEach(function(catOps, ci){
+    h += '<div style="padding:8px 12px 4px;border-bottom:0.5px solid #F1F5F9">';
+    h += '<div style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;background:'+accentLight+';padding:3px 8px;border-radius:4px;margin-bottom:5px;display:inline-block">'+catOps.cat+'</div>';
+    catOps.ops.forEach(function(op, oi){
+      h += '<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;padding:3px 0">';
+      h += '<input type="checkbox" style="margin-top:2px;width:14px;height:14px;flex-shrink:0;accent-color:'+accentColor+'">';
+      h += '<span style="font-size:12px;color:#374151;flex:1;line-height:1.4">'+op+'</span>';
+      h += '<button onclick="fichDelOp('+ci+','+oi+')" style="border:none;background:none;cursor:pointer;color:#94A3B8;font-size:14px;padding:0 3px;line-height:1;flex-shrink:0" title="Supprimer">&#215;</button>';
+      h += '</div>';
+    });
+    h += '</div>';
+  });
+  container.innerHTML = h;
+}
+
+function fichDelOp(ci, oi){
+  if(window._ficheChecklist[ci].ops.length <= 1){
+    toast('Au moins une operation par categorie','ko'); return;
+  }
+  window._ficheChecklist[ci].ops.splice(oi,1);
+  fichRenderOps();
+}
+
+function ficheAddOp(){
+  var inp = document.getElementById('fiche-new-op');
+  var val = inp ? inp.value.trim() : '';
+  if(!val){ toast('Saisissez une operation','ko'); return; }
+  // Ajouter a la derniere categorie
+  var lastCat = window._ficheChecklist[window._ficheChecklist.length-1];
+  lastCat.ops.push(val);
+  fichRenderOps();
+  inp.value = '';
+  inp.focus();
+  toast('Operation ajoutee','ok');
 }
 
 
@@ -3288,29 +3365,86 @@ async function copierHistorique(id){
   }catch(e){ toast('Erreur copie: '+e.message,'ko'); }
 }
 
-async function imprimerFiche(id){
-  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
-  try{
-    const snap=await getDocs(collection(db,'historique'));
-    const items=[];
-    snap.forEach(function(d){ const data=d.data(); if(data.machine_id===id) items.push(data); });
-    items.sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
-    const statBg={'Fonctionnelle':'#D1FAE5','Disponible':'#E0F2FE','En panne':'#FEE2E2','En reparation':'#FEF3C7','En Att. PDR':'#DBEAFE','Reforme':'#F3F4F6','Transfere':'#EDE9FE'};
-    const statFg={'Fonctionnelle':'#065F46','Disponible':'#0369A1','En panne':'#991B1B','En reparation':'#92400E','En Att. PDR':'#1E40AF','Reforme':'#374151','Transfere':'#5B21B6'};
-    const win=window.open('','_blank');
-    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche Machine - SOROUBAT</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:24px;color:#1A1F2E;font-size:13px}.header{background:#1B4F8C;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.cell{padding:10px;background:#F4F5F7;border-radius:6px}.label{font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px}.val{font-size:14px;font-weight:600}.hi{padding:10px 14px;border-left:3px solid #1B4F8C;margin-bottom:8px;background:#F4F5F7;border-radius:0 6px 6px 0}.footer{margin-top:30px;font-size:10px;color:#9CA3AF;text-align:center;border-top:1px solid #DDE1E7;padding-top:10px}@media print{button{display:none}}</style></head><body>');
-    win.document.write('<div class="header"><div><h1 style="margin:0;font-size:20px">SOROUBAT - Fiche Machine</h1><div style="font-size:12px;opacity:.8;margin-top:4px">Genere le '+new Date().toLocaleDateString('fr-FR')+'</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:800">'+m.code_machine+'</div><div style="font-size:12px;opacity:.8">'+(PN[m.pays_id]||m.pays_id)+'</div></div></div>');
-    win.document.write('<div class="grid"><div class="cell"><div class="label">Famille</div><div class="val">'+(m.famille||'-')+'</div></div><div class="cell"><div class="label">Type</div><div class="val">'+(m.sous_famille||'-')+'</div></div><div class="cell"><div class="label">Marque</div><div class="val">'+(m.marque||'-')+'</div></div><div class="cell"><div class="label">Modele</div><div class="val">'+(m.modele||'-')+'</div></div><div class="cell"><div class="label">N serie</div><div class="val">'+(m.numero_serie||'-')+'</div></div><div class="cell"><div class="label">Immat.</div><div class="val">'+(m.immatriculation||'-')+'</div></div><div class="cell"><div class="label">Chantier</div><div class="val">'+(m.chantier||'-')+'</div></div><div class="cell"><div class="label">Statut</div><div class="val">'+m.statut+'</div></div></div>');
-    if(m.detail_statut) win.document.write('<div style="padding:12px;background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:0 6px 6px 0;margin-bottom:20px"><div class="label" style="color:#1D4ED8">Detail statut</div><div style="margin-top:4px;color:#1E40AF">'+m.detail_statut+'</div></div>');
-    win.document.write('<h3 style="color:#1B4F8C;border-bottom:2px solid #1B4F8C;padding-bottom:8px;margin-bottom:12px">Historique ('+items.length+' entree'+(items.length>1?'s':'')+')</h3>');
-    items.forEach(function(h,i){
-      win.document.write('<div class="hi"><div style="font-size:11px;color:#6B7280">#'+(items.length-i)+' &mdash; '+((h.modifie_le||'').slice(0,16).replace('T',' '))+' &mdash; Par: '+h.modifie_par+'</div><div style="margin-top:4px">'+h.ancien_statut+' &#8594; '+h.nouveau_statut+'</div>'+(h.detail_statut?'<div style="font-size:12px;color:#1E40AF;margin-top:4px">'+h.detail_statut+'</div>':'')+'</div>');
+async function imprimerFiche(){
+  var titre = document.getElementById('fiche-titre').textContent;
+  var accentColor = window._ficheAccent || '#0F172A';
+
+  // Capturer les noms saisis
+  var inputs = document.getElementById('fiche-contenu').querySelectorAll('input[type="text"]');
+  var noms = Array.from(inputs).map(function(i){ return i.value.trim(); });
+
+  // Construire le HTML d'impression
+  var opsHtml = '';
+  if(window._ficheChecklist){
+    window._ficheChecklist.forEach(function(catOps){
+      opsHtml += '<tr><td colspan="2" style="background:'+accentColor+';color:#fff;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase">'+catOps.cat+'</td></tr>';
+      catOps.ops.forEach(function(op){
+        opsHtml += '<tr><td style="width:24px;text-align:center;border:1px solid #E2E8F0;padding:5px">&#9633;</td><td style="border:1px solid #E2E8F0;padding:5px 8px;font-size:12px">'+op+'</td></tr>';
+      });
     });
-    win.document.write('<div class="footer">SOROUBAT International - Gestion du Parc Materiel - '+(PN[m.pays_id]||m.pays_id)+'</div>');
-    win.document.write('<scr'+'ipt>window.onload=function(){window.print();}<'+'/scr'+'ipt>');
-    win.document.write('</body></html>');
-    win.document.close();
-  }catch(e){ toast('Erreur PDF: '+e.message,'ko'); }
+  }
+
+  var w = window.open('','_blank');
+  w.document.write(
+    '<html><head><title>'+titre+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;padding:20px;font-size:12px;color:#0F172A}'+
+    'h1{font-size:16px;margin:0 0 4px}'+
+    '.sub{font-size:11px;color:#64748B;margin-bottom:16px}'+
+    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}'+
+    '.box{border:1px solid #E2E8F0;border-radius:6px;padding:10px}'+
+    '.box-title{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:6px}'+
+    'table{width:100%;border-collapse:collapse}'+
+    'td{padding:3px 0;font-size:11px}'+
+    'td:first-child{color:#64748B;width:45%}'+
+    '.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}'+
+    '.sig-box{border:1px solid #E2E8F0;border-radius:6px;padding:10px}'+
+    '.sig-title{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:8px}'+
+    '.sig-name{font-size:11px;border-bottom:1px solid #CBD5E1;padding-bottom:2px;margin-bottom:12px;min-height:20px}'+
+    '.sig-line{border-bottom:1px dashed #CBD5E1;height:40px;margin-top:6px}'+
+    '.accent-bar{height:4px;background:'+accentColor+';border-radius:4px;margin-bottom:12px}'+
+    '@media print{button{display:none}}'+
+    '</style></head><body>'+
+
+    '<div class="accent-bar"></div>'+
+    '<h1>'+titre+'</h1>'+
+    '<div class="sub">Fiche d\'entretien preventif SOROUBAT International</div>'+
+
+    '<div class="grid">'+
+    '<div class="box"><div class="box-title">Identification machine</div>'+
+    document.getElementById('fiche-contenu').querySelectorAll('.box table')[0].outerHTML+
+    '</div>'+
+    '<div class="box"><div class="box-title">Informations entretien</div>'+
+    (document.getElementById('fiche-contenu').querySelectorAll('.box table')[1]||{outerHTML:''}).outerHTML+
+    '</div></div>'+
+
+    '<table style="margin-bottom:14px;border:1px solid '+accentColor+'">'+opsHtml+'</table>'+
+
+    '<div class="sig-grid">'+
+    '<div class="sig-box">'+
+    '<div class="sig-title">Technicien 1</div>'+
+    '<div class="sig-name">Nom: '+(noms[0]||'')+'</div>'+
+    '<div style="font-size:10px;color:#64748B">Signature:</div>'+
+    '<div class="sig-line"></div></div>'+
+
+    '<div class="sig-box">'+
+    '<div class="sig-title">Technicien 2</div>'+
+    '<div class="sig-name">Nom: '+(noms[1]||'')+'</div>'+
+    '<div style="font-size:10px;color:#64748B">Signature:</div>'+
+    '<div class="sig-line"></div></div>'+
+
+    '<div class="sig-box" style="background:#FFFBEB;border-color:#F59E0B">'+
+    '<div class="sig-title" style="color:#92400E">Chef de parc (validation)</div>'+
+    '<div class="sig-name">Nom: '+(noms[2]||'')+'</div>'+
+    '<div style="font-size:10px;color:#64748B">Date: '+(noms[3]?noms[3]:'____ / ____ / ______')+'</div>'+
+    '<div style="font-size:10px;color:#64748B;margin-top:6px">Signature:</div>'+
+    '<div class="sig-line" style="border-color:#D97706"></div></div>'+
+    '</div>'+
+
+    '<script>window.onload=function(){window.print()}<\/script>'+
+    '</body></html>'
+  );
+  w.document.close();
 }
 
 // DETAIL STATUT PAYS
