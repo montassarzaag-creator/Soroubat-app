@@ -2686,6 +2686,7 @@ window.imprimerFicheEntretien = function(){
 };
 
 function ouvrirFicheEntretien(machineId){
+  try{
   var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
   var se = getStatutEntretien(m);
   var unite = se ? se.unite : 'h';
@@ -2836,6 +2837,11 @@ function ouvrirFicheEntretien(machineId){
   // Rendre la checklist
   fichRenderOps();
   oM('mod-fiche-entretien');
+  }catch(ficheErr){
+    var cont = document.getElementById('fiche-contenu');
+    if(cont) cont.innerHTML = '<div style="padding:20px;color:#DC2626;font-size:13px"><strong>Erreur:</strong> '+ficheErr.message+'<br><small>'+ficheErr.stack+'</small></div>';
+    oM('mod-fiche-entretien');
+  }
 }
 
 // Rendre les operations editables
