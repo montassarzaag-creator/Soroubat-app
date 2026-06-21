@@ -262,6 +262,9 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
             <h3 style="font-size:15px;font-weight:700">&#128200; Suivi des index d'exploitation</h3>
             <div style="font-size:12px;color:var(--t2);margin-top:3px">Cycle horaire: 2000h par paliers de 250h &mdash; Cycle km: 40 000km par paliers de 5 000km</div>
           </div>
+          <button onclick="ouvrirRechercheRapide()" style="display:flex;align-items:center;gap:7px;padding:8px 16px;background:#0F172A;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap">
+            &#128269; Recherche rapide
+          </button>
           <div style="display:flex;gap:8px;flex-wrap:wrap" id="filtre-maint-pays-wrap">
             <select id="fp-maint" style="padding:8px 12px;border:0.5px solid var(--bo);border-radius:7px;font-size:13px;background:#fff">
               <option value="">Tous les pays</option>
@@ -595,7 +598,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
       <div id="echeance-paliers-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
     </div>
 
-    <!-- Etape 2: Index auquel l'entretien a été fait -->
+    <!-- Etape 2: Index auquel l'entretien a ete fait -->
     <div class="fg fu">
       <label style="font-size:11px;font-weight:600;color:#374151">
         2. Index au moment de cet entretien *
@@ -685,6 +688,69 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
   <div class="mf" style="border-top:1px solid #E2E8F0;padding:14px 20px;display:flex;gap:10px;justify-content:flex-end">
     <button class="bn" style="background:#F1F5F9;color:#475569" id="cancel-mod-fiche">Fermer</button>
     <button class="bn" style="background:#0F172A;color:#fff" onclick="imprimerFiche()">&#128438; Imprimer</button>
+  </div>
+</div></div>
+
+<!-- MODAL RECHERCHE RAPIDE INDEX -->
+<div class="mo" id="mod-recherche-rapide"><div class="md" style="max-width:480px">
+  <div class="mh" style="background:#0F172A;border-radius:10px 10px 0 0">
+    <div>
+      <h3 style="color:#fff;font-size:15px">&#128269; Recherche rapide</h3>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Saisie index par code machine</div>
+    </div>
+    <button class="mx" id="close-mod-recherche" style="color:#fff">&#215;</button>
+  </div>
+  <div class="mb" style="padding:20px">
+
+    <!-- Champ de recherche -->
+    <div style="position:relative;margin-bottom:16px">
+      <input type="text" id="rr-input" placeholder="Tapez le code machine (ex: AB013)"
+        style="width:100%;padding:12px 16px;font-size:14px;border:2px solid #E2E8F0;border-radius:8px;outline:none;text-transform:uppercase"
+        oninput="rechercheRapideInput(this.value)"
+        onkeydown="rechercheRapideKey(event)">
+      <div id="rr-suggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #E2E8F0;border-radius:0 0 8px 8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:100;display:none;max-height:200px;overflow-y:auto"></div>
+    </div>
+
+    <!-- Resultat machine trouvee -->
+    <div id="rr-result" style="display:none">
+      <!-- Info machine -->
+      <div style="background:#F8FAFC;border-radius:8px;padding:12px;margin-bottom:14px;border:0.5px solid #E2E8F0">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:#0F172A" id="rr-code"></div>
+            <div style="font-size:12px;color:#64748B;margin-top:2px" id="rr-designation"></div>
+            <div style="font-size:11px;color:#64748B;margin-top:1px" id="rr-chantier"></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:#64748B">Index actuel</div>
+            <div style="font-size:18px;font-weight:700;color:#0F172A" id="rr-index-actuel"></div>
+          </div>
+        </div>
+        <!-- Prochain entretien -->
+        <div id="rr-prochain" style="margin-top:8px;padding-top:8px;border-top:0.5px solid #E2E8F0;font-size:11px;color:#64748B"></div>
+      </div>
+
+      <!-- Saisie nouvel index -->
+      <div class="fg fu" style="margin-bottom:0">
+        <label style="font-size:12px;font-weight:600;color:#374151">Nouvel index *</label>
+        <input type="number" id="rr-nouvel-index" min="0" step="1"
+          style="font-size:18px;font-weight:700;text-align:center;margin-top:6px;padding:10px"
+          placeholder="Saisir le nouvel index">
+        <small id="rr-unite-hint" style="color:#64748B;margin-top:4px;display:block;text-align:center"></small>
+      </div>
+    </div>
+
+    <!-- Message si aucune machine -->
+    <div id="rr-empty" style="display:none;text-align:center;padding:20px;color:#94A3B8;font-size:13px">
+      &#128269; Aucune machine trouv&eacute;e
+    </div>
+
+  </div>
+  <div class="mf" id="rr-footer" style="display:none">
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-recherche">Annuler</button>
+    <button class="bn" style="background:#059669;color:#fff" id="btn-rr-enregistrer">
+      &#10003; Enregistrer l'index
+    </button>
   </div>
 </div></div>
 
@@ -3062,6 +3128,9 @@ function start(){
   document.getElementById('btn-sauver-index').addEventListener('click',sauverIndex);
   document.getElementById('close-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
   document.getElementById('cancel-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
+  document.getElementById('close-mod-recherche').addEventListener('click',function(){ cM('mod-recherche-rapide'); });
+  document.getElementById('cancel-mod-recherche').addEventListener('click',function(){ cM('mod-recherche-rapide'); });
+  document.getElementById('btn-rr-enregistrer').addEventListener('click',enregistrerIndexRapide);
   document.getElementById('close-mod-index').addEventListener('click',function(){ cM('mod-index'); });
   document.getElementById('cancel-mod-index').addEventListener('click',function(){ cM('mod-index'); });
   document.getElementById('btn-confirmer-entretien').addEventListener('click',confirmerEntretien);
@@ -3069,6 +3138,9 @@ function start(){
   document.getElementById('cancel-mod-entretien').addEventListener('click',function(){ cM('mod-entretien'); });
   document.getElementById('close-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
   document.getElementById('cancel-mod-fiche').addEventListener('click',function(){ cM('mod-fiche-entretien'); });
+  document.getElementById('close-mod-recherche').addEventListener('click',function(){ cM('mod-recherche-rapide'); });
+  document.getElementById('cancel-mod-recherche').addEventListener('click',function(){ cM('mod-recherche-rapide'); });
+  document.getElementById('btn-rr-enregistrer').addEventListener('click',enregistrerIndexRapide);
   // Listeners modification d'&eacute;ch&eacute;ance
   document.getElementById('btn-etape1-echeance').addEventListener('click', function(){
     var machineId = document.getElementById('echeance-machine-id').value;
@@ -4330,6 +4402,170 @@ function doPrint(){
   setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
 }
 window.doPrint = doPrint;
+
+// ============================================================
+// RECHERCHE RAPIDE INDEX
+// ============================================================
+var _rrMachineId = null;
+
+function ouvrirRechercheRapide(){
+  _rrMachineId = null;
+  document.getElementById('rr-input').value = '';
+  document.getElementById('rr-result').style.display = 'none';
+  document.getElementById('rr-empty').style.display = 'none';
+  document.getElementById('rr-footer').style.display = 'none';
+  document.getElementById('rr-suggestions').style.display = 'none';
+  document.getElementById('rr-nouvel-index').value = '';
+  oM('mod-recherche-rapide');
+  setTimeout(function(){ document.getElementById('rr-input').focus(); }, 300);
+}
+window.ouvrirRechercheRapide = ouvrirRechercheRapide;
+
+function rechercheRapideInput(val){
+  val = val.trim().toUpperCase();
+  var sugg = document.getElementById('rr-suggestions');
+  var result = document.getElementById('rr-result');
+  var empty = document.getElementById('rr-empty');
+  var footer = document.getElementById('rr-footer');
+
+  // Cacher le resultat si on retape
+  result.style.display = 'none';
+  empty.style.display = 'none';
+  footer.style.display = 'none';
+  _rrMachineId = null;
+
+  if(val.length < 2){
+    sugg.style.display = 'none';
+    return;
+  }
+
+  // Filtrer les machines qui ont un index (ravitailleur) ou toutes (admin/pays)
+  var candidates = all.filter(function(m){
+    var code = (m.code_machine||'').toUpperCase();
+    if(!code.startsWith(val) && !code.includes(val)) return false;
+    // Seulement les machines avec index
+    return getIndexType(m) !== null;
+  }).slice(0, 8);
+
+  if(!candidates.length){
+    sugg.style.display = 'none';
+    return;
+  }
+
+  sugg.innerHTML = candidates.map(function(m){
+    var typeIdx = getIndexType(m);
+    var unite = typeIdx ? (typeIdx.index==='horaire'?'h':'km') : '';
+    var idx = parseFloat(m.index_exploitation||0);
+    return '<div onclick="selectionnerMachine(\''+m.id+'\')" style="padding:10px 14px;cursor:pointer;border-bottom:0.5px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'#F8FAFC\'" onmouseout="this.style.background=\'#fff\'">'
+      +'<div><div style="font-weight:700;font-size:13px">'+m.code_machine+'</div>'
+      +'<div style="font-size:11px;color:#64748B">'+(m.type_machine||m.sous_famille||'-')+' &mdash; '+(PN[m.pays_id]||m.pays_id)+'</div></div>'
+      +'<div style="font-size:12px;font-weight:600;color:#0F172A">'+(idx>0?idx.toLocaleString('fr-FR')+' '+unite:'--')+'</div>'
+      +'</div>';
+  }).join('');
+  sugg.style.display = 'block';
+}
+window.rechercheRapideInput = rechercheRapideInput;
+
+function rechercheRapideKey(e){
+  if(e.key === 'Enter'){
+    var val = document.getElementById('rr-input').value.trim().toUpperCase();
+    // Cherche correspondance exacte
+    var m = all.find(function(x){ return (x.code_machine||'').toUpperCase() === val && getIndexType(x) !== null; });
+    if(m) selectionnerMachine(m.id);
+  }
+}
+window.rechercheRapideKey = rechercheRapideKey;
+
+function selectionnerMachine(machineId){
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
+  _rrMachineId = machineId;
+
+  var typeIdx = getIndexType(m);
+  var se = getStatutEntretien(m);
+  var unite = typeIdx ? (typeIdx.index==='horaire'?'h':'km') : '';
+  var indexActuel = parseFloat(m.index_exploitation||0);
+
+  // Fermer suggestions
+  document.getElementById('rr-suggestions').style.display = 'none';
+  document.getElementById('rr-input').value = m.code_machine;
+
+  // Afficher infos machine
+  document.getElementById('rr-code').textContent = m.code_machine;
+  document.getElementById('rr-designation').textContent = (m.type_machine||m.sous_famille||'-') + ' \u2014 ' + (m.marque||'');
+  document.getElementById('rr-chantier').textContent = (m.chantier||'') + (m.pays_id ? ' \u2014 ' + (PN[m.pays_id]||m.pays_id) : '');
+  document.getElementById('rr-index-actuel').textContent = indexActuel > 0 ? indexActuel.toLocaleString('fr-FR') + ' ' + unite : '--';
+
+  // Prochain entretien
+  var prochainTxt = '';
+  if(se && se.prochainType){
+    var restant = se.restant;
+    var couleur = se.statut==='du' ? '#DC2626' : se.statut==='alerte' ? '#D97706' : '#059669';
+    prochainTxt = 'Prochain: <strong style="color:'+couleur+'">' + se.prochainType + '</strong>'
+      + ' &agrave; ' + se.prochainEcheance.toLocaleString('fr-FR') + ' ' + unite
+      + (restant < 0 ? ' <span style="color:#DC2626">&#128680; EN RETARD</span>' :
+         ' <span style="color:#64748B">(' + restant.toLocaleString('fr-FR') + ' ' + unite + ' restant)</span>');
+  }
+  document.getElementById('rr-prochain').innerHTML = prochainTxt;
+
+  // Champ saisie
+  document.getElementById('rr-unite-hint').textContent = 'Saisir en ' + (typeIdx&&typeIdx.index==='horaire'?'heures':'kilom\u00e8tres') + ' \u2014 Index actuel: ' + (indexActuel>0?indexActuel.toLocaleString('fr-FR')+' '+unite:'non saisi');
+  document.getElementById('rr-nouvel-index').value = '';
+  document.getElementById('rr-nouvel-index').placeholder = indexActuel > 0 ? '> ' + indexActuel.toLocaleString('fr-FR') : '0';
+
+  document.getElementById('rr-result').style.display = 'block';
+  document.getElementById('rr-footer').style.display = 'flex';
+  document.getElementById('rr-empty').style.display = 'none';
+
+  // Focus sur le champ index
+  setTimeout(function(){ document.getElementById('rr-nouvel-index').focus(); }, 100);
+}
+window.selectionnerMachine = selectionnerMachine;
+
+async function enregistrerIndexRapide(){
+  if(!_rrMachineId){ toast('Aucune machine selectionnee','ko'); return; }
+  var valeur = parseFloat(document.getElementById('rr-nouvel-index').value);
+  if(isNaN(valeur)||valeur<0){ toast('Index invalide','ko'); return; }
+
+  var m = all.find(function(x){ return x.id===_rrMachineId; }); if(!m)return;
+  var typeIdx = getIndexType(m);
+  var ancienIndex = parseFloat(m.index_exploitation||0);
+  var unite = typeIdx?(typeIdx.index==='horaire'?'h':'km'):'';
+
+  if(valeur < ancienIndex){
+    if(!confirm('Attention: le nouvel index (' + valeur + ' ' + unite + ') est inferieur a l\'index actuel (' + ancienIndex + ' ' + unite + '). Confirmer ?')) return;
+  }
+
+  try{
+    await updateDoc(doc(db,'machines',_rrMachineId),{
+      index_exploitation: valeur,
+      index_type: typeIdx?typeIdx.index:'',
+      index_date: now(),
+      modifie_par: ses.user,
+      modifie_le: now()
+    });
+    await addDoc(collection(db,'historique_index'),{
+      machine_id:_rrMachineId, code_machine:m.code_machine, pays_id:m.pays_id,
+      index_avant:ancienIndex, index_apres:valeur, unite:unite,
+      saisi_par:ses.user, saisi_le:now()
+    });
+
+    toast('&#10003; Index ' + m.code_machine + ': ' + valeur.toLocaleString('fr-FR') + ' ' + unite, 'ok');
+
+    // Reinitialiser pour saisie suivante
+    _rrMachineId = null;
+    document.getElementById('rr-input').value = '';
+    document.getElementById('rr-result').style.display = 'none';
+    document.getElementById('rr-footer').style.display = 'none';
+    document.getElementById('rr-nouvel-index').value = '';
+    document.getElementById('rr-input').focus();
+
+    // Rafraichir en arriere-plan
+    window.chargerMaintenance();
+    window.verifierAlertes();
+
+  }catch(e){ toast('Erreur: '+e.message,'ko'); }
+}
+window.enregistrerIndexRapide = enregistrerIndexRapide;
 
 </script>
 </body>
