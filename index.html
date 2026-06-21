@@ -707,14 +707,19 @@ const app = initializeApp(FC);
 const db = getFirestore(app);
 
 const USERS = {
-  admin:{m:"SOROUBAT@Admin2024",l:"Admin - Tous les pays",a:true,r:false},
-  benin:{m:"SOROUBAT@Benin2024",l:"Benin",a:false,r:false},
-  burkina:{m:"SOROUBAT@Burkina2024",l:"Burkina Faso",a:false,r:false},
-  cameroun:{m:"SOROUBAT@Cam2024",l:"Cameroun",a:false,r:false},
-  cotedivoire:{m:"SOROUBAT@CdI2024",l:"Cote Ivoire",a:false,r:false},
-  niger:{m:"SOROUBAT@Niger2024",l:"Niger",a:false,r:false},
-  togo:{m:"SOROUBAT@Togo2024",l:"Togo",a:false,r:false},
-  ravitailleur:{m:"SOROUBAT@Ravi2024",l:"Ravitailleur - Saisie index",a:false,r:true}
+  admin:       {m:"SOROUBAT@Admin2024",  l:"Admin - Tous les pays",         a:true, r:false, pays:null},
+  benin:       {m:"SOROUBAT@Benin2024",  l:"Benin",                         a:false,r:false, pays:"benin"},
+  burkina:     {m:"SOROUBAT@Burkina2024",l:"Burkina Faso",                  a:false,r:false, pays:"burkina"},
+  cameroun:    {m:"SOROUBAT@Cam2024",    l:"Cameroun",                      a:false,r:false, pays:"cameroun"},
+  cotedivoire: {m:"SOROUBAT@CdI2024",   l:"Cote Ivoire",                   a:false,r:false, pays:"cotedivoire"},
+  niger:       {m:"SOROUBAT@Niger2024",  l:"Niger",                         a:false,r:false, pays:"niger"},
+  togo:        {m:"SOROUBAT@Togo2024",   l:"Togo",                         a:false,r:false, pays:"togo"},
+  ravitailleurci:{m:"SOROUBAT@RaviCI2024",l:"Ravitailleur - Cote Ivoire",  a:false,r:true,  pays:"cotedivoire"},
+  ravitailleurbf:{m:"SOROUBAT@RaviBF2024",l:"Ravitailleur - Burkina Faso", a:false,r:true,  pays:"burkina"},
+  ravitailleurbj:{m:"SOROUBAT@RaviBJ2024",l:"Ravitailleur - Benin",        a:false,r:true,  pays:"benin"},
+  ravitailleurtg:{m:"SOROUBAT@RaviTG2024",l:"Ravitailleur - Togo",         a:false,r:true,  pays:"togo"},
+  ravitailleurcm:{m:"SOROUBAT@RaviCM2024",l:"Ravitailleur - Cameroun",     a:false,r:true,  pays:"cameroun"},
+  ravitailleurni:{m:"SOROUBAT@RaviNI2024",l:"Ravitailleur - Niger",        a:false,r:true,  pays:"niger"}
 };
 const PN = {benin:"Benin",burkina:"Burkina Faso",cameroun:"Cameroun",cotedivoire:"Cote Ivoire",niger:"Niger",togo:"Togo"};
 const CH = {"benin": ["BANIKOARA", "COTONOU", "MALANVILLE", "Nexiste pas/ transf\u00e9r\u00e9e", "TCHAOUROU"], "burkina": ["BOBO - BANFORA", "CARRIERE NIAOGHO", "CARRIERE ZINIARE", "DAPELOGO-Central Enr", "DIABO - Gounghin FADA", "KANTCHARY", "KONGOUSSI-DJIBO", "LOGEMENT - OUAGA", "NAGRIN - OUAGA2000", "PARC CENTRAL OUAGA", "SCE TRANSPORT OUAGA", "SI\u00c8GE SOROUBAT BF", "TENKODOGO-OUARGAYE", "YAGMA - OUAGA"], "cameroun": ["ADM DOUALA", "ADM YAOUNDE", "CHANTIER FOUMBAN", "CHANTIER GAROUA", "CHANTIER NGAOUNDERE", "CHANTIER YAOUNDE", "FRONTIERE TOBOROU", "KUMBA", "PARC FOUMBAN"], "cotedivoire": ["100% BETON", "ABIDJAN", "BASE VIE", "BATIMENT BROFODOUME", "COGIMEX", "FC SAN PEDRO", "FERME YOBOUEBO", "LOT 2", "LOT 6", "P. BATIMENT ABIDJAN", "P. BATIMENT BROFODOUME", "PK27", "SECURITE", "SOROUBAT CI", "TAABO", "TOULEPLEU", "ZOO"], "niger": ["KANDADJI", "NIAMEY"], "togo": ["ADM LOME", "Carri\u00e8re BADJA", "Carri\u00e8re SOKODE", "Chantier RN2", "Chantier SOKODE", "DJOUGOU", "FOURNISSEUR", "GUINEE CONACRY", "Parc KPEME"]};
@@ -2645,7 +2650,8 @@ async function login(){
   const p = document.getElementById('p').value.trim();
   document.getElementById('le').style.display='none';
   if(!USERS[u]||USERS[u].m!==p){ document.getElementById('le').style.display='block'; return; }
-  ses = {user:u, pays:u==='admin'?'admin':(u==='ravitailleur'?'tous':u), label:USERS[u].l, admin:USERS[u].a, ravitailleur:USERS[u].r||false};
+  var userPays = USERS[u].pays || (u==='admin'?'admin':u);
+  ses = {user:u, pays:userPays, label:USERS[u].l, admin:USERS[u].a, ravitailleur:USERS[u].r||false};
   document.getElementById('lm').style.display='block';
   try{
     const snap = await getDocs(collection(db,'machines'));
@@ -2653,7 +2659,13 @@ async function login(){
     snap.forEach(function(d){
       const data={id:d.id,...d.data()};
       // Admin et ravitailleur voient tout, pays voit son pays
-      if(ses.admin || ses.ravitailleur || data.pays_id===ses.pays) all.push(data);
+      // Ravitailleur avec pays specifique: voir seulement son pays
+      // Ravitailleur sans pays (ancien compte global): voir tout
+      var canSee = ses.admin ||
+        (ses.ravitailleur && ses.pays && ses.pays !== 'tous' && data.pays_id === ses.pays) ||
+        (ses.ravitailleur && (!ses.pays || ses.pays === 'tous')) ||
+        (!ses.ravitailleur && !ses.admin && data.pays_id === ses.pays);
+      if(canSee) all.push(data);
     });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
   }catch(e){ toast('Erreur Firebase: '+e.message,'ko'); }
@@ -2682,7 +2694,13 @@ function abonner(){
     snap.forEach(function(d){
       const data={id:d.id,...d.data()};
       // Admin et ravitailleur voient TOUT, responsable pays voit son pays
-      if(ses.admin || ses.ravitailleur || data.pays_id===ses.pays) all.push(data);
+      // Ravitailleur avec pays specifique: voir seulement son pays
+      // Ravitailleur sans pays (ancien compte global): voir tout
+      var canSee = ses.admin ||
+        (ses.ravitailleur && ses.pays && ses.pays !== 'tous' && data.pays_id === ses.pays) ||
+        (ses.ravitailleur && (!ses.pays || ses.pays === 'tous')) ||
+        (!ses.ravitailleur && !ses.admin && data.pays_id === ses.pays);
+      if(canSee) all.push(data);
     });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
     filt(); stat();
