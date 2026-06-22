@@ -3201,6 +3201,17 @@ function start(){
         unite: unite,
         modifie_par: ses.user, modifie_le: now()
       });
+      // Mettre à jour le cache local immédiatement
+      var mLocalE = all.find(function(x){ return x.id===machineId; });
+      if(mLocalE){
+        mLocalE.index_dernier_entretien = dernierIndex;
+        mLocalE.date_dernier_entretien = now();
+        mLocalE.prochain_entretien = nouvelleEcheance;
+        mLocalE.prochain_type = nouveauType;
+        mLocalE.echeance_modifiee = false;
+        mLocalE.modifie_par = ses.user;
+        mLocalE.modifie_le = now();
+      }
       cM('mod-echeance-confirm');
       toast('&#10003; Cycle positionne ! Prochain: ' + nouveauType + ' a ' + nouvelleEcheance.toLocaleString('fr-FR') + ' ' + unite, 'ok');
       window.chargerMaintenance();
@@ -4057,6 +4068,15 @@ async function sauverIndex(){
       index_avant:ancienIndex, index_apres:valeur, unite:unite,
       remarque:remarque, saisi_par:ses.user, saisi_le:now()
     });
+    // Mettre à jour le cache local immédiatement (sans attendre onSnapshot)
+    var mLocal = all.find(function(x){ return x.id===machineId; });
+    if(mLocal){
+      mLocal.index_exploitation = valeur;
+      mLocal.index_type = typeIdx?typeIdx.index:'';
+      mLocal.index_date = now();
+      mLocal.modifie_par = ses.user;
+      mLocal.modifie_le = now();
+    }
     cM('mod-index');
     toast('Index mis &agrave; jour: '+valeur.toLocaleString('fr-FR')+' '+unite,'ok');
     window.chargerMaintenance();
@@ -4101,6 +4121,17 @@ async function confirmerEntretien(){
       unite:unite, remarque:remarque,
       realise_par:ses.user, realise_le:now()
     });
+    // Mettre à jour le cache local immédiatement
+    var mLocal3 = all.find(function(x){ return x.id===machineId; });
+    if(mLocal3){
+      mLocal3.index_dernier_entretien = indexSaisi;
+      mLocal3.date_dernier_entretien = now();
+      mLocal3.prochain_entretien = prochainObj ? prochainObj.echeanceAbs : null;
+      mLocal3.prochain_type = prochainObj ? prochainObj.type : null;
+      mLocal3.echeance_modifiee = false;
+      mLocal3.modifie_par = ses.user;
+      mLocal3.modifie_le = now();
+    }
     cM('mod-entretien');
     var msgProchain = prochainObj ? prochainObj.type+' &agrave; '+prochainObj.echeanceAbs.toLocaleString('fr-FR')+' '+unite : '';
     toast('&#10003; Entretien valid&eacute; ! Prochain: '+msgProchain,'ok');
@@ -4548,6 +4579,16 @@ async function enregistrerIndexRapide(){
       index_avant:ancienIndex, index_apres:valeur, unite:unite,
       saisi_par:ses.user, saisi_le:now()
     });
+
+    // Mettre à jour le cache local immédiatement (sans attendre onSnapshot)
+    var mLocal2 = all.find(function(x){ return x.id===_rrMachineId; });
+    if(mLocal2){
+      mLocal2.index_exploitation = valeur;
+      mLocal2.index_type = typeIdx?typeIdx.index:'';
+      mLocal2.index_date = now();
+      mLocal2.modifie_par = ses.user;
+      mLocal2.modifie_le = now();
+    }
 
     toast('&#10003; Index ' + m.code_machine + ': ' + valeur.toLocaleString('fr-FR') + ' ' + unite, 'ok');
 
