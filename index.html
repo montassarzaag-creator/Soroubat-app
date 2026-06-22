@@ -2772,11 +2772,21 @@ function abonner(){
     });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
     filt(); stat();
-    // Recharger maintenance apr&egrave;s chaque mise &agrave; jour Firebase
+    // Recharger toutes les vues actives après chaque mise à jour Firebase (temps réel multi-utilisateurs)
     var tabMaint = document.getElementById('tab-maintenance');
     if(tabMaint && tabMaint.classList.contains('ac')){
       window.chargerMaintenance();
     }
+    var tabDash = document.getElementById('tdash');
+    if(tabDash && tabDash.classList.contains('ac') && ses && ses.admin){
+      affD();
+    }
+    var tabAlertes = document.getElementById('tab-alertes');
+    if(tabAlertes && tabAlertes.classList.contains('ac')){
+      afficherAlertes();
+    }
+    // Rafraîchir aussi les alertes en bandeau (toujours visible)
+    if(window.verifierAlertes) window.verifierAlertes();
   });
 }
 
@@ -3859,6 +3869,7 @@ async function verifierAlertes(){
     } else { bandeau.style.display='none'; badge2.style.display='none'; }
   }catch(e){ console.error('Erreur alertes:',e); }
 }
+window.verifierAlertes = verifierAlertes;
 
 function afficherAlertes(){
   const cont=document.getElementById('alertes-content');
