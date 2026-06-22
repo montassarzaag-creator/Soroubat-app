@@ -564,7 +564,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
   <div class="mh" style="background:#0F172A;border-radius:10px 10px 0 0">
     <div>
       <h3 style="color:#fff;font-size:15px">&#9998; Positionnement dans le cycle</h3>
-      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Definir le dernier entretien realise</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Enregistrer le dernier entretien realise</div>
     </div>
     <button class="mx" id="close-mod-echeance" style="color:#fff">&#215;</button>
   </div>
@@ -581,53 +581,31 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
       </div>
     </div>
 
-    <!-- Explication -->
-    <div style="background:#EFF6FF;border-left:3px solid #3B82F6;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px">
-      <div style="font-size:11px;color:#1E40AF">
-        Selectionnez le <strong>dernier entretien realise</strong> sur cette machine,
-        puis saisissez l'index auquel il a ete effectue.
-        Le systeme calculera automatiquement le prochain entretien.
-      </div>
+    <!-- Champ 1 : Dernier index de vidange effectuee -->
+    <div class="fg fu" style="margin-bottom:14px">
+      <label style="font-size:11px;font-weight:600;color:#374151">
+        1. Dernier index de vidange effectuee *
+      </label>
+      <input type="number" id="echeance-index-vidange-reel" min="0" step="1"
+        style="font-size:15px;font-weight:600;text-align:center;margin-top:6px"
+        placeholder="Ex: 2550">
+      <small style="color:#64748B;margin-top:4px;display:block" id="echeance-hint">
+        Index du compteur au moment ou la derniere vidange a ete realisee
+      </small>
     </div>
 
-    <!-- Etape 1: Choisir le palier -->
+    <!-- Champ 2 : Nature de l'entretien realise -->
     <div style="margin-bottom:14px">
       <label style="font-size:11px;font-weight:600;color:#374151;display:block;margin-bottom:8px">
-        1. Dernier entretien realise *
+        2. Nature de l'entretien realise (position dans le cycle) *
       </label>
       <div id="echeance-paliers-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
     </div>
 
-    <!-- Etape 2: Index auquel l'entretien a ete fait -->
-    <div class="fg fu">
-      <label style="font-size:11px;font-weight:600;color:#374151">
-        2. Index au moment de cet entretien *
-      </label>
-      <input type="number" id="echeance-index-entretien" min="0" step="1"
-        style="font-size:15px;font-weight:600;text-align:center;margin-top:6px"
-        placeholder="Ex: 6000">
-      <small style="color:#64748B;margin-top:4px;display:block" id="echeance-hint">
-        Saisissez l'index (heures ou km) auquel cet entretien a ete realise
-      </small>
-    </div>
-
-    <!-- Etape 3: Index actuel de la vidange (pour calcul restant) -->
-    <div class="fg fu" id="echeance-vidange-wrap" style="margin-top:14px;display:none">
-      <label style="font-size:11px;font-weight:600;color:#374151">
-        3. Index actuel du compteur (optionnel)
-      </label>
-      <input type="number" id="echeance-index-vidange" min="0" step="1"
-        style="font-size:15px;font-weight:600;text-align:center;margin-top:6px"
-        placeholder="Ex: 4100">
-      <small style="color:#64748B;margin-top:4px;display:block">
-        Index actuel affiché sur le compteur — utilisé pour calculer le restant précis avant la prochaine vidange
-      </small>
-    </div>
-
-    <!-- Preview prochain entretien -->
-    <div id="echeance-preview" style="display:none;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;margin-top:12px">
-      <div style="font-size:10px;font-weight:600;color:#065F46;text-transform:uppercase;margin-bottom:4px">Prochain entretien calcule</div>
-      <div style="font-size:13px;font-weight:700;color:#0F172A" id="echeance-prochain-calc"></div>
+    <!-- Preview calcul automatique -->
+    <div id="echeance-preview" style="display:none;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:14px;margin-top:4px">
+      <div style="font-size:10px;font-weight:600;color:#065F46;text-transform:uppercase;margin-bottom:8px">&#10003; Calcul automatique</div>
+      <div id="echeance-prochain-calc"></div>
     </div>
   </div>
   <div class="mf">
@@ -3168,26 +3146,40 @@ function start(){
     var machineId = document.getElementById('echeance-machine-id').value;
     var unite = document.getElementById('echeance-unite').value || 'h';
     var palier = window._echeancePalierSel;
-    var indexE = parseFloat(document.getElementById('echeance-index-entretien').value);
+    var indexVidange = parseFloat(document.getElementById('echeance-index-vidange-reel').value);
     var m = all.find(function(x){ return x.id===machineId; });
 
-    if(!palier){ toast('Selectionnez un palier du cycle','ko'); return; }
-    if(isNaN(indexE)||indexE<0){ toast('Saisissez un index valide','ko'); return; }
+    if(!palier){ toast('Selectionnez la nature de l\'entretien realise','ko'); return; }
+    if(isNaN(indexVidange)||indexVidange<=0){ toast('Saisissez l\'index de la derniere vidange','ko'); return; }
     if(!window._echeanceProchainAbs){ toast('Calcul du prochain entretien impossible','ko'); return; }
 
-    var indexActuel = m ? parseFloat(m.index_exploitation||0) : 0;
-
+    var intervalle = unite==='h' ? INTERVALLE_H : INTERVALLE_KM;
     document.getElementById('confirm-recap').innerHTML =
-      '<div style="margin-bottom:6px">Dernier entretien: <strong>' + palier.type + '</strong>' +
-      ' a <strong>' + indexE.toLocaleString('fr-FR') + ' ' + unite + '</strong></div>' +
-      '<div>Prochain entretien: <strong style="color:#0369A1">' + window._echeanceProchainType + '</strong>' +
-      ' a <strong style="color:#0369A1">' + window._echeanceProchainAbs.toLocaleString('fr-FR') + ' ' + unite + '</strong></div>' +
-      '<div style="font-size:11px;margin-top:6px;color:#64748B">Machine: ' + (m?m.code_machine:'') + '</div>';
+      '<div style="display:flex;flex-direction:column;gap:6px">' +
+      '<div style="display:flex;justify-content:space-between">' +
+        '<span style="color:#64748B;font-size:12px">Derniere vidange a</span>' +
+        '<strong>' + indexVidange.toLocaleString('fr-FR') + ' ' + unite + '</strong>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between">' +
+        '<span style="color:#64748B;font-size:12px">Nature entretien realise</span>' +
+        '<strong>' + palier.type + '</strong>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;background:#EFF6FF;padding:6px 8px;border-radius:6px">' +
+        '<span style="color:#1E40AF;font-size:12px;font-weight:600">Prochain index vidange</span>' +
+        '<strong style="color:#0369A1">' + window._echeanceProchainAbs.toLocaleString('fr-FR') + ' ' + unite + '</strong>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between">' +
+        '<span style="color:#64748B;font-size:12px">Nature prochain entretien</span>' +
+        '<strong style="color:#0369A1">' + window._echeanceProchainType + '</strong>' +
+      '</div>' +
+      '<div style="font-size:11px;margin-top:2px;color:#94A3B8">Machine: ' + (m?m.code_machine:'') + '</div>' +
+      '</div>';
 
-    document.getElementById('confirm-motif').textContent = 'Positionnement cycle: dernier entretien = ' + palier.type + ' a ' + indexE + ' ' + unite;
+    document.getElementById('confirm-motif').textContent =
+      'Vidange a ' + indexVidange + ' ' + unite + ' (' + palier.type + ') — prochain: ' + window._echeanceProchainType + ' a ' + window._echeanceProchainAbs + ' ' + unite;
     document.getElementById('btn-confirmer-echeance').dataset.echeance = window._echeanceProchainAbs;
     document.getElementById('btn-confirmer-echeance').dataset.type = window._echeanceProchainType;
-    document.getElementById('btn-confirmer-echeance').dataset.dernierIndex = indexE;
+    document.getElementById('btn-confirmer-echeance').dataset.dernierIndex = indexVidange;
     document.getElementById('btn-confirmer-echeance').dataset.dernierType = palier.type;
 
     cM('mod-echeance');
@@ -3935,7 +3927,7 @@ function ouvrirModifEcheance(machineId){
 
   var unite = typeIdx.index==='horaire' ? 'h' : 'km';
   var isH = typeIdx.index==='horaire';
-  var cycleTotal = isH ? CYCLE_TOTAL_H : CYCLE_TOTAL_KM;
+  var cycle = isH ? CYCLE_H : CYCLE_KM;
   var indexActuel = parseFloat(m.index_exploitation||0);
 
   document.getElementById('echeance-machine-id').value = machineId;
@@ -3944,20 +3936,17 @@ function ouvrirModifEcheance(machineId){
     m.code_machine + ' - ' + (PN[m.pays_id]||m.pays_id) + ' - ' + (m.type_machine||m.sous_famille||'');
   document.getElementById('echeance-index-actuel').textContent =
     indexActuel > 0 ? indexActuel.toLocaleString('fr-FR') + ' ' + unite : 'Non saisi';
-  document.getElementById('echeance-index-entretien').value = '';
-  document.getElementById('echeance-index-vidange').value = '';
-  document.getElementById('echeance-vidange-wrap').style.display = 'none';
+  document.getElementById('echeance-index-vidange-reel').value =
+    m.index_dernier_entretien > 0 ? m.index_dernier_entretien : '';
   document.getElementById('echeance-preview').style.display = 'none';
   document.getElementById('echeance-hint').textContent =
-    'Saisissez l\'index en ' + (isH ? 'heures' : 'km') + ' auquel cet entretien a ete realise';
-
-  // Construire la liste des paliers du cycle
-  var cycle = isH ? CYCLE_H : CYCLE_KM;
-  var container = document.getElementById('echeance-paliers-list');
-  container.innerHTML = '';
+    'Index du compteur au moment ou la derniere vidange a ete realisee (' + unite + ')';
   window._echeancePalierSel = null;
 
-  // Afficher les paliers du cycle (paliers relatifs: 250, 500, 750...)
+  // Construire la liste des paliers du cycle
+  var container = document.getElementById('echeance-paliers-list');
+  container.innerHTML = '';
+
   cycle.forEach(function(e){
     var btn = document.createElement('button');
     btn.className = 'bn';
@@ -3965,99 +3954,92 @@ function ouvrirModifEcheance(machineId){
     btn.innerHTML =
       '<div style="font-weight:700;font-size:12px;color:#0F172A">' + e.palier.toLocaleString('fr-FR') + ' ' + unite + '</div>' +
       '<div style="font-size:10px;color:#64748B;margin-top:2px">' + e.type + '</div>';
-
-    btn.addEventListener('click', function(){
-      // Deselectionner tous
-      container.querySelectorAll('button').forEach(function(b){
-        b.style.borderColor = '#E2E8F0';
-        b.style.background = '#F8FAFC';
-      });
-      // Selectionner celui-ci
+    // Pre-selectionner si correspond au dernier type enregistre
+    if(m.dernier_entretien_type === e.type){
       btn.style.borderColor = '#0369A1';
       btn.style.background = '#EFF6FF';
       window._echeancePalierSel = e;
-      // Afficher champ 3 si champ 2 est déjà rempli
-      var v2 = parseFloat(document.getElementById('echeance-index-entretien').value);
-      if(!isNaN(v2) && v2 > 0) document.getElementById('echeance-vidange-wrap').style.display = 'block';
-      // Mettre a jour le preview si index saisi
-      calculerPreviewEcheance(unite, cycleTotal, indexActuel);
+    }
+    btn.addEventListener('click', function(){
+      container.querySelectorAll('button').forEach(function(b){
+        b.style.borderColor = '#E2E8F0'; b.style.background = '#F8FAFC';
+      });
+      btn.style.borderColor = '#0369A1'; btn.style.background = '#EFF6FF';
+      window._echeancePalierSel = e;
+      calculerPreviewEcheanceV2(unite, cycle, indexActuel);
     });
     container.appendChild(btn);
   });
 
-  // Listener sur l'input index entretien
-  var inp = document.getElementById('echeance-index-entretien');
-  inp.oninput = function(){
-    // Afficher champ 3 dès que champ 2 est rempli
-    var v = parseFloat(this.value);
-    document.getElementById('echeance-vidange-wrap').style.display = (!isNaN(v) && v > 0) ? 'block' : 'none';
-    calculerPreviewEcheance(unite, cycleTotal, indexActuel);
+  // Listener champ 1 (index vidange)
+  document.getElementById('echeance-index-vidange-reel').oninput = function(){
+    calculerPreviewEcheanceV2(unite, cycle, indexActuel);
   };
-  // Listener sur l'input index vidange actuel
-  var inpV = document.getElementById('echeance-index-vidange');
-  inpV.oninput = function(){
-    calculerPreviewEcheance(unite, cycleTotal, indexActuel);
-  };
+
+  // Calcul initial si deja rempli
+  if(window._echeancePalierSel) calculerPreviewEcheanceV2(unite, cycle, indexActuel);
 
   oM('mod-echeance');
 }
 
-function calculerPreviewEcheance(unite, cycleTotal, indexActuel){
+function calculerPreviewEcheanceV2(unite, cycle, indexActuel){
   var palier = window._echeancePalierSel;
-  var indexE = parseFloat(document.getElementById('echeance-index-entretien').value);
+  var indexVidange = parseFloat(document.getElementById('echeance-index-vidange-reel').value);
   var preview = document.getElementById('echeance-preview');
   var calc = document.getElementById('echeance-prochain-calc');
 
-  if(!palier || isNaN(indexE) || indexE < 0){
+  if(!palier || isNaN(indexVidange) || indexVidange <= 0){
     preview.style.display = 'none';
     return;
   }
 
-  // Calculer la base du cycle
-  // Ex: palier=500, indexE=6000 -> baseCycle = 6000 - 500 = 5500 -> prochainAbs = 5500 + 750 = 6250
-  var baseCycle = indexE - palier.palier;
+  // Prochain index vidange = dernier index vidange + 250h fixe
+  var intervalle = unite==='h' ? INTERVALLE_H : INTERVALLE_KM;
+  var prochainIndexVidange = indexVidange + intervalle;
 
   // Trouver le prochain palier dans le cycle
-  var cycle = unite==='h' ? CYCLE_H : CYCLE_KM;
   var idxPalier = cycle.findIndex(function(e){ return e.palier === palier.palier; });
   var idxProchain = (idxPalier + 1) % cycle.length;
   var prochainPalier = cycle[idxProchain];
 
-  // Si on revient au debut du cycle
-  var prochainAbs;
-  if(idxProchain === 0){
-    prochainAbs = baseCycle + cycleTotal + prochainPalier.palier;
-  } else {
-    prochainAbs = baseCycle + prochainPalier.palier;
-  }
+  // Restant avant la prochaine vidange
+  var restant = prochainIndexVidange - indexActuel;
 
-  // Utiliser l'index vidange actuel (champ 3) s'il est saisi, sinon l'index machine
-  var indexVidange = parseFloat((document.getElementById('echeance-index-vidange')||{}).value||0);
-  var indexRef = (indexVidange > 0) ? indexVidange : indexActuel;
-  var restant = prochainAbs - indexRef;
-
-  // Badge restant
-  var restantHtml = '';
-  if(indexRef > 0){
-    if(restant > 0){
-      restantHtml = 'encore <strong>' + restant.toLocaleString('fr-FR') + ' ' + unite + '</strong>';
-    } else {
-      restantHtml = '<span style="color:#DC2626;font-weight:700">EN RETARD de ' + Math.abs(restant).toLocaleString('fr-FR') + ' ' + unite + '</span>';
-    }
-  }
-
+  // Afficher
   calc.innerHTML =
-    '<div>' +
-    '<span style="color:#0369A1;font-weight:700">' + prochainPalier.type + '</span>' +
-    ' à <strong>' + prochainAbs.toLocaleString('fr-FR') + ' ' + unite + '</strong>' +
+    '<div style="display:flex;flex-direction:column;gap:8px">' +
+    // Ligne 1 : dernier index vidange
+    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+    '<span style="font-size:11px;color:#64748B">Derniere vidange effectuee</span>' +
+    '<span style="font-weight:700;color:#0F172A">' + indexVidange.toLocaleString('fr-FR') + ' ' + unite + '</span>' +
     '</div>' +
-    (restantHtml ? '<div style="font-size:12px;color:#475569;margin-top:4px">' + restantHtml + ' avant la prochaine vidange</div>' : '') +
-    (indexVidange > 0 ? '<div style="font-size:10px;color:#94A3B8;margin-top:2px">Calculé depuis index compteur : ' + indexVidange.toLocaleString('fr-FR') + ' ' + unite + '</div>' : '');
+    // Ligne 2 : prochain index vidange
+    '<div style="display:flex;justify-content:space-between;align-items:center;background:#EFF6FF;padding:8px 10px;border-radius:6px">' +
+    '<span style="font-size:11px;color:#1E40AF;font-weight:600">Prochain index vidange</span>' +
+    '<span style="font-weight:700;font-size:14px;color:#0369A1">' + prochainIndexVidange.toLocaleString('fr-FR') + ' ' + unite + '</span>' +
+    '</div>' +
+    // Ligne 3 : nature du prochain entretien
+    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+    '<span style="font-size:11px;color:#64748B">Nature du prochain entretien</span>' +
+    '<span style="font-weight:700;color:#0369A1">' + prochainPalier.type + ' (' + prochainPalier.palier.toLocaleString('fr-FR') + ' ' + unite + ')</span>' +
+    '</div>' +
+    // Ligne 4 : restant
+    (indexActuel > 0 ?
+    '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #BBF7D0;padding-top:8px">' +
+    '<span style="font-size:11px;color:#64748B">Restant avant prochaine vidange</span>' +
+    '<span style="font-weight:700;font-size:13px;color:' + (restant > 0 ? '#16A34A' : '#DC2626') + '">' +
+    (restant > 0 ? restant.toLocaleString('fr-FR') + ' ' + unite : 'EN RETARD de ' + Math.abs(restant).toLocaleString('fr-FR') + ' ' + unite) +
+    '</span></div>' : '') +
+    '</div>';
 
   preview.style.display = 'block';
-  window._echeanceProchainAbs = prochainAbs;
+  window._echeanceProchainAbs = prochainIndexVidange;
   window._echeanceProchainType = prochainPalier.type;
+  window._echeanceDernierIndexVidange = indexVidange;
+  window._echeanceDernierType = palier.type;
 }
+
+function calculerPreviewEcheance(unite, cycleTotal, indexActuel){}
 
 
 
