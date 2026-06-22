@@ -2771,21 +2771,27 @@ function abonner(){
       if(canSee) all.push(data);
     });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
+    // Rafraîchir toutes les vues selon l'onglet actif
     filt(); stat();
-    // Recharger toutes les vues actives après chaque mise à jour Firebase (temps réel multi-utilisateurs)
     var tabMaint = document.getElementById('tab-maintenance');
+    var tabDash  = document.getElementById('tdash');
+    var tabAlertes = document.getElementById('tab-alertes');
+    var tabMachines = document.getElementById('tab-machines');
+    var tabInterv = document.getElementById('tab-interventions');
+    // Maintenance : toujours recharger si visible (pas seulement si ac, car l'index peut changer sans changer d'onglet)
     if(tabMaint && tabMaint.classList.contains('ac')){
       window.chargerMaintenance();
     }
-    var tabDash = document.getElementById('tdash');
     if(tabDash && tabDash.classList.contains('ac') && ses && ses.admin){
       affD();
     }
-    var tabAlertes = document.getElementById('tab-alertes');
     if(tabAlertes && tabAlertes.classList.contains('ac')){
       afficherAlertes();
     }
-    // Rafraîchir aussi les alertes en bandeau (toujours visible)
+    if(tabInterv && tabInterv.classList.contains('ac')){
+      chargerInterventions();
+    }
+    // Bandeau alertes toujours visible
     if(window.verifierAlertes) window.verifierAlertes();
   });
 }
