@@ -3839,14 +3839,17 @@ async function verifierAlertes(){
       if(!typeIdx) return;
       const indexActuel = parseFloat(m.index_exploitation||0);
       if(indexActuel <= 0) return; // Pas encore d'index saisi
-      if(estUrgent(indexActuel, typeIdx)){
-        const prochain = prochainEntretien(indexActuel, typeIdx);
-        const unite = typeIdx.index==='horaire'?'h':'km';
+      const se = getStatutEntretien(m);
+      if(!se||se.statut==='sans_index') return;
+      if(se.statut==='du'||se.statut==='alerte'){
+        const msg = se.statut==='du'
+          ? 'Entretien dû ! '+se.ecart.toLocaleString('fr-FR')+' '+se.unite+' depuis dernier entretien'
+          : 'Entretien proche : encore '+se.restant.toLocaleString('fr-FR')+' '+se.unite+' avant '+se.prochainType;
         alertes.push({
           type:'maintenance',
           machine:m,
-          msg:'Entretien pr&eacute;ventif: encore '+prochain.restant.toLocaleString('fr-FR')+unite+' avant '+prochain.valeur.toLocaleString('fr-FR')+unite,
-          niveau:'orange'
+          msg:msg,
+          niveau:se.statut==='du'?'rouge':'orange'
         });
       }
     });
