@@ -3582,8 +3582,8 @@ function statut_est(s, cible){
   return norm === cibleNorm;
 }
 function stat(){
-  const src = fi.length ? fi : all;
-  let fonc=0,dispo=0,pa=0,rep=0,pdr=0,ref=0,tra=0;
+  const src = fi.length ? fi : all.filter(function(m){ return m.statut!=='Vendue'&&m.statut!=='Réformée'; });
+  let fonc=0,dispo=0,pa=0,rep=0,pdr=0,ref=0,tra=0,ven=0;
   src.forEach(function(m){
     const s=m.statut||'';
     if(statut_est(s,'Fonctionnelle'))fonc++;
@@ -3594,7 +3594,11 @@ function stat(){
     else if(statut_est(s,'Reforme'))ref++;
     else if(statut_est(s,'Transfere'))tra++;
   });
-  const t=src.length, parc=t-ref;
+  // Compter vendues et réformées depuis all (exclues de fi)
+  var allSrc = ses && ses.admin ? all : all.filter(function(m){ return m.pays_id===ses.pays; });
+  ven = allSrc.filter(function(m){ return m.statut==='Vendue'; }).length;
+  ref = allSrc.filter(function(m){ return m.statut==='Réformée'; }).length;
+  const t=allSrc.length, parc=t-ref-ven;
   const tx_dispo=pct(fonc+dispo+tra,parc), tx_panne=pct(pa+rep+pdr,parc);
   // Mettre &agrave; jour le bandeau directement depuis les stats
   const nbPanneLocal = src.filter(function(m){ return statut_est(m.statut||'','En panne'); }).length;
@@ -3641,6 +3645,7 @@ function stat(){
     '<div class="sc o"><div class="sn">'+rep+' <span style="font-size:13px;color:var(--or)">'+pct(rep,parc)+'%</span></div><div class="sl">En r&eacute;paration</div></div>'+
     '<div class="sc" style="border-left-color:#3B82F6"><div class="sn">'+pdr+' <span style="font-size:13px;color:#3B82F6">'+pct(pdr,parc)+'%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>'+
     '<div class="sc g"><div class="sn">'+ref+'</div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>'+
+    '<div class="sc" style="border-left-color:#92400E"><div class="sn" style="color:#92400E">'+ven+'</div><div class="sl">Vendus (exclus)</div></div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">'+
     '<div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
