@@ -125,6 +125,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     <button class="ta" id="tab-historique">&#128203; Historique</button>
     <button class="ta" id="tab-maintenance">&#128200; Maintenance</button>
     <button class="ta" id="tdash">&#128202; Dashboard</button>
+    <button class="ta" id="tab-sorties" style="display:none">&#128663; Sorties de flotte</button>
     <button class="ta" id="tab-alertes" style="display:none">
       &#128276; Alertes <span id="badge-alertes" style="background:#E24B4A;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;display:none">0</span>
     </button>
@@ -310,6 +311,59 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
       <div class="tw" style="padding:20px">
         <h3 style="margin-bottom:14px">&#128203; Historique des modifications</h3>
         <div id="hc"><div class="em">Aucune modification</div></div>
+      </div>
+    </div>
+
+    <!-- ONGLET SORTIES DE FLOTTE -->
+    <div id="t-sorties" style="display:none">
+      <div class="tw" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <h3 style="font-size:15px;font-weight:700">&#128663; Sorties de flotte</h3>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="fp-sorties" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #E2E8F0">
+              <option value="">Tous les pays</option>
+            </select>
+            <select id="fs-sorties" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #E2E8F0">
+              <option value="">Tous types</option>
+              <option value="Vendue">Vendues</option>
+              <option value="Réformée">Réformées</option>
+            </select>
+          </div>
+        </div>
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+          <div style="background:#FEF2F2;border-radius:10px;padding:14px;text-align:center;border:1px solid #FECACA">
+            <div style="font-size:22px;font-weight:700;color:#991B1B" id="sortie-count-total">0</div>
+            <div style="font-size:11px;color:#64748B;margin-top:2px">Total sorties</div>
+          </div>
+          <div style="background:#FFF7ED;border-radius:10px;padding:14px;text-align:center;border:1px solid #FED7AA">
+            <div style="font-size:22px;font-weight:700;color:#C2410C" id="sortie-count-vente">0</div>
+            <div style="font-size:11px;color:#64748B;margin-top:2px">Vendues</div>
+          </div>
+          <div style="background:#F1F5F9;border-radius:10px;padding:14px;text-align:center;border:1px solid #CBD5E1">
+            <div style="font-size:22px;font-weight:700;color:#475569" id="sortie-count-reforme">0</div>
+            <div style="font-size:11px;color:#64748B;margin-top:2px">Réformées</div>
+          </div>
+        </div>
+        <!-- Table -->
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:#0F172A;color:#fff">
+                <th style="padding:10px 8px;text-align:left">Code</th>
+                <th style="padding:10px 8px;text-align:left">Pays</th>
+                <th style="padding:10px 8px;text-align:left">Désignation</th>
+                <th style="padding:10px 8px;text-align:left">Marque</th>
+                <th style="padding:10px 8px;text-align:left">Type sortie</th>
+                <th style="padding:10px 8px;text-align:left">Date sortie</th>
+                <th style="padding:10px 8px;text-align:left">Motif</th>
+                <th style="padding:10px 8px;text-align:center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="sorties-tbody"></tbody>
+          </table>
+        </div>
+        <div id="sorties-empty" class="em" style="display:none">Aucune machine sortie de flotte</div>
       </div>
     </div>
 
@@ -502,6 +556,49 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     <button class="bn" style="background:var(--gr)" id="cancel-mod-sortie">Annuler</button>
     <button class="bn" style="background:#991B1B;color:#fff" id="btn-confirmer-sortie">
       &#9940; Confirmer la sortie de flotte
+    </button>
+  </div>
+</div></div>
+
+<!-- MODAL REINTEGRATION -->
+<div class="mo" id="mod-reintegration"><div class="md" style="max-width:440px">
+  <div class="mh" style="background:#064E3B;border-radius:10px 10px 0 0">
+    <div>
+      <h3 style="color:#fff;font-size:15px">&#10003; Réintégration dans la flotte</h3>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Corriger une sortie erronée</div>
+    </div>
+    <button class="mx" id="close-mod-reintegration" style="color:#fff">&#215;</button>
+  </div>
+  <div class="mb" style="padding:16px">
+    <input type="hidden" id="reint-machine-id">
+    <div style="background:#ECFDF5;border-radius:8px;padding:12px;margin-bottom:16px;border:1px solid #A7F3D0">
+      <div style="font-size:10px;font-weight:600;color:#065F46;text-transform:uppercase;margin-bottom:4px">Machine à réintégrer</div>
+      <div style="font-weight:700;font-size:14px;color:#0F172A" id="reint-machine-label"></div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px" id="reint-machine-info"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:600;color:#374151">Nouveau statut *</label>
+      <select id="reint-statut" style="margin-top:6px">
+        <option value="Fonctionnelle">Fonctionnelle</option>
+        <option value="Disponible">Disponible</option>
+        <option value="En panne">En panne</option>
+        <option value="En réparation">En réparation</option>
+        <option value="En Att. PDR">En Att. PDR</option>
+      </select>
+    </div>
+    <div class="fg fu">
+      <label style="font-size:11px;font-weight:600;color:#374151">Motif de réintégration</label>
+      <textarea id="reint-motif" rows="3" style="margin-top:6px"
+        placeholder="Ex: Annulation de la vente, erreur de saisie..."></textarea>
+    </div>
+    <div style="background:#FEF3C7;border-radius:8px;padding:10px 12px;margin-top:12px;border-left:3px solid #F59E0B;font-size:11px;color:#92400E">
+      &#9888; La machine sera réintégrée dans la flotte active et réapparaîtra dans toutes les vues.
+    </div>
+  </div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-reintegration">Annuler</button>
+    <button class="bn" style="background:#065F46;color:#fff" id="btn-confirmer-reintegration">
+      &#10003; Confirmer la réintégration
     </button>
   </div>
 </div></div>
@@ -3219,6 +3316,12 @@ function start(){
     document.getElementById('tdash').style.display='';
     document.getElementById('badd').style.display='';
     document.getElementById('filtre-pays-interv').style.display='flex';
+    document.getElementById('tab-sorties').style.display='';
+    // Peupler filtre pays sorties
+    var fpS = document.getElementById('fp-sorties');
+    Object.keys(PN).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=PN[k]; fpS.appendChild(o); });
+    document.getElementById('fp-sorties').addEventListener('change', affSorties);
+    document.getElementById('fs-sorties').addEventListener('change', affSorties);
   } else if(ses.ravitailleur){
     // Ravitailleur: Maintenance uniquement (saisie index)
     document.getElementById('tdash').style.display='none';
@@ -3379,7 +3482,7 @@ function start(){
 function goT(t, btn){
   document.querySelectorAll('.ta').forEach(function(x){ x.classList.remove('ac'); });
   if(btn) btn.classList.add('ac');
-  ['machines','interventions','historique','dashboard','alertes','maintenance'].forEach(function(x){
+  ['machines','interventions','historique','dashboard','alertes','maintenance','sorties'].forEach(function(x){
     const el = document.getElementById('t-'+x);
     if(el) el.style.display = x===t ? '' : 'none';
   });
@@ -3388,12 +3491,13 @@ function goT(t, btn){
   if(t==='alertes') afficherAlertes();
   if(t==='interventions') chargerInterventions();
   if(t==='maintenance') window.chargerMaintenance();
+  if(t==='sorties') affSorties();
 }
 
-['tab-machines','tab-interventions','tab-historique','tdash','tab-alertes','tab-maintenance'].forEach(function(id){
+['tab-machines','tab-interventions','tab-historique','tdash','tab-alertes','tab-maintenance','tab-sorties'].forEach(function(id){
   const el = document.getElementById(id);
   if(el){
-    const t = id.replace('tab-','').replace('tdash','dashboard').replace('tab-','');
+    const t = id.replace('tab-','').replace('tdash','dashboard');
     el.addEventListener('click', function(){ goT(t, el); });
   }
 });
@@ -3405,6 +3509,8 @@ function filt(){
   const f = document.getElementById('ff').value;
   const py = ses.admin ? document.getElementById('fp').value : ses.pays;
   fi = all.filter(function(m){
+    // Exclure les machines sorties de flotte du parc actif
+    if(m.statut==='Vendue'||m.statut==='Réformée') return false;
     const t = ((m.code_machine||'')+(m.marque||'')+(m.chantier||'')+(m.sous_famille||'')+(m.numero_serie||'')).toLowerCase();
     const statutOk = !s || statut_est(m.statut||'', s);
     return (!r||t.includes(r)) && statutOk && (!f||m.famille===f) && (!py||m.pays_id===py);
@@ -4222,6 +4328,102 @@ async function verifierAlertes(){
 }
 window.verifierAlertes = verifierAlertes;
 
+// ============================================================
+// SORTIES DE FLOTTE
+// ============================================================
+function affSorties(){
+  if(!ses||!ses.admin) return;
+  var py = document.getElementById('fp-sorties') ? document.getElementById('fp-sorties').value : '';
+  var ts = document.getElementById('fs-sorties') ? document.getElementById('fs-sorties').value : '';
+  var sorties = all.filter(function(m){
+    var isSortie = m.statut==='Vendue'||m.statut==='Réformée';
+    var pyOk = !py || m.pays_id===py;
+    var tsOk = !ts || m.statut===ts;
+    return isSortie && pyOk && tsOk;
+  });
+  sorties.sort(function(a,b){ return (b.date_sortie||'').localeCompare(a.date_sortie||''); });
+
+  // Stats
+  var total = all.filter(function(m){ return m.statut==='Vendue'||m.statut==='Réformée'; });
+  document.getElementById('sortie-count-total').textContent = total.length;
+  document.getElementById('sortie-count-vente').textContent = total.filter(function(m){ return m.statut==='Vendue'; }).length;
+  document.getElementById('sortie-count-reforme').textContent = total.filter(function(m){ return m.statut==='Réformée'; }).length;
+
+  var tbody = document.getElementById('sorties-tbody');
+  var empty = document.getElementById('sorties-empty');
+  if(!sorties.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  tbody.innerHTML = sorties.map(function(m,i){
+    var bg = i%2===0 ? '#F8FAFC' : '#fff';
+    var badge = m.statut==='Vendue'
+      ? '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600">&#128183; Vendue</span>'
+      : '<span style="background:#F1F5F9;color:#475569;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600">&#9940; Réformée</span>';
+    return '<tr style="background:'+bg+';border-bottom:1px solid #E2E8F0">'+
+      '<td style="padding:10px 8px;font-weight:700">'+( m.code_machine||'')+'</td>'+
+      '<td style="padding:10px 8px">'+(PN[m.pays_id]||m.pays_id||'')+'</td>'+
+      '<td style="padding:10px 8px">'+(m.sous_famille||m.famille||'')+'</td>'+
+      '<td style="padding:10px 8px">'+(m.marque||'')+'</td>'+
+      '<td style="padding:10px 8px">'+badge+'</td>'+
+      '<td style="padding:10px 8px;color:#64748B">'+(m.date_sortie||'—')+'</td>'+
+      '<td style="padding:10px 8px;color:#64748B;font-size:11px;max-width:180px">'+(m.detail_statut||'—')+'</td>'+
+      '<td style="padding:10px 8px;text-align:center">'+
+        '<button class="bn" data-reint="'+m.id+'" '+
+        'style="background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0;font-size:11px;padding:4px 10px;border-radius:6px">'+
+        '&#8617; Réintégrer</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+
+  // Listeners boutons réintégration
+  tbody.querySelectorAll('[data-reint]').forEach(function(btn){
+    btn.addEventListener('click', function(){ ouvrirReintegration(btn.dataset.reint); });
+  });
+}
+
+function ouvrirReintegration(machineId){
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m) return;
+  document.getElementById('reint-machine-id').value = machineId;
+  document.getElementById('reint-machine-label').textContent =
+    m.code_machine+' — '+(m.sous_famille||m.famille||'')+' '+(m.marque||'');
+  document.getElementById('reint-machine-info').textContent =
+    (PN[m.pays_id]||m.pays_id||'')+' · Sortie le '+(m.date_sortie||'?')+' ('+m.statut+')';
+  document.getElementById('reint-statut').value='Fonctionnelle';
+  document.getElementById('reint-motif').value='';
+  oM('mod-reintegration');
+}
+
+document.getElementById('close-mod-reintegration').addEventListener('click', function(){ cM('mod-reintegration'); });
+document.getElementById('cancel-mod-reintegration').addEventListener('click', function(){ cM('mod-reintegration'); });
+document.getElementById('btn-confirmer-reintegration').addEventListener('click', async function(){
+  var machineId = document.getElementById('reint-machine-id').value;
+  var statut = document.getElementById('reint-statut').value;
+  var motif = document.getElementById('reint-motif').value.trim();
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m) return;
+  try{
+    await updateDoc(doc(db,'machines',machineId),{
+      statut: statut,
+      date_sortie: null,
+      type_sortie: null,
+      detail_statut: motif||'Réintégré dans la flotte',
+      modifie_par: ses.user,
+      modifie_le: now()
+    });
+    await addDoc(collection(db,'historique'),{
+      machine_id:machineId, code_machine:m.code_machine, pays_id:m.pays_id,
+      ancien_statut:m.statut, nouveau_statut:statut,
+      detail_statut:motif||'Réintégration dans la flotte',
+      modifie_par:ses.user, modifie_le:now()
+    });
+    // Cache local
+    var mL = all.find(function(x){ return x.id===machineId; });
+    if(mL){ mL.statut=statut; mL.date_sortie=null; mL.type_sortie=null; }
+    cM('mod-reintegration');
+    toast('&#10003; Machine réintégrée dans la flotte active !','ok');
+    filt(); stat(); affSorties();
+  }catch(e){ toast('Erreur: '+e.message,'ko'); }
+});
+
 function afficherAlertes(){
   const cont=document.getElementById('alertes-content');
   const alertes=window._alertes||[];
@@ -4562,7 +4764,8 @@ window.chargerMaintenance = async function(){
   cont.innerHTML = '<div class="em">Chargement...</div>';
 
   // Charger depuis Firebase si all est vide
-  var source = (all && all.length > 0) ? all : [];
+  // Exclure les machines sorties de flotte de la maintenance
+  var source = (all && all.length > 0) ? all.filter(function(m){ return m.statut!=='Vendue'&&m.statut!=='Réformée'; }) : [];
   if(source.length === 0){
     try{
       cont.innerHTML = '<div class="em">Connexion Firebase en cours...</div>';
