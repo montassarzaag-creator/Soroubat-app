@@ -390,6 +390,55 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
         <textarea id="mdetail" rows="2" placeholder="Ex: Moteur HS, attente piece ref. XYZ..."></textarea></div>
       <div class="fg fu"><label>Commentaire</label><textarea id="mco"></textarea></div>
     </div>
+
+    <!-- SECTION SUIVI INDEX -->
+    <div style="margin-top:16px;border-top:2px solid #E2E8F0;padding-top:16px">
+      <div style="font-size:12px;font-weight:700;color:#0F172A;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+        &#128200; Suivi d'index &amp; positionnement dans le cycle
+      </div>
+
+      <!-- Type de suivi -->
+      <div class="fg" style="margin-bottom:12px">
+        <label>Type de suivi *</label>
+        <select id="msuivi">
+          <option value="">-- S&#233;lectionner --</option>
+          <option value="horaire">Horaire (compteur heures)</option>
+          <option value="km">Kilom&#233;trique</option>
+          <option value="aucun">Sans suivi d'index</option>
+        </select>
+        <small style="color:#64748B;margin-top:4px;display:block">D&#233;termine si la machine est suivie en heures, km, ou sans compteur</small>
+      </div>
+
+      <!-- Bloc positionnement (masqué si aucun) -->
+      <div id="madd-cycle-wrap" style="display:none">
+        <!-- Dernier index de vidange -->
+        <div class="fg" style="margin-bottom:12px">
+          <label>Dernier index de vidange effectu&#233;e *</label>
+          <input type="number" id="madd-index-vidange" min="0" step="1" placeholder="Ex: 2550">
+          <small id="madd-index-hint" style="color:#64748B;margin-top:4px;display:block">Index du compteur au moment de la derni&#232;re vidange</small>
+        </div>
+
+        <!-- Nature du dernier entretien -->
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Nature du dernier entretien r&#233;alis&#233; *</label>
+          <div id="madd-paliers-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+          <input type="hidden" id="madd-palier-val">
+          <input type="hidden" id="madd-palier-type">
+        </div>
+
+        <!-- Preview calcul -->
+        <div id="madd-preview" style="display:none;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;margin-top:4px">
+          <div style="font-size:10px;font-weight:600;color:#065F46;text-transform:uppercase;margin-bottom:6px">&#10003; Calcul automatique</div>
+          <div id="madd-preview-content"></div>
+        </div>
+      </div>
+
+      <!-- Message sans suivi -->
+      <div id="madd-nosuivi-msg" style="display:none;background:#F1F5F9;border-radius:8px;padding:10px 12px;font-size:12px;color:#64748B;border-left:3px solid #94A3B8">
+        &#8212; Cette machine ne sera pas suivie en maintenance pr&#233;ventive.
+      </div>
+    </div>
+
   </div>
   <div class="mf">
     <button class="bn" style="background:var(--gr)" id="cancel-mom">Annuler</button>
@@ -3516,6 +3565,17 @@ function openAdd(){
   document.getElementById('mpays').value='cotedivoire'; majCh('cotedivoire');
   document.getElementById('metat').value='neuf';
   document.getElementById('mindex-wrap').style.display='none';
+  // Reset section cycle
+  document.getElementById('msuivi').value='';
+  document.getElementById('madd-cycle-wrap').style.display='none';
+  document.getElementById('madd-nosuivi-msg').style.display='none';
+  document.getElementById('madd-index-vidange').value='';
+  document.getElementById('madd-palier-val').value='';
+  document.getElementById('madd-palier-type').value='';
+  document.getElementById('madd-paliers-list').innerHTML='';
+  document.getElementById('madd-preview').style.display='none';
+  window._maddProchainIndex=null; window._maddProchainType=null;
+  window._maddDernierIndexVidange=null; window._maddDernierType=null;
   oM('mom');
 }
 
@@ -3523,7 +3583,93 @@ function openAdd(){
 document.getElementById('metat').addEventListener('change', function(){
   document.getElementById('mindex-wrap').style.display = this.value==='occasion' ? 'block' : 'none';
   if(this.value==='neuf') document.getElementById('mindexinit').value='';
+  maddUpdateCyclePreview();
 });
+
+// Listener type de suivi
+document.getElementById('msuivi').addEventListener('change', function(){
+  var v = this.value;
+  var wrap = document.getElementById('madd-cycle-wrap');
+  var nosuivi = document.getElementById('madd-nosuivi-msg');
+  if(v===''){ wrap.style.display='none'; nosuivi.style.display='none'; return; }
+  if(v==='aucun'){ wrap.style.display='none'; nosuivi.style.display='block'; return; }
+  wrap.style.display='block'; nosuivi.style.display='none';
+  // Construire les paliers
+  var isH = v==='horaire';
+  var cycle = isH ? CYCLE_H : CYCLE_KM;
+  var unite = isH ? 'h' : 'km';
+  document.getElementById('madd-index-hint').textContent =
+    'Index du compteur (en '+unite+') au moment de la dernière vidange réalisée';
+  var container = document.getElementById('madd-paliers-list');
+  container.innerHTML = '';
+  document.getElementById('madd-palier-val').value = '';
+  document.getElementById('madd-palier-type').value = '';
+  document.getElementById('madd-preview').style.display = 'none';
+  cycle.forEach(function(e){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'bn';
+    btn.style.cssText = 'text-align:left;padding:8px 10px;border:1.5px solid #E2E8F0;background:#F8FAFC;border-radius:8px;cursor:pointer;transition:all .15s';
+    btn.innerHTML =
+      '<div style="font-weight:700;font-size:12px;color:#0F172A">'+e.palier.toLocaleString('fr-FR')+' '+unite+'</div>'+
+      '<div style="font-size:10px;color:#64748B;margin-top:2px">'+e.type+'</div>';
+    btn.addEventListener('click', function(){
+      container.querySelectorAll('button').forEach(function(b){
+        b.style.borderColor='#E2E8F0'; b.style.background='#F8FAFC';
+      });
+      btn.style.borderColor='#0369A1'; btn.style.background='#EFF6FF';
+      document.getElementById('madd-palier-val').value = e.palier;
+      document.getElementById('madd-palier-type').value = e.type;
+      maddUpdateCyclePreview();
+    });
+    container.appendChild(btn);
+  });
+});
+
+// Listener index vidange
+document.getElementById('madd-index-vidange').addEventListener('input', maddUpdateCyclePreview);
+
+function maddUpdateCyclePreview(){
+  var suivi = document.getElementById('msuivi').value;
+  var palierVal = parseFloat(document.getElementById('madd-palier-val').value);
+  var palierType = document.getElementById('madd-palier-type').value;
+  var indexVidange = parseFloat(document.getElementById('madd-index-vidange').value);
+  var preview = document.getElementById('madd-preview');
+  var previewContent = document.getElementById('madd-preview-content');
+  if(!suivi||suivi==='aucun'||isNaN(palierVal)||isNaN(indexVidange)||indexVidange<=0){
+    preview.style.display='none'; return;
+  }
+  var isH = suivi==='horaire';
+  var cycle = isH ? CYCLE_H : CYCLE_KM;
+  var unite = isH ? 'h' : 'km';
+  var intervalle = isH ? INTERVALLE_H : INTERVALLE_KM;
+  // Prochain index vidange
+  var prochainIndex = indexVidange + intervalle;
+  // Prochain palier dans le cycle
+  var idxCur = cycle.findIndex(function(e){ return e.palier===palierVal; });
+  var idxNext = (idxCur+1) % cycle.length;
+  var prochainPalier = cycle[idxNext];
+  // Index actuel machine (pour restant)
+  var etat = document.getElementById('metat').value;
+  var indexActuel = etat==='occasion' ? parseFloat(document.getElementById('mindexinit').value||0) : 0;
+  var restant = prochainIndex - indexActuel;
+  previewContent.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:6px">'+
+    '<div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#64748B">Dernière vidange</span><strong>'+indexVidange.toLocaleString('fr-FR')+' '+unite+'</strong></div>'+
+    '<div style="display:flex;justify-content:space-between;background:#EFF6FF;padding:6px 8px;border-radius:6px"><span style="font-size:11px;color:#1E40AF;font-weight:600">Prochain index vidange</span><strong style="color:#0369A1">'+prochainIndex.toLocaleString('fr-FR')+' '+unite+'</strong></div>'+
+    '<div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#64748B">Nature du prochain entretien</span><strong style="color:#0369A1">'+prochainPalier.type+'</strong></div>'+
+    (indexActuel>0 ?
+      '<div style="display:flex;justify-content:space-between;border-top:1px solid #BBF7D0;padding-top:6px"><span style="font-size:11px;color:#64748B">Restant</span><strong style="color:'+(restant>0?'#16A34A':'#DC2626')+'">'+
+      (restant>0?restant.toLocaleString('fr-FR')+' '+unite:'EN RETARD de '+Math.abs(restant).toLocaleString('fr-FR')+' '+unite)+
+      '</strong></div>' : '')+
+    '</div>';
+  preview.style.display='block';
+  // Sauvegarder pour sauver()
+  window._maddProchainIndex = prochainIndex;
+  window._maddProchainType = prochainPalier.type;
+  window._maddDernierIndexVidange = indexVidange;
+  window._maddDernierType = palierType;
+}
 
 function edt(id){
   const m=all.find(function(x){ return x.id===id; }); if(!m)return;
@@ -3565,7 +3711,45 @@ async function sauver(){
   const detail=document.getElementById('mdetail').value.trim();
   var etat = document.getElementById('metat') ? document.getElementById('metat').value : 'neuf';
   var indexInit = etat==='occasion' ? parseFloat(document.getElementById('mindexinit').value||0) : 0;
-  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',detail_statut:detail||'',etat_acquisition:etat,index_initial:indexInit,index_exploitation:indexInit,modifie_par:ses.user,modifie_le:now()};
+  var suivi = document.getElementById('msuivi') ? document.getElementById('msuivi').value : '';
+  // Cycle data from the positionnement section
+  var dernierIndexVidange = window._maddDernierIndexVidange || null;
+  var dernierType = window._maddDernierType || null;
+  var prochainIndex = window._maddProchainIndex || null;
+  var prochainType = window._maddProchainType || null;
+  // For neuf: cycle starts at 0, prochain = 250h or 5000km
+  if(suivi && suivi !== 'aucun' && !dernierIndexVidange) {
+    var isH = suivi === 'horaire';
+    prochainIndex = isH ? INTERVALLE_H : INTERVALLE_KM;
+    prochainType = isH ? CYCLE_H[0].type : CYCLE_KM[0].type;
+    dernierIndexVidange = 0;
+    dernierType = null;
+  }
+  const mc={
+    pays_id:pid, code_machine:code,
+    famille:document.getElementById('mf').value||'',
+    sous_famille:document.getElementById('msf').value||'',
+    marque:mq||'',
+    modele:document.getElementById('mmo').value||'',
+    numero_serie:document.getElementById('mse').value||'',
+    immatriculation:document.getElementById('mim').value||'',
+    annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,
+    statut:stat, chantier:ch||'',
+    commentaire:document.getElementById('mco').value||'',
+    detail_statut:detail||'',
+    etat_acquisition:etat,
+    index_initial:indexInit,
+    index_exploitation:indexInit,
+    index_type: suivi||'',
+    // Cycle positionnement
+    index_dernier_entretien: dernierIndexVidange,
+    dernier_entretien_type: dernierType,
+    date_dernier_entretien: dernierIndexVidange !== null ? now() : null,
+    prochain_entretien: prochainIndex,
+    prochain_type: prochainType,
+    echeance_modifiee: false,
+    modifie_par:ses.user, modifie_le:now()
+  };
   try{
     if(eid){
       const old=all.find(function(m){ return m.id===eid; });
