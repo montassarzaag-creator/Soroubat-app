@@ -368,6 +368,15 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
       <div class="fg"><label>N&#176; serie</label><input type="text" id="mse"></div>
       <div class="fg"><label>Immatriculation</label><input type="text" id="mim"></div>
       <div class="fg"><label>Ann&#233;e</label><input type="number" id="man" min="1980" max="2030"></div>
+      <div class="fg"><label>&#201;tat lors de l'acquisition</label>
+        <select id="metat">
+          <option value="neuf">Neuf (index 0)</option>
+          <option value="occasion">D'occasion (index connu)</option>
+        </select></div>
+      <div class="fg" id="mindex-wrap" style="display:none">
+        <label>Index initial (h ou km) *</label>
+        <input type="number" id="mindexinit" min="0" step="1" placeholder="Ex: 2550">
+      </div>
       <div class="fg"><label>Statut</label>
         <select id="mst">
           <option>Fonctionnelle</option><option>Disponible</option><option>En panne</option>
@@ -385,6 +394,66 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
   <div class="mf">
     <button class="bn" style="background:var(--gr)" id="cancel-mom">Annuler</button>
     <button class="bn bp" id="btn-sauver">&#128190; Enregistrer</button>
+  </div>
+</div></div>
+
+<!-- MODAL VENTE / REFORME -->
+<div class="mo" id="mod-sortie"><div class="md" style="max-width:480px">
+  <div class="mh" style="background:#7F1D1D;border-radius:10px 10px 0 0">
+    <div>
+      <h3 style="color:#fff;font-size:15px">&#128663; Sortie de flotte</h3>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Vente ou mise en r&#233;forme</div>
+    </div>
+    <button class="mx" id="close-mod-sortie" style="color:#fff">&#215;</button>
+  </div>
+  <div class="mb" style="padding:16px">
+    <input type="hidden" id="sortie-machine-id">
+    <!-- Info machine -->
+    <div style="background:#FEF2F2;border-radius:8px;padding:12px;margin-bottom:16px;border:1px solid #FECACA">
+      <div style="font-size:10px;font-weight:600;color:#991B1B;text-transform:uppercase;margin-bottom:4px">Machine concern&#233;e</div>
+      <div style="font-weight:700;font-size:14px;color:#0F172A" id="sortie-machine-label"></div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px" id="sortie-machine-info"></div>
+    </div>
+    <!-- Type de sortie -->
+    <div style="margin-bottom:16px">
+      <label style="font-size:11px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Type de sortie *</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button id="btn-sortie-vente" class="bn" onclick="selSortie('Vendue')"
+          style="padding:14px 10px;border:2px solid #E2E8F0;background:#F8FAFC;border-radius:10px;cursor:pointer;text-align:center">
+          <div style="font-size:18px">&#128183;</div>
+          <div style="font-weight:700;font-size:13px;color:#0F172A;margin-top:4px">Vendue</div>
+          <div style="font-size:10px;color:#64748B;margin-top:2px">Machine c&#233;d&#233;e &#224; un tiers</div>
+        </button>
+        <button id="btn-sortie-reforme" class="bn" onclick="selSortie('Reformatée')"
+          style="padding:14px 10px;border:2px solid #E2E8F0;background:#F8FAFC;border-radius:10px;cursor:pointer;text-align:center">
+          <div style="font-size:18px">&#9940;</div>
+          <div style="font-weight:700;font-size:13px;color:#0F172A;margin-top:4px">Mise en r&#233;forme</div>
+          <div style="font-size:10px;color:#64748B;margin-top:2px">Fin de vie op&#233;rationnelle</div>
+        </button>
+      </div>
+      <input type="hidden" id="sortie-type">
+    </div>
+    <!-- Date de sortie -->
+    <div class="fg" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:600;color:#374151">Date de sortie *</label>
+      <input type="date" id="sortie-date" style="margin-top:6px">
+    </div>
+    <!-- Motif -->
+    <div class="fg fu">
+      <label style="font-size:11px;font-weight:600;color:#374151">Motif / Observations</label>
+      <textarea id="sortie-motif" rows="3" style="margin-top:6px"
+        placeholder="Ex: Vendu &#224; [Acheteur] pour [Prix] FCFA&#10;ou : Machine hors d'usage, co&#251;t de r&#233;paration &#233;lev&#233;..."></textarea>
+    </div>
+    <!-- Avertissement -->
+    <div style="background:#FEF3C7;border-radius:8px;padding:10px 12px;margin-top:12px;border-left:3px solid #F59E0B;font-size:11px;color:#92400E">
+      &#9888; La machine restera dans l'historique mais sera marqu&#233;e comme sortie de flotte et n'appara&#238;tra plus dans les vues actives.
+    </div>
+  </div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-sortie">Annuler</button>
+    <button class="bn" style="background:#991B1B;color:#fff" id="btn-confirmer-sortie">
+      &#9940; Confirmer la sortie de flotte
+    </button>
   </div>
 </div></div>
 
@@ -3320,7 +3389,8 @@ function ren(){
     const detail = m.detail_statut||'';
     const detailCourt = detail.length>30 ? detail.slice(0,30)+'...' : detail;
     const ab = ses.admin
-      ? '<button class="bn bs bp" data-edt="'+m.id+'" style="background:#E8F0FB;color:var(--bl);margin-right:3px">&#9998;</button><button class="bn bs bd" data-del="'+m.id+'">&#128465;</button>'
+      ? '<button class="bn bs bp" data-edt="'+m.id+'" style="background:#E8F0FB;color:var(--bl);margin-right:3px" title="Modifier">&#9998;</button>'+
+        '<button class="bn bs" data-sortie="'+m.id+'" style="background:#FEF2F2;color:#991B1B;border:1px solid #FECACA" title="Vente / R&#233;forme">&#9940;</button>'
       : '<button class="bn bs" data-detail="'+m.id+'" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B">&#128203; Detail</button>';
     // Bouton index
     return '<tr><td><strong>'+(m.code_machine||'')+'</strong></td>'+pc+'<td>'+(m.famille||'-')+'<br><small style="color:var(--t2)">'+(m.sous_famille||'')+'</small></td><td>'+(m.marque||'-')+'</td><td>'+badge(m.statut)+'</td><td style="font-size:12px;max-width:160px" title="'+detail+'">'+( detailCourt||'<span style="color:var(--t2)">&#8212;</span>' )+'</td><td>'+(m.chantier||'-')+'</td><td style="font-size:11px;color:var(--t2)">'+(m.numero_serie||'-')+'</td><td style="white-space:nowrap"><button class="bn bs bp" data-det="'+m.id+'" style="margin-right:3px">&#128065;</button><button class="bn bs" data-interv="'+m.id+'" style="background:#F59E0B;color:#fff;margin-right:3px">&#128295;</button>'+ab+'</td></tr>';
@@ -3329,6 +3399,7 @@ function ren(){
   tb.querySelectorAll('[data-det]').forEach(function(btn){ btn.addEventListener('click',function(){ det(btn.dataset.det); }); });
   tb.querySelectorAll('[data-edt]').forEach(function(btn){ btn.addEventListener('click',function(){ edt(btn.dataset.edt); }); });
   tb.querySelectorAll('[data-del]').forEach(function(btn){ btn.addEventListener('click',function(){ del(btn.dataset.del); }); });
+  tb.querySelectorAll('[data-sortie]').forEach(function(btn){ btn.addEventListener('click',function(){ ouvrirSortie(btn.dataset.sortie); }); });
   tb.querySelectorAll('[data-detail]').forEach(function(btn){ btn.addEventListener('click',function(){ saisirDetail(btn.dataset.detail); }); });
   tb.querySelectorAll('[data-interv]').forEach(function(btn){ btn.addEventListener('click',function(){ nouvelleIntervention(btn.dataset.interv); }); });
 
@@ -3438,13 +3509,21 @@ document.getElementById('mmq').addEventListener('change', function(){ const v=th
 function openAdd(){
   document.getElementById('mtit').textContent='Ajouter une machine';
   document.getElementById('eid').value='';
-  ['mc','msf','mmo','mse','mim','mct','mmqt','mco','mdetail'].forEach(function(i){ document.getElementById(i).value=''; });
+  ['mc','msf','mmo','mse','mim','mct','mmqt','mco','mdetail','mindexinit'].forEach(function(i){ document.getElementById(i).value=''; });
   document.getElementById('mmqt').style.display='none'; document.getElementById('mct').style.display='none';
   document.getElementById('mf').value=''; document.getElementById('mmq').value='';
   document.getElementById('mst').value='Fonctionnelle'; document.getElementById('man').value='';
   document.getElementById('mpays').value='cotedivoire'; majCh('cotedivoire');
+  document.getElementById('metat').value='neuf';
+  document.getElementById('mindex-wrap').style.display='none';
   oM('mom');
 }
+
+// Listener etat neuf/occasion
+document.getElementById('metat').addEventListener('change', function(){
+  document.getElementById('mindex-wrap').style.display = this.value==='occasion' ? 'block' : 'none';
+  if(this.value==='neuf') document.getElementById('mindexinit').value='';
+});
 
 function edt(id){
   const m=all.find(function(x){ return x.id===id; }); if(!m)return;
@@ -3469,6 +3548,9 @@ function edt(id){
   const sites=CH[m.pays_id]||[];
   if(m.chantier&&sites.includes(m.chantier)){ document.getElementById('mcs').value=m.chantier; document.getElementById('mct').style.display='none'; }
   else if(m.chantier){ document.getElementById('mcs').value='X'; document.getElementById('mct').value=m.chantier; document.getElementById('mct').style.display='block'; }
+  // Champs acquisition — masqués en mode modification
+  if(document.getElementById('metat')) document.getElementById('metat').value = m.etat_acquisition||'neuf';
+  if(document.getElementById('mindex-wrap')) document.getElementById('mindex-wrap').style.display='none';
   oM('mom');
 }
 
@@ -3481,7 +3563,9 @@ async function sauver(){
   const cs=document.getElementById('mcs').value;
   const ch=cs==='X'?document.getElementById('mct').value.trim():cs;
   const detail=document.getElementById('mdetail').value.trim();
-  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',detail_statut:detail||'',modifie_par:ses.user,modifie_le:now()};
+  var etat = document.getElementById('metat') ? document.getElementById('metat').value : 'neuf';
+  var indexInit = etat==='occasion' ? parseFloat(document.getElementById('mindexinit').value||0) : 0;
+  const mc={pays_id:pid,code_machine:code,famille:document.getElementById('mf').value||'',sous_famille:document.getElementById('msf').value||'',marque:mq||'',modele:document.getElementById('mmo').value||'',numero_serie:document.getElementById('mse').value||'',immatriculation:document.getElementById('mim').value||'',annee_fabrication:document.getElementById('man').value?parseInt(document.getElementById('man').value):null,statut:stat,chantier:ch||'',commentaire:document.getElementById('mco').value||'',detail_statut:detail||'',etat_acquisition:etat,index_initial:indexInit,index_exploitation:indexInit,modifie_par:ses.user,modifie_le:now()};
   try{
     if(eid){
       const old=all.find(function(m){ return m.id===eid; });
@@ -3506,6 +3590,80 @@ async function del(id){
   try{ await deleteDoc(doc(db,'machines',id)); toast('Supprimee','ok'); }
   catch(e){ toast('Erreur','ko'); }
 }
+
+// ── SORTIE DE FLOTTE ──────────────────────────────────────────────────────
+function selSortie(type){
+  document.getElementById('sortie-type').value = type;
+  var btnV = document.getElementById('btn-sortie-vente');
+  var btnR = document.getElementById('btn-sortie-reforme');
+  if(type === 'Vendue'){
+    btnV.style.borderColor='#991B1B'; btnV.style.background='#FEF2F2';
+    btnR.style.borderColor='#E2E8F0'; btnR.style.background='#F8FAFC';
+  } else {
+    btnR.style.borderColor='#991B1B'; btnR.style.background='#FEF2F2';
+    btnV.style.borderColor='#E2E8F0'; btnV.style.background='#F8FAFC';
+  }
+}
+
+function ouvrirSortie(machineId){
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m) return;
+  // Vérifier que la machine n'est pas déjà sortie
+  if(m.statut==='Vendue'||m.statut==='Réformée'){
+    toast('Cette machine est déjà sortie de flotte','ko'); return;
+  }
+  document.getElementById('sortie-machine-id').value = machineId;
+  document.getElementById('sortie-machine-label').textContent =
+    m.code_machine + ' — ' + (m.sous_famille||m.famille||'') + ' ' + (m.marque||'');
+  document.getElementById('sortie-machine-info').textContent =
+    (PN[m.pays_id]||m.pays_id||'') + ' · ' + (m.chantier||'Sans chantier') +
+    (m.numero_serie ? ' · N° ' + m.numero_serie : '');
+  document.getElementById('sortie-type').value = '';
+  document.getElementById('sortie-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sortie-motif').value = '';
+  // Reset boutons
+  ['btn-sortie-vente','btn-sortie-reforme'].forEach(function(id){
+    document.getElementById(id).style.borderColor='#E2E8F0';
+    document.getElementById(id).style.background='#F8FAFC';
+  });
+  oM('mod-sortie');
+}
+
+document.getElementById('close-mod-sortie').addEventListener('click', function(){ cM('mod-sortie'); });
+document.getElementById('cancel-mod-sortie').addEventListener('click', function(){ cM('mod-sortie'); });
+document.getElementById('btn-confirmer-sortie').addEventListener('click', async function(){
+  var machineId = document.getElementById('sortie-machine-id').value;
+  var type = document.getElementById('sortie-type').value;
+  var date = document.getElementById('sortie-date').value;
+  var motif = document.getElementById('sortie-motif').value.trim();
+  if(!type){ toast('Sélectionnez le type de sortie','ko'); return; }
+  if(!date){ toast('Saisissez la date de sortie','ko'); return; }
+  var m = all.find(function(x){ return x.id===machineId; }); if(!m) return;
+  try{
+    var statutFinal = type === 'Vendue' ? 'Vendue' : 'Réformée';
+    await setDoc(doc(db,'machines',machineId), Object.assign({}, m, {
+      statut: statutFinal,
+      detail_statut: motif || (type==='Vendue' ? 'Machine vendue le '+date : 'Mise en réforme le '+date),
+      date_sortie: date,
+      type_sortie: type,
+      modifie_par: ses.user,
+      modifie_le: now()
+    }));
+    await addDoc(collection(db,'historique'),{
+      machine_id: machineId,
+      code_machine: m.code_machine,
+      pays_id: m.pays_id,
+      ancien_statut: m.statut,
+      nouveau_statut: statutFinal,
+      detail_statut: motif,
+      type_sortie: type,
+      date_sortie: date,
+      modifie_par: ses.user,
+      modifie_le: now()
+    });
+    cM('mod-sortie');
+    toast((type==='Vendue'?'Machine vendue':'Machine réformée')+' — archivée dans l\'historique','ok');
+  }catch(e){ toast('Erreur: '+e.message,'ko'); }
+});
 
 // FICHE DETAIL
 async function det(id){
