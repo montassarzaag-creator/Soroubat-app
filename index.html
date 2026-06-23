@@ -467,13 +467,13 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     <div style="margin-bottom:16px">
       <label style="font-size:11px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Type de sortie *</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button id="btn-sortie-vente" class="bn" onclick="selSortie('Vendue')"
+        <button id="btn-sortie-vente" class="bn" type="button"
           style="padding:14px 10px;border:2px solid #E2E8F0;background:#F8FAFC;border-radius:10px;cursor:pointer;text-align:center">
           <div style="font-size:18px">&#128183;</div>
           <div style="font-weight:700;font-size:13px;color:#0F172A;margin-top:4px">Vendue</div>
           <div style="font-size:10px;color:#64748B;margin-top:2px">Machine c&#233;d&#233;e &#224; un tiers</div>
         </button>
-        <button id="btn-sortie-reforme" class="bn" onclick="selSortie('Reformatée')"
+        <button id="btn-sortie-reforme" class="bn" type="button"
           style="padding:14px 10px;border:2px solid #E2E8F0;background:#F8FAFC;border-radius:10px;cursor:pointer;text-align:center">
           <div style="font-size:18px">&#9940;</div>
           <div style="font-weight:700;font-size:13px;color:#0F172A;margin-top:4px">Mise en r&#233;forme</div>
@@ -3814,6 +3814,8 @@ function ouvrirSortie(machineId){
 
 document.getElementById('close-mod-sortie').addEventListener('click', function(){ cM('mod-sortie'); });
 document.getElementById('cancel-mod-sortie').addEventListener('click', function(){ cM('mod-sortie'); });
+document.getElementById('btn-sortie-vente').addEventListener('click', function(){ selSortie('Vendue'); });
+document.getElementById('btn-sortie-reforme').addEventListener('click', function(){ selSortie('Réformée'); });
 document.getElementById('btn-confirmer-sortie').addEventListener('click', async function(){
   var machineId = document.getElementById('sortie-machine-id').value;
   var type = document.getElementById('sortie-type').value;
@@ -4478,8 +4480,13 @@ async function confirmerEntretien(){
   try{
     // Calculer le VRAI prochain entretien du cycle
     var prochainObj = typeIdx ? getProchainEntretien(indexSaisi, typeIdx) : null;
+    // L'index actuel est mis à jour avec l'index auquel l'entretien a été réalisé
+    var nouvelIndexExploitation = Math.max(indexSaisi, indexActuelAvant);
     await updateDoc(doc(db,'machines',machineId),{
       index_dernier_entretien: indexSaisi,
+      index_exploitation: nouvelIndexExploitation,
+      index_type: typeIdx ? typeIdx.index : '',
+      index_date: now(),
       date_dernier_entretien: now(),
       prochain_entretien: prochainObj ? prochainObj.echeanceAbs : null,
       prochain_type: prochainObj ? prochainObj.type : null,
@@ -4500,6 +4507,9 @@ async function confirmerEntretien(){
     // Mettre à jour le cache local immédiatement
     var mLocal3 = all.find(function(x){ return x.id===machineId; });
     if(mLocal3){
+      mLocal3.index_exploitation = nouvelIndexExploitation;
+      mLocal3.index_type = typeIdx ? typeIdx.index : '';
+      mLocal3.index_date = now();
       mLocal3.index_dernier_entretien = indexSaisi;
       mLocal3.date_dernier_entretien = now();
       mLocal3.prochain_entretien = prochainObj ? prochainObj.echeanceAbs : null;
