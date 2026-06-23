@@ -3510,7 +3510,7 @@ function filt(){
   const py = ses.admin ? document.getElementById('fp').value : ses.pays;
   fi = all.filter(function(m){
     // Exclure les machines sorties de flotte du parc actif
-    if(m.statut==='Vendue'||m.statut==='Réformée') return false;
+    if(estSortieFlotte(m)) return false;
     const t = ((m.code_machine||'')+(m.marque||'')+(m.chantier||'')+(m.sous_famille||'')+(m.numero_serie||'')).toLowerCase();
     const statutOk = !s || statut_est(m.statut||'', s);
     return (!r||t.includes(r)) && statutOk && (!f||m.famille===f) && (!py||m.pays_id===py);
@@ -3581,6 +3581,22 @@ function statut_est(s, cible){
   const cibleNorm = cible.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   return norm === cibleNorm;
 }
+
+// Vérifie si une machine est sortie de flotte (vendue ou réformée sous toutes variantes)
+function estSortieFlotte(m){
+  if(!m||!m.statut) return false;
+  var s = m.statut.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return s==='vendue' || s==='reforme' || s==='reformee' || s==='reformee' || s==='en reforme' || s==='mise en reforme';
+}
+function estVendue(m){
+  if(!m||!m.statut) return false;
+  return m.statut.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') === 'vendue';
+}
+function estReforme(m){
+  if(!m||!m.statut) return false;
+  var s = m.statut.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return s==='reforme' || s==='reformee' || s==='en reforme' || s==='mise en reforme';
+}
 function stat(){
   // Source complète selon le pays (sans filtre statut)
   var allSrc = ses && ses.admin ? all : all.filter(function(m){ return m.pays_id===ses.pays; });
@@ -3588,10 +3604,10 @@ function stat(){
   var py = ses.admin ? document.getElementById('fp').value : ses.pays;
   var srcAll = py ? allSrc.filter(function(m){ return m.pays_id===py; }) : allSrc;
   // Compter réformées et vendues depuis la source complète
-  var ref = srcAll.filter(function(m){ return m.statut==='Réformée'; }).length;
-  var ven = srcAll.filter(function(m){ return m.statut==='Vendue'; }).length;
+  var ref = srcAll.filter(function(m){ return estReforme(m); }).length;
+  var ven = srcAll.filter(function(m){ return estVendue(m); }).length;
   // Source active = sans réformées ni vendues (= ce que fi contient)
-  const src = fi.length ? fi : srcAll.filter(function(m){ return m.statut!=='Vendue'&&m.statut!=='Réformée'; });
+  const src = fi.length ? fi : srcAll.filter(function(m){ return !estSortieFlotte(m); });
   let fonc=0,dispo=0,pa=0,rep=0,pdr=0,tra=0;
   src.forEach(function(m){
     const s=m.statut||'';
@@ -3907,7 +3923,7 @@ function selSortie(type){
 function ouvrirSortie(machineId){
   var m = all.find(function(x){ return x.id===machineId; }); if(!m) return;
   // Vérifier que la machine n'est pas déjà sortie
-  if(m.statut==='Vendue'||m.statut==='Réformée'){
+  if(estSortieFlotte(m)){
     toast('Cette machine est déjà sortie de flotte','ko'); return;
   }
   document.getElementById('sortie-machine-id').value = machineId;
@@ -4345,7 +4361,7 @@ function affSorties(){
   var py = document.getElementById('fp-sorties') ? document.getElementById('fp-sorties').value : '';
   var ts = document.getElementById('fs-sorties') ? document.getElementById('fs-sorties').value : '';
   var sorties = all.filter(function(m){
-    var isSortie = m.statut==='Vendue'||m.statut==='Réformée';
+    var isSortie = estSortieFlotte(m);
     var pyOk = !py || m.pays_id===py;
     var tsOk = !ts || m.statut===ts;
     return isSortie && pyOk && tsOk;
@@ -4353,10 +4369,10 @@ function affSorties(){
   sorties.sort(function(a,b){ return (b.date_sortie||'').localeCompare(a.date_sortie||''); });
 
   // Stats
-  var total = all.filter(function(m){ return m.statut==='Vendue'||m.statut==='Réformée'; });
+  var total = all.filter(function(m){ return estSortieFlotte(m); });
   document.getElementById('sortie-count-total').textContent = total.length;
-  document.getElementById('sortie-count-vente').textContent = total.filter(function(m){ return m.statut==='Vendue'; }).length;
-  document.getElementById('sortie-count-reforme').textContent = total.filter(function(m){ return m.statut==='Réformée'; }).length;
+  document.getElementById('sortie-count-vente').textContent = total.filter(function(m){ return estVendue(m); }).length;
+  document.getElementById('sortie-count-reforme').textContent = total.filter(function(m){ return estReforme(m); }).length;
 
   var tbody = document.getElementById('sorties-tbody');
   var empty = document.getElementById('sorties-empty');
@@ -4365,7 +4381,7 @@ function affSorties(){
 
   tbody.innerHTML = sorties.map(function(m,i){
     var bg = i%2===0 ? '#F8FAFC' : '#fff';
-    var badge = m.statut==='Vendue'
+    var badge = estVendue(m)
       ? '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600">&#128183; Vendue</span>'
       : '<span style="background:#F1F5F9;color:#475569;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600">&#9940; Réformée</span>';
     return '<tr style="background:'+bg+';border-bottom:1px solid #E2E8F0">'+
@@ -4774,7 +4790,7 @@ window.chargerMaintenance = async function(){
 
   // Charger depuis Firebase si all est vide
   // Exclure les machines sorties de flotte de la maintenance
-  var source = (all && all.length > 0) ? all.filter(function(m){ return m.statut!=='Vendue'&&m.statut!=='Réformée'; }) : [];
+  var source = (all && all.length > 0) ? all.filter(function(m){ return !estSortieFlotte(m); }) : [];
   if(source.length === 0){
     try{
       cont.innerHTML = '<div class="em">Connexion Firebase en cours...</div>';
