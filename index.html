@@ -3582,8 +3582,17 @@ function statut_est(s, cible){
   return norm === cibleNorm;
 }
 function stat(){
-  const src = fi.length ? fi : all.filter(function(m){ return m.statut!=='Vendue'&&m.statut!=='Réformée'; });
-  let fonc=0,dispo=0,pa=0,rep=0,pdr=0,ref=0,tra=0,ven=0;
+  // Source complète selon le pays (sans filtre statut)
+  var allSrc = ses && ses.admin ? all : all.filter(function(m){ return m.pays_id===ses.pays; });
+  // Filtre pays actif (depuis filt)
+  var py = ses.admin ? document.getElementById('fp').value : ses.pays;
+  var srcAll = py ? allSrc.filter(function(m){ return m.pays_id===py; }) : allSrc;
+  // Compter réformées et vendues depuis la source complète
+  var ref = srcAll.filter(function(m){ return m.statut==='Réformée'; }).length;
+  var ven = srcAll.filter(function(m){ return m.statut==='Vendue'; }).length;
+  // Source active = sans réformées ni vendues (= ce que fi contient)
+  const src = fi.length ? fi : srcAll.filter(function(m){ return m.statut!=='Vendue'&&m.statut!=='Réformée'; });
+  let fonc=0,dispo=0,pa=0,rep=0,pdr=0,tra=0;
   src.forEach(function(m){
     const s=m.statut||'';
     if(statut_est(s,'Fonctionnelle'))fonc++;
@@ -3591,14 +3600,9 @@ function stat(){
     else if(statut_est(s,'En panne'))pa++;
     else if(statut_est(s,'En reparation'))rep++;
     else if(statut_est(s,'En Att. PDR'))pdr++;
-    else if(statut_est(s,'Reforme'))ref++;
     else if(statut_est(s,'Transfere'))tra++;
   });
-  // Compter vendues et réformées depuis all (exclues de fi)
-  var allSrc = ses && ses.admin ? all : all.filter(function(m){ return m.pays_id===ses.pays; });
-  ven = allSrc.filter(function(m){ return m.statut==='Vendue'; }).length;
-  ref = allSrc.filter(function(m){ return m.statut==='Réformée'; }).length;
-  const t=allSrc.length, parc=t-ref-ven;
+  const t=srcAll.length, parc=t-ref-ven;
   const tx_dispo=pct(fonc+dispo+tra,parc), tx_panne=pct(pa+rep+pdr,parc);
   // Mettre &agrave; jour le bandeau directement depuis les stats
   const nbPanneLocal = src.filter(function(m){ return statut_est(m.statut||'','En panne'); }).length;
