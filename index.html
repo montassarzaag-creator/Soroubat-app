@@ -313,7 +313,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <h3 style="font-size:15px;font-weight:700">&#128203; Historique des interventions</h3>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <select id="hf-pays" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0">
+            <select id="hf-pays" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0;display:none">
               <option value="">Tous les pays</option>
             </select>
             <input type="text" id="hf-machine" placeholder="Code machine..." style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0;width:130px">
@@ -4381,12 +4381,17 @@ function affH(){
   if(empty) empty.style.display='none';
   tbody.innerHTML='';
 
-  // Peupler filtre pays
+  // Filtre pays : visible admin seulement, fixé au pays pour les autres
   var fpH = document.getElementById('hf-pays');
-  if(fpH && fpH.options.length<=1){
-    Object.keys(PN).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=PN[k]; fpH.appendChild(o); });
+  if(ses.admin){
+    if(fpH) fpH.style.display = '';
+    if(fpH && fpH.options.length<=1){
+      Object.keys(PN).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=PN[k]; fpH.appendChild(o); });
+    }
+  } else {
+    if(fpH) fpH.style.display = 'none';
   }
-  var py = fpH ? fpH.value : '';
+  var py = ses.admin ? (fpH ? fpH.value : '') : ses.pays;
   var machineF = document.getElementById('hf-machine') ? document.getElementById('hf-machine').value.trim().toLowerCase() : '';
   var statutF = document.getElementById('hf-statut') ? document.getElementById('hf-statut').value : '';
   var dateDebut = document.getElementById('hf-date-debut') ? document.getElementById('hf-date-debut').value : '';
