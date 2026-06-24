@@ -309,8 +309,49 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     <!-- ONGLET HISTORIQUE -->
     <div id="t-historique" style="display:none">
       <div class="tw" style="padding:20px">
-        <h3 style="margin-bottom:14px">&#128203; Historique des modifications</h3>
-        <div id="hc"><div class="em">Aucune modification</div></div>
+        <!-- En-tête et filtres -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <h3 style="font-size:15px;font-weight:700">&#128203; Historique des interventions</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="hf-pays" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0">
+              <option value="">Tous les pays</option>
+            </select>
+            <input type="text" id="hf-machine" placeholder="Code machine..." style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0;width:130px">
+            <select id="hf-statut" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0">
+              <option value="">Tous statuts</option>
+              <option value="En panne">En panne</option>
+              <option value="En réparation">En réparation</option>
+              <option value="En Att. PDR">En Att. PDR</option>
+              <option value="Fonctionnelle">Fonctionnelle</option>
+              <option value="Disponible">Disponible</option>
+            </select>
+            <input type="date" id="hf-date-debut" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0">
+            <input type="date" id="hf-date-fin" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #E2E8F0">
+            <button class="bn bp" id="btn-appliquer-hf" style="font-size:12px;padding:5px 12px">&#128269; Filtrer</button>
+          </div>
+        </div>
+        <!-- Stats rapides -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px" id="histo-stats"></div>
+        <!-- Tableau historique -->
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px" id="histo-table">
+            <thead>
+              <tr style="background:#0F172A;color:#fff">
+                <th style="padding:10px 8px;text-align:left">Date / Heure</th>
+                <th style="padding:10px 8px;text-align:left">Machine</th>
+                <th style="padding:10px 8px;text-align:left">Pays</th>
+                <th style="padding:10px 8px;text-align:left">Transition</th>
+                <th style="padding:10px 8px;text-align:left">Motif</th>
+                <th style="padding:10px 8px;text-align:left">Intervenant</th>
+                <th style="padding:10px 8px;text-align:left">Dur&#233;e phase</th>
+                <th style="padding:10px 8px;text-align:left">Par</th>
+              </tr>
+            </thead>
+            <tbody id="histo-tbody"></tbody>
+          </table>
+        </div>
+        <div id="histo-empty" class="em" style="display:none">Aucune intervention trouv&#233;e</div>
+        <div id="histo-loading" class="em">Chargement...</div>
       </div>
     </div>
 
@@ -610,46 +651,88 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
 </div></div>
 
 <!-- MODAL DETAIL PAYS -->
-<div class="mo" id="mod-detail"><div class="md" style="max-width:480px">
-  <div class="mh">
-    <h3 id="sdtitle">Renseigner le d&#233;tail</h3>
-    <button class="mx" id="close-mod-detail">&#215;</button>
+<div class="mo" id="mod-detail"><div class="md" style="max-width:500px">
+  <div class="mh" style="background:#0F172A;border-radius:10px 10px 0 0">
+    <div>
+      <h3 style="color:#fff;font-size:15px" id="sdtitle">Changement d'&#233;tat</h3>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px" id="sd-machine-sub"></div>
+    </div>
+    <button class="mx" id="close-mod-detail" style="color:#fff">&#215;</button>
   </div>
-  <div class="mb">
+  <div class="mb" style="padding:16px">
     <input type="hidden" id="sd-mid">
     <input type="hidden" id="sd-statut-ancien">
-    <div style="margin-bottom:14px">
-      <div class="dl">Statut actuel</div>
-      <div style="margin-top:6px" id="sd-statut"></div>
-    </div>
-    <div style="margin-bottom:14px">
-      <label style="font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;display:block;margin-bottom:5px">Changer le statut</label>
-      <select id="sd-nouveau-statut" style="width:100%;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;background:var(--gr)">
-        <option value="">-- Garder le statut actuel --</option>
-        <option value="Fonctionnelle">Fonctionnelle</option>
-        <option value="Disponible">Disponible</option>
-        <option value="En panne">En panne &#128680;</option>
-        <option value="En r&#233;paration">En r&#233;paration &#128295;</option>
-        <option value="En Att. PDR">En Att. PDR &#9203;</option>
-        <option value="Transf&#233;r&#233;">Transf&#233;r&#233;</option>
-        <option value="R&#233;form&#233;">R&#233;form&#233;</option>
-      </select>
-      <div id="sd-avert-interv" style="display:none;margin-top:8px;padding:10px;background:#FEF3C7;border-radius:8px;border-left:3px solid #F59E0B;font-size:12px;color:#92400E">
-        &#128276; Une fiche d&#39;intervention s&#39;ouvrira automatiquement apr&#232;s enregistrement.
+    <!-- Transition visuelle -->
+    <div style="display:flex;align-items:center;gap:10px;background:#F8FAFC;border-radius:10px;padding:14px;margin-bottom:16px;border:1px solid #E2E8F0">
+      <div style="text-align:center;flex:1">
+        <div style="font-size:10px;color:#64748B;margin-bottom:4px">STATUT ACTUEL</div>
+        <div id="sd-statut"></div>
+      </div>
+      <div style="font-size:20px;color:#94A3B8">&#8594;</div>
+      <div style="text-align:center;flex:1">
+        <div style="font-size:10px;color:#64748B;margin-bottom:4px">NOUVEAU STATUT *</div>
+        <select id="sd-nouveau-statut" style="width:100%;padding:8px;border:2px solid #3B82F6;border-radius:8px;font-size:13px;font-weight:600;background:#EFF6FF">
+          <option value="">-- Garder le statut actuel --</option>
+          <option value="Fonctionnelle">&#10003; Fonctionnelle</option>
+          <option value="Disponible">&#10003; Disponible</option>
+          <option value="En panne">&#128680; En panne</option>
+          <option value="En r&#233;paration">&#128295; En r&#233;paration</option>
+          <option value="En Att. PDR">&#9203; En Att. Pi&#232;ces (PDR)</option>
+          <option value="Transf&#233;r&#233;">&#128666; Transf&#233;r&#233;</option>
+        </select>
       </div>
     </div>
-    <div style="margin-bottom:14px;padding:12px;background:#F4F5F7;border-radius:8px;border-left:3px solid #94a3b8">
-      <div class="dl">Dernier d&#233;tail enregistr&#233;</div>
-      <div style="margin-top:5px;font-size:13px;color:var(--t2)" id="sd-ancien"></div>
+    <!-- Motif obligatoire -->
+    <div class="fg fu" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:600;color:#DC2626">Motif du changement *</label>
+      <select id="sd-motif-type" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">
+        <option value="">-- S&#233;lectionner un motif --</option>
+        <optgroup label="Panne / D&#233;faillance">
+          <option value="Panne moteur">Panne moteur</option>
+          <option value="Panne hydraulique">Panne hydraulique</option>
+          <option value="Panne &#233;lectrique">Panne &#233;lectrique</option>
+          <option value="Panne bo&#238;te de vitesses">Panne bo&#238;te de vitesses</option>
+          <option value="Panne transmission">Panne transmission</option>
+          <option value="Panne freins">Panne freins</option>
+          <option value="Accident / Choc">Accident / Choc</option>
+          <option value="Autre panne">Autre panne</option>
+        </optgroup>
+        <optgroup label="Maintenance">
+          <option value="Entretien pr&#233;ventif 250h">Entretien pr&#233;ventif 250h</option>
+          <option value="Entretien pr&#233;ventif 500h">Entretien pr&#233;ventif 500h</option>
+          <option value="Entretien majeur 1000h">Entretien majeur 1000h</option>
+          <option value="Entretien majeur 2000h">Entretien majeur 2000h</option>
+          <option value="Contr&#244;le technique">Contr&#244;le technique</option>
+        </optgroup>
+        <optgroup label="Logistique">
+          <option value="En attente pi&#232;ces de rechange">En attente pi&#232;ces de rechange</option>
+          <option value="En attente technicien sp&#233;cialiste">En attente technicien sp&#233;cialiste</option>
+          <option value="Transfert vers autre chantier">Transfert vers autre chantier</option>
+          <option value="Remise en service apr&#232;s r&#233;paration">Remise en service apr&#232;s r&#233;paration</option>
+          <option value="Remise en service apr&#232;s entretien">Remise en service apr&#232;s entretien</option>
+        </optgroup>
+        <option value="Autre">Autre (pr&#233;ciser ci-dessous)</option>
+      </select>
     </div>
-    <div class="fg fu">
-      <label>D&#233;tail / Commentaire</label>
-      <textarea id="sd-txt" rows="3" style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical" placeholder="D&#233;crivez la situation actuelle de la machine..."></textarea>
+    <!-- Observation libre -->
+    <div class="fg fu" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:600;color:#374151">Observations / D&#233;tails</label>
+      <textarea id="sd-txt" rows="3" style="width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--bo);border-radius:7px;font-size:13px;resize:vertical" placeholder="D&#233;crivez la situation, les symptômes, les actions effectu&#233;es..."></textarea>
+    </div>
+    <!-- Intervenant -->
+    <div class="fg" style="margin-bottom:4px">
+      <label style="font-size:11px;font-weight:600;color:#374151">Intervenant / Technicien</label>
+      <input type="text" id="sd-intervenant" style="margin-top:6px" placeholder="Nom du technicien ou de l'&#233;quipe">
+    </div>
+    <!-- Dernier enregistrement -->
+    <div id="sd-ancien-wrap" style="margin-top:12px;padding:10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #94A3B8;font-size:12px;display:none">
+      <div style="font-weight:600;color:#64748B;margin-bottom:4px">Dernier &#233;v&#233;nement enregistr&#233;</div>
+      <div style="color:#475569" id="sd-ancien"></div>
     </div>
   </div>
   <div class="mf">
     <button class="bn" style="background:var(--gr)" id="cancel-mod-detail">Annuler</button>
-    <button class="bn bp" id="btn-sauver-detail">&#128190; Enregistrer</button>
+    <button class="bn" style="background:#0F172A;color:#fff" id="btn-sauver-detail">&#128190; Enregistrer le changement</button>
   </div>
 </div></div>
 
@@ -1003,7 +1086,7 @@ const INDEX_MAPPING = {"horaire":{"ALIMENTATEUR":["250 h","500h","750h","1000h",
 
 // Normaliser un type de machine pour le mapping
 function getIndexType(machine){
-  // Priorit&eacute;: 1) type_machine Firebase, 2) mapping local par code, 3) sous_famille
+  // Priorité: 1) type_machine Firebase, 2) mapping local par code, 3) sous_famille
   var typRaw = machine.type_machine ||
                CODE_TO_TYPE[machine.code_machine] ||
                machine.sous_famille || '';
@@ -2813,12 +2896,12 @@ function getProchainEntretien(indexDernierEntretien, typeIdx){
   // Prochain entretien = dernier + intervalle fixe (250h ou 5000km)
   var echeanceAbs = indexDernierEntretien + intervalle;
 
-  // D&eacute;terminer le TYPE selon la position de l'&eacute;ch&eacute;ance dans le cycle
+  // Déterminer le TYPE selon la position de l'échéance dans le cycle
   var posInCycle = echeanceAbs % cycleTotal;
   if(posInCycle === 0) posInCycle = cycleTotal;
 
   var cycle = isHoraire ? CYCLE_H : CYCLE_KM;
-  var typeE = cycle[cycle.length-1].type; // d&eacute;faut: dernier du cycle
+  var typeE = cycle[cycle.length-1].type; // défaut: dernier du cycle
   for(var i=0; i<cycle.length; i++){
     if(posInCycle <= cycle[i].palier){
       typeE = cycle[i].type;
@@ -2840,7 +2923,7 @@ function getStatutEntretien(m){
   var indexActuel = parseFloat(m.index_exploitation||0);
   var indexDernier = parseFloat(m.index_dernier_entretien||0);
 
-  // Calculer le prochain entretien bas&eacute; sur l'index du dernier entretien
+  // Calculer le prochain entretien basé sur l'index du dernier entretien
   var prochain = getProchainEntretien(indexDernier, typeIdx);
   var ecart = indexActuel - indexDernier;
   var intervalle = prochain.echeanceAbs - indexDernier;
@@ -2945,9 +3028,9 @@ async function login(){
   }catch(e){ toast('Erreur Firebase: '+e.message,'ko'); }
   document.getElementById('lm').style.display='none';
   start();
-  // Charger maintenance apr&egrave;s que all soit pr&ecirc;t
+  // Charger maintenance après que all soit prêt
   if(ses.ravitailleur){
-    // Attendre que Firebase charge les donn&eacute;es
+    // Attendre que Firebase charge les données
     var tentative = 0;
     var attendre = setInterval(function(){
       tentative++;
@@ -2963,7 +3046,7 @@ async function login(){
 function abonner(){
   if(unsub) unsub();
   unsub = onSnapshot(collection(db,'machines'), function(snap){
-    if(!ses) return; // S&eacute;curit&eacute;: ne pas traiter si pas connect&eacute;
+    if(!ses) return; // Sécurité: ne pas traiter si pas connecté
     all = [];
     snap.forEach(function(d){
       const data={id:d.id,...d.data()};
@@ -2977,6 +3060,22 @@ function abonner(){
       if(canSee) all.push(data);
     });
     all.sort(function(a,b){ return (a.code_machine||'').localeCompare(b.code_machine||''); });
+    // Auto-diagnostic statuts (une seule fois au 1er chargement)
+    if(!window._diagDone && all.length > 0){
+      window._diagDone = true;
+      var statMap = {};
+      all.forEach(function(m){
+        var s = m.statut||'(vide)';
+        statMap[s] = (statMap[s]||0)+1;
+      });
+      console.log('[SOROUBAT] Statuts Firebase:', JSON.stringify(statMap));
+      // Chercher les machines qui ressemblent à "réformé" mais ne matchent pas
+      var suspects = all.filter(function(m){
+        var s=(m.statut||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+        return s.includes('reform')||s.includes('reforme')||s.includes('rforme');
+      });
+      console.log('[SOROUBAT] Machines avec statut reform*:', suspects.length, suspects.slice(0,3).map(function(m){return m.code_machine+':'+m.statut;}));
+    }
     // Rafraîchir TOUTES les vues actives — sans condition sur l'onglet
     filt(); stat();
     // Maintenance : TOUJOURS recharger (l'index peut changer depuis n'importe quel onglet)
@@ -3007,50 +3106,50 @@ function logout(){
 
 
 function getFicheOperations(typeEntretien, typeMachine){
-  // Op&eacute;rations selon le type d'entretien
+  // Opérations selon le type d'entretien
   var ops250 = [
     'Vidange huile moteur + remplacement filtre',
-    'Contr&ocirc;le niveau liquide de refroidissement',
-    'Contr&ocirc;le niveau huile hydraulique',
-    'Graissage g&eacute;n&eacute;ral (points de graissage)',
-    'Contr&ocirc;le pression des pneumatiques',
-    'Nettoyage filtre &agrave; air',
-    'Contr&ocirc;le tension courroies',
-    'Inspection g&eacute;n&eacute;rale visuelle'
+    'Contrôle niveau liquide de refroidissement',
+    'Contrôle niveau huile hydraulique',
+    'Graissage général (points de graissage)',
+    'Contrôle pression des pneumatiques',
+    'Nettoyage filtre à air',
+    'Contrôle tension courroies',
+    'Inspection générale visuelle'
   ];
   var ops500 = ops250.concat([
-    'Remplacement filtre &agrave; carburant',
+    'Remplacement filtre à carburant',
     'Remplacement filtre hydraulique',
-    'Contr&ocirc;le batterie et connexions',
-    'Contr&ocirc;le syst&egrave;me de freinage',
-    'Contr&ocirc;le &eacute;clairage et signalisation'
+    'Contrôle batterie et connexions',
+    'Contrôle système de freinage',
+    'Contrôle éclairage et signalisation'
   ]);
   var ops1000 = ops500.concat([
-    'Vidange huile bo&icirc;te de vitesses',
-    'Vidange huile pont arri&egrave;re',
+    'Vidange huile boîte de vitesses',
+    'Vidange huile pont arrière',
     'Remplacement courroie de distribution (si applicable)',
-    'Contr&ocirc;le et r&eacute;glage soupapes',
-    'Contr&ocirc;le injecteurs'
+    'Contrôle et réglage soupapes',
+    'Contrôle injecteurs'
   ]);
   var ops2000 = ops1000.concat([
-    'R&eacute;vision g&eacute;n&eacute;rale moteur',
+    'Révision générale moteur',
     'Remplacement joints et garnitures',
-    'Contr&ocirc;le et r&eacute;glage embrayage',
-    'Inspection compl&egrave;te du ch&acirc;ssis',
-    'Rapport complet de l\'&eacute;tat de la machine'
+    'Contrôle et réglage embrayage',
+    'Inspection complète du châssis',
+    'Rapport complet de l\'état de la machine'
   ]);
   var ops5000km = [
     'Vidange huile moteur + filtre',
-    'Contr&ocirc;le pression pneus',
-    'Contr&ocirc;le niveaux (frein, direction, refroidissement)',
-    'Graissage g&eacute;n&eacute;ral',
-    'Contr&ocirc;le visuel g&eacute;n&eacute;ral'
+    'Contrôle pression pneus',
+    'Contrôle niveaux (frein, direction, refroidissement)',
+    'Graissage général',
+    'Contrôle visuel général'
   ];
   var ops40000km = ops5000km.concat([
     'Remplacement filtres (air, carburant, huile)',
-    'Contr&ocirc;le syst&egrave;me de freinage complet',
+    'Contrôle système de freinage complet',
     'Remplacement courroie de distribution',
-    'R&eacute;vision compl&egrave;te suspension'
+    'Révision complète suspension'
   ]);
 
   if(!typeEntretien) return ops250;
@@ -3058,7 +3157,7 @@ function getFicheOperations(typeEntretien, typeMachine){
   if(typeEntretien.includes('1000')) return ops1000;
   if(typeEntretien.includes('500')) return ops500;
   if(typeEntretien.includes('40 000')) return ops40000km;
-  if(typeEntretien.includes('10 000') || typeEntretien.includes('20 000')) return ops5000km.concat(['Remplacement filtres','Contr&ocirc;le freins']);
+  if(typeEntretien.includes('10 000') || typeEntretien.includes('20 000')) return ops5000km.concat(['Remplacement filtres','Contrôle freins']);
   return ops250;
 }
 
@@ -3143,7 +3242,7 @@ function ouvrirFicheEntretien(machineId){
       secheur_air:'Secheur air',bain_huile:'Bain huile'
     };
     h += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;margin-bottom:14px">';
-    h += '<div style="font-size:9px;font-weight:600;color:#065F46;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128722; References filtres &mdash; '+filtresData.marque+' '+filtresData.type+'</div>';
+    h += '<div style="font-size:9px;font-weight:600;color:#065F46;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128722; References filtres — '+filtresData.marque+' '+filtresData.type+'</div>';
     h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:5px">';
     Object.keys(filtresData.filtres).forEach(function(fk){
       var fv = filtresData.filtres[fk];
@@ -3168,7 +3267,7 @@ function ouvrirFicheEntretien(machineId){
 
     h += '<div style="border:1.5px solid '+accentColor+';border-radius:8px;overflow:hidden;margin-bottom:14px" id="fiche-checklist-container">';
     h += '<div style="background:'+accentColor+';color:#fff;padding:9px 14px;font-size:10px;font-weight:700;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center">';
-    h += '<span>&#9000; Operations a realiser &mdash; '+typeEntretien+'</span>';
+    h += '<span>&#9000; Operations a realiser — '+typeEntretien+'</span>';
     h += '<span style="font-size:9px;opacity:.8">Vous pouvez ajouter ou supprimer des operations</span>';
     h += '</div>';
     h += '<div id="fiche-ops-list" style="background:#fff"></div>';
@@ -3271,9 +3370,9 @@ function ficheAddOp(){
 
 
 function saisirEntretien(machineId){
-  // V&eacute;rification: uniquement les responsables pays
+  // Vérification: uniquement les responsables pays
   if(!ses || ses.admin || ses.ravitailleur){
-    toast('Acc&egrave;s non autoris&eacute;','ko');
+    toast('Accès non autorisé','ko');
     return;
   }
   var m = all.find(function(x){ return x.id===machineId; }); if(!m)return;
@@ -3295,11 +3394,11 @@ function saisirEntretien(machineId){
   var typeIdxM = se ? se.typeIdx : null;
   if(prochainCalc && typeIdxM){
     var pObj = getProchainEntretien(indexActuel, typeIdxM);
-    prochainCalc.textContent = pObj.type+' &agrave; '+pObj.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
+    prochainCalc.textContent = pObj.type+' à '+pObj.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
     document.getElementById('entretien-index-saisi').addEventListener('input', function(){
       var v = parseFloat(this.value)||0;
       var pObj2 = getProchainEntretien(v, typeIdxM);
-      prochainCalc.textContent = pObj2.type+' &agrave; '+pObj2.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
+      prochainCalc.textContent = pObj2.type+' à '+pObj2.echeanceAbs.toLocaleString('fr-FR')+' '+(se?se.unite:'');
     });
   }
   oM('mod-entretien');
@@ -3362,7 +3461,7 @@ function start(){
   document.getElementById('close-mod-recherche').addEventListener('click',function(){ cM('mod-recherche-rapide'); });
   document.getElementById('cancel-mod-recherche').addEventListener('click',function(){ cM('mod-recherche-rapide'); });
   document.getElementById('btn-rr-enregistrer').addEventListener('click',enregistrerIndexRapide);
-  // Listeners modification d'&eacute;ch&eacute;ance
+  // Listeners modification d'échéance
   document.getElementById('btn-etape1-echeance').addEventListener('click', function(){
     var machineId = document.getElementById('echeance-machine-id').value;
     var unite = document.getElementById('echeance-unite').value || 'h';
@@ -3469,7 +3568,7 @@ function start(){
   if(!ses.admin){ document.getElementById('filtre-maint-pays-wrap').style.display='none'; }
   document.getElementById('sd-nouveau-statut').addEventListener('change',function(){
     const v=this.value;
-    const critiques=['En panne','En r&eacute;paration','En Att. PDR'];
+    const critiques=['En panne','En réparation','En Att. PDR'];
     document.getElementById('sd-avert-interv').style.display = critiques.includes(v) ? 'block' : 'none';
   });
   document.getElementById('btn-sauver-interv').addEventListener('click',sauverIntervention);
@@ -3545,10 +3644,10 @@ function ren(){
     const detailCourt = detail.length>30 ? detail.slice(0,30)+'...' : detail;
     const ab = ses.admin
       ? '<button class="bn bs bp" data-edt="'+m.id+'" style="background:#E8F0FB;color:var(--bl);margin-right:3px" title="Modifier">&#9998;</button>'+
-        '<button class="bn bs" data-sortie="'+m.id+'" style="background:#FEF2F2;color:#991B1B;border:1px solid #FECACA" title="Vente / R&#233;forme">&#9940;</button>'
+        '<button class="bn bs" data-sortie="'+m.id+'" style="background:#FEF2F2;color:#991B1B;border:1px solid #FECACA" title="Vente / Réforme">&#9940;</button>'
       : '<button class="bn bs" data-detail="'+m.id+'" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B">&#128203; Detail</button>';
     // Bouton index
-    return '<tr><td><strong>'+(m.code_machine||'')+'</strong></td>'+pc+'<td>'+(m.famille||'-')+'<br><small style="color:var(--t2)">'+(m.sous_famille||'')+'</small></td><td>'+(m.marque||'-')+'</td><td>'+badge(m.statut)+'</td><td style="font-size:12px;max-width:160px" title="'+detail+'">'+( detailCourt||'<span style="color:var(--t2)">&#8212;</span>' )+'</td><td>'+(m.chantier||'-')+'</td><td style="font-size:11px;color:var(--t2)">'+(m.numero_serie||'-')+'</td><td style="white-space:nowrap"><button class="bn bs bp" data-det="'+m.id+'" style="margin-right:3px">&#128065;</button><button class="bn bs" data-interv="'+m.id+'" style="background:#F59E0B;color:#fff;margin-right:3px">&#128295;</button>'+ab+'</td></tr>';
+    return '<tr><td><strong>'+(m.code_machine||'')+'</strong></td>'+pc+'<td>'+(m.famille||'-')+'<br><small style="color:var(--t2)">'+(m.sous_famille||'')+'</small></td><td>'+(m.marque||'-')+'</td><td>'+badge(m.statut)+'</td><td style="font-size:12px;max-width:160px" title="'+detail+'">'+( detailCourt||'<span style="color:var(--t2)">—</span>' )+'</td><td>'+(m.chantier||'-')+'</td><td style="font-size:11px;color:var(--t2)">'+(m.numero_serie||'-')+'</td><td style="white-space:nowrap"><button class="bn bs bp" data-det="'+m.id+'" style="margin-right:3px">&#128065;</button><button class="bn bs" data-interv="'+m.id+'" style="background:#F59E0B;color:#fff;margin-right:3px">&#128295;</button>'+ab+'</td></tr>';
   }).join('');
   // Attacher events
   tb.querySelectorAll('[data-det]').forEach(function(btn){ btn.addEventListener('click',function(){ det(btn.dataset.det); }); });
@@ -3561,7 +3660,7 @@ function ren(){
   // Pagination
   if(tp<=1){ document.getElementById('pag').innerHTML=''; return; }
   const fr=Math.max(1,pg-2),to=Math.min(tp,pg+2);
-  let bt='<span class="pi">Page '+pg+'/'+tp+' &mdash; '+(st+1)+' a '+Math.min(st+PP,tot)+' sur '+tot+'</span><div class="pb">';
+  let bt='<span class="pi">Page '+pg+'/'+tp+' — '+(st+1)+' a '+Math.min(st+PP,tot)+' sur '+tot+'</span><div class="pb">';
   bt+='<button class="pp" data-pg="1"'+(pg===1?' disabled':'')+'>&laquo;</button>';
   bt+='<button class="pp" data-pg="'+(pg-1)+'"'+(pg===1?' disabled':'')+'>&lsaquo;</button>';
   for(let i=fr;i<=to;i++) bt+='<button class="pp'+(i===pg?' ac':'')+'" data-pg="'+i+'">'+i+'</button>';
@@ -3620,7 +3719,7 @@ function stat(){
   });
   const t=srcAll.length, parc=t-ref-ven;
   const tx_dispo=pct(fonc+dispo+tra,parc), tx_panne=pct(pa+rep+pdr,parc);
-  // Mettre &agrave; jour le bandeau directement depuis les stats
+  // Mettre à jour le bandeau directement depuis les stats
   const nbPanneLocal = src.filter(function(m){ return statut_est(m.statut||'','En panne'); }).length;
   const nbPdrLocal   = src.filter(function(m){ return statut_est(m.statut||'','En Att. PDR'); }).length;
   const nbRepLocal   = src.filter(function(m){ return statut_est(m.statut||'','En reparation'); }).length;
@@ -3657,24 +3756,24 @@ function stat(){
   document.getElementById('sg').innerHTML=
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;width:100%">'+
     '<div class="sc"><div class="sn">'+t+'</div><div class="sl">Total machines</div></div>'+
-    '<div class="sc" style="border-left-color:#0EA5E9"><div class="sn" style="color:#0EA5E9">'+parc+'</div><div class="sl">Parc actif (hors r&eacute;form&eacute;s)</div></div>'+
+    '<div class="sc" style="border-left-color:#0EA5E9"><div class="sn" style="color:#0EA5E9">'+parc+'</div><div class="sl">Parc actif (hors réformés)</div></div>'+
     '<div class="sc v"><div class="sn">'+fonc+' <span style="font-size:13px;color:var(--ve)">'+pct(fonc,parc)+'%</span></div><div class="sl">Fonctionnelles</div></div>'+
     '<div class="sc v"><div class="sn">'+dispo+' <span style="font-size:13px;color:var(--ve)">'+pct(dispo,parc)+'%</span></div><div class="sl">Disponibles</div></div>'+
-    '<div class="sc" style="border-left-color:#8B5CF6"><div class="sn">'+tra+' <span style="font-size:13px;color:#8B5CF6">'+pct(tra,parc)+'%</span></div><div class="sl">Transf&eacute;r&eacute;es</div></div>'+
+    '<div class="sc" style="border-left-color:#8B5CF6"><div class="sn">'+tra+' <span style="font-size:13px;color:#8B5CF6">'+pct(tra,parc)+'%</span></div><div class="sl">Transférées</div></div>'+
     '<div class="sc r"><div class="sn">'+pa+' <span style="font-size:13px;color:var(--ro)">'+pct(pa,parc)+'%</span></div><div class="sl">En panne</div></div>'+
-    '<div class="sc o"><div class="sn">'+rep+' <span style="font-size:13px;color:var(--or)">'+pct(rep,parc)+'%</span></div><div class="sl">En r&eacute;paration</div></div>'+
-    '<div class="sc" style="border-left-color:#3B82F6"><div class="sn">'+pdr+' <span style="font-size:13px;color:#3B82F6">'+pct(pdr,parc)+'%</span></div><div class="sl">Att. Pi&egrave;ces (PDR)</div></div>'+
-    '<div class="sc g"><div class="sn">'+ref+'</div><div class="sl">R&eacute;form&eacute;s (exclus)</div></div>'+
+    '<div class="sc o"><div class="sn">'+rep+' <span style="font-size:13px;color:var(--or)">'+pct(rep,parc)+'%</span></div><div class="sl">En réparation</div></div>'+
+    '<div class="sc" style="border-left-color:#3B82F6"><div class="sn">'+pdr+' <span style="font-size:13px;color:#3B82F6">'+pct(pdr,parc)+'%</span></div><div class="sl">Att. Pièces (PDR)</div></div>'+
+    '<div class="sc g"><div class="sn">'+ref+'</div><div class="sl">Réformés (exclus)</div></div>'+
     '<div class="sc" style="border-left-color:#92400E"><div class="sn" style="color:#92400E">'+ven+'</div><div class="sl">Vendus (exclus)</div></div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px">'+
     '<div style="background:linear-gradient(135deg,#059669,#10B981);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
-    '<div><div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase">Taux de disponibilit&eacute;</div>'+
+    '<div><div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase">Taux de disponibilité</div>'+
     '<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Fonct. + Dispo + Transf. / Parc actif</div></div>'+
     '<div style="font-size:42px;font-weight:800;color:#fff">'+tx_dispo+'<span style="font-size:22px">%</span></div></div>'+
     '<div style="background:linear-gradient(135deg,#DC2626,#EF4444);border-radius:var(--r);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--om)">'+
     '<div><div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase">Taux de panne</div>'+
-    '<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Panne + R&eacute;par. + PDR / Parc actif</div></div>'+
+    '<div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px">Panne + Répar. + PDR / Parc actif</div></div>'+
     '<div style="font-size:42px;font-weight:800;color:#fff">'+tx_panne+'<span style="font-size:22px">%</span></div></div>'+
     '</div>';
 }
@@ -3998,7 +4097,7 @@ async function det(id){
     '<div class="di"><div class="dl">Famille</div><div class="dv">'+(m.famille||'-')+'</div></div>'+
     '<div class="di"><div class="dl">Type</div><div class="dv">'+(m.sous_famille||'-')+'</div></div>'+
     '<div class="di"><div class="dl">Marque</div><div class="dv">'+(m.marque||'-')+'</div></div>'+
-    '<div class="di"><div class="dl">Mod&egrave;le</div><div class="dv">'+(m.modele||'-')+'</div></div>'+
+    '<div class="di"><div class="dl">Modèle</div><div class="dv">'+(m.modele||'-')+'</div></div>'+
     '<div class="di"><div class="dl">N&deg; serie</div><div class="dv">'+(m.numero_serie||'-')+'</div></div>'+
     '<div class="di"><div class="dl">Immat.</div><div class="dv">'+(m.immatriculation||'-')+'</div></div>'+
     '<div class="di"><div class="dl">Statut actuel</div><div class="dv">'+badge(m.statut)+'</div></div>'+
@@ -4022,11 +4121,11 @@ async function det(id){
     items.sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
     const hEl=document.getElementById('histo-machine-'+id);
     if(!hEl)return;
-    if(!items.length){ hEl.innerHTML='<div style="color:var(--t2);padding:10px">Aucune modification enregistr&eacute;e</div>'; return; }
+    if(!items.length){ hEl.innerHTML='<div style="color:var(--t2);padding:10px">Aucune modification enregistrée</div>'; return; }
     hEl.innerHTML=items.map(function(h,i){
       return '<div class="hi" style="margin-bottom:10px">'+
-        '<div style="font-size:11px;color:var(--t2)">'+(h.modifie_le||'').slice(0,16).replace('T',' ')+' &mdash; par <strong>'+h.modifie_par+'</strong> <span style="float:right">#'+(items.length-i)+'</span></div>'+
-        '<div style="margin-top:5px">'+(h.ancien_statut?badge(h.ancien_statut)+' &rarr; ':'')+badge(h.nouveau_statut)+'</div>'+
+        '<div style="font-size:11px;color:var(--t2)">'+(h.modifie_le||'').slice(0,16).replace('T',' ')+' — par <strong>'+h.modifie_par+'</strong> <span style="float:right">#'+(items.length-i)+'</span></div>'+
+        '<div style="margin-top:5px">'+(h.ancien_statut?badge(h.ancien_statut)+' → ':'')+badge(h.nouveau_statut)+'</div>'+
         (h.detail_statut?'<div style="margin-top:6px;font-size:12px;color:#1E40AF;background:#EFF6FF;padding:6px 10px;border-radius:5px;border-left:3px solid #3B82F6">&#128203; '+h.detail_statut+'</div>':'')+
         '</div>';
     }).join('');
@@ -4056,72 +4155,105 @@ async function copierHistorique(id){
 
 
 
-// DETAIL STATUT PAYS
+// DETAIL STATUT / CHANGEMENT ETAT
 function saisirDetail(id){
   const m=all.find(function(x){ return x.id===id; }); if(!m)return;
-  document.getElementById('sdtitle').textContent='Mise &agrave; jour - '+m.code_machine;
+  document.getElementById('sdtitle').textContent='Changement d\'\u00e9tat — '+m.code_machine;
+  document.getElementById('sd-machine-sub').textContent=(PN[m.pays_id]||m.pays_id||'')+' · '+(m.sous_famille||m.famille||'')+' '+(m.marque||'');
   document.getElementById('sd-statut').innerHTML=badge(m.statut);
   document.getElementById('sd-statut-ancien').value=m.statut;
-  document.getElementById('sd-ancien').textContent=m.detail_statut||'Aucun d&eacute;tail saisi';
   document.getElementById('sd-txt').value='';
+  document.getElementById('sd-motif-type').value='';
+  document.getElementById('sd-intervenant').value='';
   document.getElementById('sd-mid').value=id;
   document.getElementById('sd-nouveau-statut').value='';
-  document.getElementById('sd-avert-interv').style.display='none';
+  // Afficher dernier evenement si existant
+  var ancienWrap = document.getElementById('sd-ancien-wrap');
+  if(m.detail_statut||m.dernier_intervenant){
+    document.getElementById('sd-ancien').textContent=(m.detail_statut||'')+(m.dernier_intervenant?' — '+m.dernier_intervenant:'');
+    ancienWrap.style.display='block';
+  } else {
+    ancienWrap.style.display='none';
+  }
   oM('mod-detail');
 }
 
 async function sauverDetail(){
-  const id=document.getElementById('sd-mid').value;
-  const txt=document.getElementById('sd-txt').value.trim();
-  const nouveauStatut=document.getElementById('sd-nouveau-statut').value;
-  const m=all.find(function(x){ return x.id===id; }); if(!m)return;
+  var id = document.getElementById('sd-mid').value;
+  var nouveauStatut = document.getElementById('sd-nouveau-statut').value;
+  var motifType = document.getElementById('sd-motif-type').value;
+  var obs = document.getElementById('sd-txt').value.trim();
+  var intervenant = document.getElementById('sd-intervenant').value.trim();
+  var m = all.find(function(x){ return x.id===id; }); if(!m)return;
 
-  // Statut critique = ouvre fiche intervention
-  const statuts_critiques=['En panne','En r&eacute;paration','En Att. PDR'];
-  const statutChangeCritique = nouveauStatut && statuts_critiques.includes(nouveauStatut);
+  // Motif obligatoire si changement de statut
+  if(nouveauStatut && nouveauStatut !== m.statut && !motifType){
+    toast('Veuillez sélectionner un motif','ko'); return;
+  }
+  if(!nouveauStatut && !motifType && !obs){
+    toast('Veuillez saisir un motif ou une observation','ko'); return;
+  }
+
+  var ancienStatut = m.statut;
+  var statFinal = nouveauStatut || ancienStatut;
+  var motifFinal = motifType + (obs ? ' — '+obs : '');
+  var maintenant = now();
+
+  // Calculer la durée dans l'état précédent
+  var dureeMs = null;
+  var dureeTexte = '';
+  if(m.modifie_le){
+    var debut = new Date(m.modifie_le.replace(' ','T'));
+    var fin = new Date();
+    dureeMs = fin - debut;
+    var heures = Math.floor(dureeMs/3600000);
+    var jours = Math.floor(heures/24);
+    if(jours > 0) dureeTexte = jours+'j '+( heures%24)+'h';
+    else dureeTexte = heures+'h';
+  }
 
   try{
-    const updates=Object.assign({},m); delete updates.id;
-    if(txt) updates.detail_statut=txt;
-    updates.modifie_par=ses.user; updates.modifie_le=now();
+    var updates = Object.assign({},m); delete updates.id;
+    updates.statut = statFinal;
+    updates.detail_statut = motifFinal;
+    updates.dernier_intervenant = intervenant||'';
+    updates.modifie_par = ses.user;
+    updates.modifie_le = maintenant;
 
-    // Changer le statut si demand&eacute;
-    if(nouveauStatut && nouveauStatut !== m.statut){
-      updates.statut=nouveauStatut;
-    }
+    await setDoc(doc(db,'machines',id), updates);
 
-    await setDoc(doc(db,'machines',id),updates);
+    // Enregistrement structuré dans historique
+    await addDoc(collection(db,'historique'),{
+      machine_id: id,
+      code_machine: m.code_machine,
+      pays_id: m.pays_id,
+      famille: m.famille||'',
+      sous_famille: m.sous_famille||'',
+      marque: m.marque||'',
+      ancien_statut: ancienStatut,
+      nouveau_statut: statFinal,
+      motif: motifType||'',
+      observations: obs||'',
+      intervenant: intervenant||'',
+      duree_phase_ms: dureeMs,
+      duree_phase_texte: dureeTexte,
+      modifie_par: ses.user,
+      modifie_le: maintenant,
+      date_seule: maintenant.slice(0,10)
+    });
 
-    // Enregistrer dans historique
-    const statFinal = nouveauStatut || m.statut;
-    if(txt || (nouveauStatut && nouveauStatut !== m.statut)){
-      await addDoc(collection(db,'historique'),{
-        machine_id:id, code_machine:m.code_machine, pays_id:m.pays_id,
-        ancien_statut:m.statut, nouveau_statut:statFinal,
-        detail_statut:txt||'', modifie_par:ses.user, modifie_le:now()
-      });
+    // Mettre à jour cache local
+    var mL = all.find(function(x){ return x.id===id; });
+    if(mL){
+      mL.statut=statFinal; mL.detail_statut=motifFinal;
+      mL.dernier_intervenant=intervenant;
+      mL.modifie_par=ses.user; mL.modifie_le=maintenant;
     }
 
     cM('mod-detail');
-    toast('Mis &agrave; jour !','ok');
+    filt(); stat();
+    toast('✓ Changement enregistré : '+ancienStatut+' → '+statFinal,'ok');
 
-    // Ouvrir automatiquement fiche intervention si statut critique
-    if(statutChangeCritique){
-      setTimeout(function(){
-        // Pr&eacute;-remplir la fiche intervention avec les infos
-        document.getElementById('interv-machine-id').value=id;
-        document.getElementById('interv-titre').textContent='Nouvelle intervention - '+m.code_machine;
-        document.getElementById('interv-date').value=new Date().toISOString().slice(0,10);
-        ['interv-tech','interv-duree','interv-cout','interv-desc','interv-pieces','interv-obs'].forEach(function(i){ document.getElementById(i).value=''; });
-        document.getElementById('interv-avant').value=m.statut;
-        document.getElementById('interv-apres').value=nouveauStatut;
-        document.getElementById('interv-machine-label').textContent=
-          m.code_machine+' - '+(PN[m.pays_id]||m.pays_id)+' - '+(m.marque||'')+' '+(m.sous_famille||'');
-        // Pr&eacute;-remplir description avec le d&eacute;tail saisi
-        if(txt) document.getElementById('interv-desc').value=txt;
-        oM('mod-interv');
-      }, 500);
-    }
   }catch(e){ toast('Erreur: '+e.message,'ko'); }
 }
 
@@ -4190,25 +4322,25 @@ async function chargerInterventions(){
     const fp=ses.admin?(document.getElementById('fp-interv')?document.getElementById('fp-interv').value:''):ses.pays;
     const filtered=items.filter(function(iv){ return !fp||iv.pays_id===fp; });
     filtered.sort(function(a,b){ return b.date_intervention.localeCompare(a.date_intervention); });
-    if(!filtered.length){ cont.innerHTML='<div class="em">Aucune intervention enregistr&eacute;e</div>'; return; }
+    if(!filtered.length){ cont.innerHTML='<div class="em">Aucune intervention enregistrée</div>'; return; }
     cont.innerHTML=filtered.map(function(iv){
       const cout=iv.cout_fcfa?iv.cout_fcfa.toLocaleString('fr-FR')+' FCFA':'-';
       const duree=iv.duree_heures?iv.duree_heures+'h':'-';
       return '<div style="border:1px solid var(--bo);border-radius:8px;padding:16px;margin-bottom:12px">'+
         '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'+
-        '<div><div style="font-weight:700;font-size:14px">'+iv.date_intervention+' &mdash; '+(iv.code_machine||'Intervention generale')+'</div>'+
+        '<div><div style="font-weight:700;font-size:14px">'+iv.date_intervention+' — '+(iv.code_machine||'Intervention generale')+'</div>'+
         '<div style="font-size:12px;color:var(--t2);margin-top:3px">'+(PN[iv.pays_id]||iv.pays_id||'')+
-        (iv.technicien?' &mdash; Technicien: <strong>'+iv.technicien+'</strong>':'')+
-        (duree!=='-'?' &mdash; Dur&eacute;e: '+duree:'')+
-        (cout!=='-'?' &mdash; Co&ucirc;t: '+cout:'')+'</div></div>'+
+        (iv.technicien?' — Technicien: <strong>'+iv.technicien+'</strong>':'')+
+        (duree!=='-'?' — Durée: '+duree:'')+
+        (cout!=='-'?' — Coût: '+cout:'')+'</div></div>'+
         '<div style="display:flex;gap:6px;align-items:center">'+
-        (iv.statut_avant?'<span style="font-size:11px">'+badge(iv.statut_avant)+' &rarr; '+badge(iv.statut_apres)+'</span>':'')+
+        (iv.statut_avant?'<span style="font-size:11px">'+badge(iv.statut_avant)+' → '+badge(iv.statut_apres)+'</span>':'')+
         '<button class="bn bs bd" data-suppr="'+iv.id+'">&#128465;</button>'+
         '</div></div>'+
         '<div style="font-size:13px;color:var(--te);margin-bottom:6px">'+iv.description+'</div>'+
-        (iv.pieces_utilisees?'<div style="font-size:12px;color:var(--t2);background:var(--gr);padding:6px 10px;border-radius:5px;margin-bottom:4px">&#128295; Pi&egrave;ces: '+iv.pieces_utilisees+'</div>':'')+
+        (iv.pieces_utilisees?'<div style="font-size:12px;color:var(--t2);background:var(--gr);padding:6px 10px;border-radius:5px;margin-bottom:4px">&#128295; Pièces: '+iv.pieces_utilisees+'</div>':'')+
         (iv.observations?'<div style="font-size:12px;color:#1E40AF;background:#EFF6FF;padding:6px 10px;border-radius:5px">&#128161; '+iv.observations+'</div>':'')+
-        '<div style="font-size:11px;color:var(--t2);margin-top:8px">Cr&eacute;&eacute; par: '+iv.cree_par+'</div>'+
+        '<div style="font-size:11px;color:var(--t2);margin-top:8px">Créé par: '+iv.cree_par+'</div>'+
         '</div>';
     }).join('');
     // Attacher events suppression
@@ -4224,16 +4356,86 @@ async function chargerInterventions(){
 }
 
 // HISTORIQUE
-async function affH(){
-  try{
-    const snap=await getDocs(collection(db,'historique'));
-    const items=[];
-    snap.forEach(function(d){ const data=d.data(); if(ses.admin||data.pays_id===ses.pays) items.push(data); });
-    items.sort(function(a,b){ return b.modifie_le.localeCompare(a.modifie_le); });
-    document.getElementById('hc').innerHTML=items.length
-      ?items.map(function(h){ return '<div class="hi"><div style="font-size:11px;color:var(--t2)">'+(h.modifie_le||'').slice(0,16)+' &mdash; <strong>'+h.code_machine+'</strong>'+(ses.admin?' ('+PN[h.pays_id]+')':'')+' par '+h.modifie_par+'</div><div style="margin-top:3px">'+badge(h.ancien_statut)+' &rarr; '+badge(h.nouveau_statut)+'</div>'+(h.detail_statut?'<div style="font-size:12px;color:#1E40AF;margin-top:4px">'+h.detail_statut+'</div>':'')+'</div>'; }).join('')
-      :'<div class="em">Aucune modification</div>';
-  }catch(e){ document.getElementById('hc').innerHTML='<div class="em">Erreur</div>'; }
+function affH(){
+  var loading = document.getElementById('histo-loading');
+  var empty = document.getElementById('histo-empty');
+  var tbody = document.getElementById('histo-tbody');
+  var statsDiv = document.getElementById('histo-stats');
+  if(!tbody) return;
+  if(loading) loading.style.display='block';
+  if(empty) empty.style.display='none';
+  tbody.innerHTML='';
+
+  // Peupler filtre pays
+  var fpH = document.getElementById('hf-pays');
+  if(fpH && fpH.options.length<=1){
+    Object.keys(PN).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=PN[k]; fpH.appendChild(o); });
+  }
+  var py = fpH ? fpH.value : '';
+  var machineF = document.getElementById('hf-machine') ? document.getElementById('hf-machine').value.trim().toLowerCase() : '';
+  var statutF = document.getElementById('hf-statut') ? document.getElementById('hf-statut').value : '';
+  var dateDebut = document.getElementById('hf-date-debut') ? document.getElementById('hf-date-debut').value : '';
+  var dateFin = document.getElementById('hf-date-fin') ? document.getElementById('hf-date-fin').value : '';
+
+  getDocs(collection(db,'historique')).then(function(snap){
+    var items=[];
+    snap.forEach(function(d){ items.push(Object.assign({id:d.id},d.data())); });
+    if(!ses.admin) items = items.filter(function(h){ return h.pays_id===ses.pays; });
+    if(py) items = items.filter(function(h){ return h.pays_id===py; });
+    if(machineF) items = items.filter(function(h){ return (h.code_machine||'').toLowerCase().includes(machineF); });
+    if(statutF) items = items.filter(function(h){ return h.nouveau_statut===statutF||h.ancien_statut===statutF; });
+    if(dateDebut) items = items.filter(function(h){ return (h.date_seule||h.modifie_le||'').slice(0,10)>=dateDebut; });
+    if(dateFin) items = items.filter(function(h){ return (h.date_seule||h.modifie_le||'').slice(0,10)<=dateFin; });
+    items.sort(function(a,b){ return (b.modifie_le||'').localeCompare(a.modifie_le||''); });
+
+    if(loading) loading.style.display='none';
+
+    var nbPannes = items.filter(function(h){ return h.nouveau_statut==='En panne'; }).length;
+    var nbRetour = items.filter(function(h){ return h.nouveau_statut==='Fonctionnelle'||h.nouveau_statut==='Disponible'; }).length;
+    var nbPDR = items.filter(function(h){ return h.nouveau_statut==='En Att. PDR'; }).length;
+    var durees = items.filter(function(h){ return h.duree_phase_ms; }).map(function(h){ return h.duree_phase_ms; });
+    var dureeMoyH = durees.length ? Math.round(durees.reduce(function(a,b){ return a+b; },0)/durees.length/3600000) : 0;
+
+    if(statsDiv) statsDiv.innerHTML=
+      '<div style="background:#FEF2F2;border-radius:8px;padding:12px;text-align:center;border:1px solid #FECACA"><div style="font-size:20px;font-weight:700;color:#991B1B">'+nbPannes+'</div><div style="font-size:10px;color:#64748B;margin-top:2px">Passages en panne</div></div>'+
+      '<div style="background:#F0FDF4;border-radius:8px;padding:12px;text-align:center;border:1px solid #BBF7D0"><div style="font-size:20px;font-weight:700;color:#065F46">'+nbRetour+'</div><div style="font-size:10px;color:#64748B;margin-top:2px">Remises en service</div></div>'+
+      '<div style="background:#EFF6FF;border-radius:8px;padding:12px;text-align:center;border:1px solid #BFDBFE"><div style="font-size:20px;font-weight:700;color:#1D4ED8">'+nbPDR+'</div><div style="font-size:10px;color:#64748B;margin-top:2px">En attente PDR</div></div>'+
+      '<div style="background:#FFF7ED;border-radius:8px;padding:12px;text-align:center;border:1px solid #FED7AA"><div style="font-size:20px;font-weight:700;color:#C2410C">'+dureeMoyH+'h</div><div style="font-size:10px;color:#64748B;margin-top:2px">Durée moy. / phase</div></div>';
+
+    if(!items.length){ if(empty) empty.style.display='block'; return; }
+
+    var couleurs = {'En panne':'#FEF2F2','En réparation':'#FFF7ED','En Att. PDR':'#EFF6FF','Fonctionnelle':'#F0FDF4','Disponible':'#F0FDF4','Transféré':'#F5F3FF'};
+    tbody.innerHTML = items.slice(0,200).map(function(h){
+      var bg = couleurs[h.nouveau_statut]||'#F8FAFC';
+      var transition = (h.ancien_statut&&h.ancien_statut!==h.nouveau_statut)
+        ? h.ancien_statut+' → <strong>'+h.nouveau_statut+'</strong>'
+        : '<strong>'+h.nouveau_statut+'</strong>';
+      return '<tr style="background:'+bg+';border-bottom:1px solid #E2E8F0;cursor:pointer" onclick="ouvrirFicheMachine(\''+h.machine_id+'\')" >'+
+        '<td style="padding:10px 8px;font-size:11px;color:#64748B;white-space:nowrap">'+((h.modifie_le||'').slice(0,16).replace('T',' '))+'</td>'+
+        '<td style="padding:10px 8px;font-weight:700;color:#0369A1">'+( h.code_machine||'')+'</td>'+
+        '<td style="padding:10px 8px;font-size:11px">'+( PN[h.pays_id]||h.pays_id||'')+'</td>'+
+        '<td style="padding:10px 8px;font-size:12px">'+transition+'</td>'+
+        '<td style="padding:10px 8px;font-size:11px;color:#475569;max-width:180px">'+(h.motif||h.detail_statut||'—')+'</td>'+
+        '<td style="padding:10px 8px;font-size:11px;color:#64748B">'+(h.intervenant||'—')+'</td>'+
+        '<td style="padding:10px 8px;font-size:11px;font-weight:600;color:#7C3AED">'+(h.duree_phase_texte||'—')+'</td>'+
+        '<td style="padding:10px 8px;font-size:11px;color:#64748B">'+(h.modifie_par||'')+'</td>'+
+      '</tr>';
+    }).join('');
+
+    // Listener filtre
+    var btnF = document.getElementById('btn-appliquer-hf');
+    if(btnF && !btnF._hlistener){ btnF._hlistener=true; btnF.addEventListener('click', affH); }
+
+  }).catch(function(e){
+    if(loading) loading.style.display='none';
+    if(tbody) tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:red;padding:20px">Erreur: '+e.message+'</td></tr>';
+  });
+}
+
+function ouvrirFicheMachine(machineId){
+  if(!machineId) return;
+  var m = all.find(function(x){ return x.id===machineId; });
+  if(m) det(m.id);
 }
 
 // DASHBOARD
@@ -4257,9 +4459,9 @@ function affD(){
       '<div class="mi"><div class="mn2" style="color:var(--ve)">'+f+'</div><div class="ml">Fonct.</div></div>'+
       '<div class="mi"><div class="mn2" style="color:#0EA5E9">'+d2+'</div><div class="ml">Dispo.</div></div>'+
       '<div class="mi"><div class="mn2" style="color:var(--ro)">'+pa+'</div><div class="ml">Panne</div></div>'+
-      '<div class="mi"><div class="mn2" style="color:var(--or)">'+rep2+'</div><div class="ml">R&eacute;par.</div></div>'+
+      '<div class="mi"><div class="mn2" style="color:var(--or)">'+rep2+'</div><div class="ml">Répar.</div></div>'+
       '<div class="mi"><div class="mn2" style="color:#3B82F6">'+pdr2+'</div><div class="ml">PDR</div></div>'+
-      '<div class="mi"><div class="mn2" style="color:#94a3b8">'+ref2+'</div><div class="ml">R&eacute;form.</div></div>'+
+      '<div class="mi"><div class="mn2" style="color:#94a3b8">'+ref2+'</div><div class="ml">Réform.</div></div>'+
       '</div>'+
       '<div style="display:flex;gap:8px;margin-top:10px">'+
       '<div style="flex:1;background:#D1FAE5;border-radius:8px;padding:8px;text-align:center"><div style="font-size:20px;font-weight:800;color:#059669">'+txD+'%</div><div style="font-size:10px;color:#065F46;font-weight:600">Taux dispo.</div></div>'+
@@ -4345,7 +4547,7 @@ async function verifierAlertes(){
       document.getElementById('bandeau-nb-pdr').textContent=nbPdr;
       const pdrsLong=alertes.filter(function(a){ return a.type==='pdr'; }).length;
       document.getElementById('bandeau-detail-pdr').textContent=pdrsLong>0?pdrsLong+' depuis >'+SEUIL_PDR+'j':'En attente';
-      // Bloc r&eacute;paration
+      // Bloc réparation
       document.getElementById('bandeau-nb-rep').textContent=nbRep;
       document.getElementById('bandeau-detail-rep').textContent=nbRep>0?'En cours':'Aucune';
     } else { bandeau.style.display='none'; badge2.style.display='none'; }
@@ -4460,9 +4662,9 @@ function afficherAlertes(){
     return '<div style="background:'+c.bg+';border-left:4px solid '+c.bord+';border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:10px">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
       '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px">'+c.ic+'</span>'+
-      '<div><div style="font-weight:700;color:'+c.txt+';font-size:14px">'+m.code_machine+' &mdash; '+(PN[m.pays_id]||m.pays_id)+'</div>'+
+      '<div><div style="font-weight:700;color:'+c.txt+';font-size:14px">'+m.code_machine+' — '+(PN[m.pays_id]||m.pays_id)+'</div>'+
       '<div style="font-size:12px;color:'+c.txt+';margin-top:2px">'+a.msg+'</div>'+
-      '<div style="font-size:11px;color:var(--t2);margin-top:3px">'+(m.famille||'')+( m.sous_famille?' &mdash; '+m.sous_famille:'')+(m.marque?' &mdash; '+m.marque:'')+(m.chantier?' &mdash; '+m.chantier:'')+'</div>'+
+      '<div style="font-size:11px;color:var(--t2);margin-top:3px">'+(m.famille||'')+( m.sous_famille?' — '+m.sous_famille:'')+(m.marque?' — '+m.marque:'')+(m.chantier?' — '+m.chantier:'')+'</div>'+
       (m.detail_statut?'<div style="font-size:12px;color:#1E40AF;background:#EFF6FF;padding:4px 8px;border-radius:4px;margin-top:5px">'+m.detail_statut+'</div>':'')+
       '</div></div>'+
       '<span style="font-size:11px;font-weight:700;background:'+c.bord+';color:#fff;padding:3px 10px;border-radius:20px">'+types[a.type]+'</span>'+
@@ -4629,12 +4831,12 @@ function ouvrirSaisieIndex(machineId){
   document.getElementById('index-titre').textContent = 'Index - '+m.code_machine;
   document.getElementById('index-machine-id').value = machineId;
   document.getElementById('index-machine-label').innerHTML =
-    '<strong>'+m.code_machine+'</strong> &mdash; '+(PN[m.pays_id]||m.pays_id)+
-    ' &mdash; '+(m.type_machine||m.sous_famille||'');
+    '<strong>'+m.code_machine+'</strong> — '+(PN[m.pays_id]||m.pays_id)+
+    ' — '+(m.type_machine||m.sous_famille||'');
   document.getElementById('index-actuel-display').textContent =
     indexActuel>0 ? indexActuel.toLocaleString('fr-FR')+' '+unite : '--';
   document.getElementById('index-type-display').textContent =
-    typeIdx ? (typeIdx.index==='horaire'?'Horaire (heures)':'Km (kilom&egrave;tres)') : 'Non d&eacute;fini';
+    typeIdx ? (typeIdx.index==='horaire'?'Horaire (heures)':'Km (kilomètres)') : 'Non défini';
   document.getElementById('index-valeur').value = indexActuel||'';
   document.getElementById('index-valeur').placeholder = 'Ex: '+(indexActuel+250);
   document.getElementById('index-remarque').value = '';
@@ -4642,7 +4844,7 @@ function ouvrirSaisieIndex(machineId){
   if(se&&se.prochainType){
     document.getElementById('index-prochain-wrap').style.display='block';
     document.getElementById('index-prochain-label').textContent =
-      se.prochainType+' &agrave; '+se.prochainEcheance.toLocaleString('fr-FR')+' '+unite;
+      se.prochainType+' à '+se.prochainEcheance.toLocaleString('fr-FR')+' '+unite;
     document.getElementById('index-prochain-restant').textContent =
       'Encore '+se.restant.toLocaleString('fr-FR')+' '+unite+' restant';
   } else {
@@ -4683,7 +4885,7 @@ async function sauverIndex(){
       mLocal.modifie_le = now();
     }
     cM('mod-index');
-    toast('Index mis &agrave; jour: '+valeur.toLocaleString('fr-FR')+' '+unite,'ok');
+    toast('Index mis à jour: '+valeur.toLocaleString('fr-FR')+' '+unite,'ok');
     window.chargerMaintenance();
     window.verifierAlertes();
   }catch(e){toast('Erreur: '+e.message,'ko');}
@@ -4746,8 +4948,8 @@ async function confirmerEntretien(){
       mLocal3.modifie_le = now();
     }
     cM('mod-entretien');
-    var msgProchain = prochainObj ? prochainObj.type+' &agrave; '+prochainObj.echeanceAbs.toLocaleString('fr-FR')+' '+unite : '';
-    toast('&#10003; Entretien valid&eacute; ! Prochain: '+msgProchain,'ok');
+    var msgProchain = prochainObj ? prochainObj.type+' à '+prochainObj.echeanceAbs.toLocaleString('fr-FR')+' '+unite : '';
+    toast('&#10003; Entretien validé ! Prochain: '+msgProchain,'ok');
     window.chargerMaintenance();
     setTimeout(function(){ window.verifierAlertes(); },500);
   }catch(e){toast('Erreur: '+e.message,'ko');}
@@ -4757,7 +4959,7 @@ async function confirmerEntretien(){
 // EXPORT CSV
 // ============================================================
 function expCSV(){
-  if(!fi.length){toast('Aucune donn&eacute;e','ko');return;}
+  if(!fi.length){toast('Aucune donnée','ko');return;}
   var cols=['Code','Pays','Famille','Type','Marque','Modele','N Serie','Immat','Statut','Chantier'];
   var rows=fi.map(function(m){
     return [m.code_machine,PN[m.pays_id]||m.pays_id,m.famille||'',m.sous_famille||'',
@@ -4771,7 +4973,7 @@ function expCSV(){
     {type:'text/csv;charset=utf-8'}));
   a.download='SOROUBAT_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
-  toast('CSV export&eacute; !','ok');
+  toast('CSV exporté !','ok');
 }
 document.getElementById('btn-csv').addEventListener('click',expCSV);
 
@@ -4804,9 +5006,9 @@ window.chargerMaintenance = async function(){
     }
   }
   
-  // Protection: si toujours vide apr&egrave;s tentative
+  // Protection: si toujours vide après tentative
   if(source.length === 0){
-    cont.innerHTML = '<div class="em" style="color:#D97706">Impossible de charger les machines. V&eacute;rifiez votre connexion.</div>';
+    cont.innerHTML = '<div class="em" style="color:#D97706">Impossible de charger les machines. Vérifiez votre connexion.</div>';
     return;
   }
 
@@ -4842,14 +5044,14 @@ window.chargerMaintenance = async function(){
 
   var h2=
     '<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">'+
-    '<div style="background:#FEE2E2;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#128680;</span><div><div style="font-size:22px;font-weight:700;color:#991B1B">'+nbDu+'</div><div style="font-size:11px;color:#DC2626;font-weight:600">Entretien D&Ucirc;</div></div></div>'+
-    '<div style="background:#FEF3C7;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#9888;</span><div><div style="font-size:22px;font-weight:700;color:#92400E">'+nbAlert+'</div><div style="font-size:11px;color:#D97706;font-weight:600">Alerte (&gt;80%)</div></div></div>'+
+    '<div style="background:#FEE2E2;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#128680;</span><div><div style="font-size:22px;font-weight:700;color:#991B1B">'+nbDu+'</div><div style="font-size:11px;color:#DC2626;font-weight:600">Entretien DÛ</div></div></div>'+
+    '<div style="background:#FEF3C7;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#9888;</span><div><div style="font-size:22px;font-weight:700;color:#92400E">'+nbAlert+'</div><div style="font-size:11px;color:#D97706;font-weight:600">Alerte (>80%)</div></div></div>'+
     '<div style="background:#D1FAE5;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#10003;</span><div><div style="font-size:22px;font-weight:700;color:#065F46">'+nbOk+'</div><div style="font-size:11px;color:#059669;font-weight:600">OK</div></div></div>'+
-    '<div style="background:#F1F5F9;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">&#8212;</span><div><div style="font-size:22px;font-weight:700;color:#475569">'+nbSans+'</div><div style="font-size:11px;color:#64748B;font-weight:600">Sans index saisi</div></div></div>'+
+    '<div style="background:#F1F5F9;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px"><span style="font-size:20px">—</span><div><div style="font-size:22px;font-weight:700;color:#475569">'+nbSans+'</div><div style="font-size:11px;color:#64748B;font-weight:600">Sans index saisi</div></div></div>'+
     '</div>';
 
   if(!filtered.length){
-    cont.innerHTML=h2+'<div class="em">Aucune machine trouv&eacute;e pour ce filtre</div>';
+    cont.innerHTML=h2+'<div class="em">Aucune machine trouvée pour ce filtre</div>';
     return;
   }
 
@@ -4861,13 +5063,13 @@ window.chargerMaintenance = async function(){
     '<thead><tr>'+
     th('Code')+
     (ses.admin||ses.ravitailleur?th('Pays'):'')+
-    th('D&eacute;signation')+
+    th('Désignation')+
     th('Suivi',true)+
     th('Index actuel',true)+
     th('Dernier entretien',true)+
     th('Date',true)+
     th('Prochain entretien')+
-    th('&Eacute;ch&eacute;ance',true)+
+    th('Échéance',true)+
     th('Restant',true)+
     th('Alerte',true)+
     th('Actions',true)+
@@ -4881,14 +5083,14 @@ window.chargerMaintenance = async function(){
 
     if(se.statut==='du'){
       barColor='#DC2626';
-      statBadge='<span style="background:#FEE2E2;color:#991B1B;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#128680; Entretien D&Ucirc;</span>';
+      statBadge='<span style="background:#FEE2E2;color:#991B1B;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#128680; Entretien DÛ</span>';
       rowBg='#FFF5F5';
     } else if(se.statut==='alerte'){
       barColor='#D97706';
       statBadge='<span style="background:#FEF3C7;color:#92400E;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700">&#9888; Alerte '+ecartPct+'%</span>';
       rowBg='#FFFBEB';
     } else if(se.statut==='sans_index'){
-      statBadge='<span style="background:#F1F5F9;color:#64748B;font-size:10px;padding:2px 8px;border-radius:20px">&#8212; Index non saisi</span>';
+      statBadge='<span style="background:#F1F5F9;color:#64748B;font-size:10px;padding:2px 8px;border-radius:20px">— Index non saisi</span>';
     } else {
       statBadge='<span style="background:#D1FAE5;color:#065F46;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600">&#10003; OK '+ecartPct+'%</span>';
     }
@@ -4905,7 +5107,7 @@ window.chargerMaintenance = async function(){
         '<span style="background:#F0FDF4;color:#166534;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600">&#128663; Km</span>') : '';
     var restantTxt = se.restant!==undefined ?
       (se.restant>0 ? '<strong>'+se.restant.toLocaleString('fr-FR')+'</strong> '+unite :
-       '<span style="color:#DC2626;font-weight:700">D&Ucirc;</span>') : '--';
+       '<span style="color:#DC2626;font-weight:700">DÛ</span>') : '--';
 
     var btns='';
     if(ses.ravitailleur){
@@ -4915,7 +5117,7 @@ window.chargerMaintenance = async function(){
     var estResponsablePays = (ses && !ses.admin && !ses.ravitailleur);
     if(estResponsablePays){
       btns+='<button class="bn bs bv" data-entretien="'+m.id+'" style="font-size:11px;padding:4px 8px;margin-right:3px">&#10003; Fait</button>';
-      btns+='<button class="bn bs" data-modifier-echeance="'+m.id+'" style="background:#F0F9FF;color:#0369A1;border:0.5px solid #BAE6FD;font-size:11px;padding:4px 8px">&#9998; &Eacute;ch.</button>';
+      btns+='<button class="bn bs" data-modifier-echeance="'+m.id+'" style="background:#F0F9FF;color:#0369A1;border:0.5px solid #BAE6FD;font-size:11px;padding:4px 8px">&#9998; Éch.</button>';
     }
 
     var td=function(v,c){ return '<td style="padding:8px 10px;'+(c?'text-align:center;':'')+'border-bottom:0.5px solid #F1F5F9;">'+(v||'--')+'</td>'; };
@@ -4930,7 +5132,7 @@ window.chargerMaintenance = async function(){
       td(se.indexDernierEntretien>0?se.indexDernierEntretien.toLocaleString('fr-FR')+' '+unite:'<span style="color:#94A3B8">Jamais</span>',true)+
       td('<span style="font-size:11px;color:#64748B">'+dateDE+'</span>',true)+
       td('<div style="display:flex;align-items:center;gap:6px">'+
-        '<button class="bn bs" data-fiche="'+m.id+'" style="background:#0F172A;color:#fff;font-size:10px;padding:3px 8px;white-space:nowrap" title="Voir la fiche d&apos;entretien">&#128196; Fiche</button>'+
+        '<button class="bn bs" data-fiche="'+m.id+'" style="background:#0F172A;color:#fff;font-size:10px;padding:3px 8px;white-space:nowrap" title="Voir la fiche d&#39;entretien">&#128196; Fiche</button>'+
         '<span style="font-weight:700;font-size:11px">'+(se.prochainType||'Entretien 250h')+'</span>'+
         '</div>')+
       td(se.prochainEcheance?'<strong>'+se.prochainEcheance.toLocaleString('fr-FR')+'</strong> '+unite:'--',true)+
@@ -5103,7 +5305,7 @@ function rechercheRapideInput(val){
     var idx = parseFloat(m.index_exploitation||0);
     return '<div onclick="selectionnerMachine(\''+m.id+'\')" style="padding:10px 14px;cursor:pointer;border-bottom:0.5px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'#F8FAFC\'" onmouseout="this.style.background=\'#fff\'">'
       +'<div><div style="font-weight:700;font-size:13px">'+m.code_machine+'</div>'
-      +'<div style="font-size:11px;color:#64748B">'+(m.type_machine||m.sous_famille||'-')+' &mdash; '+(PN[m.pays_id]||m.pays_id)+'</div></div>'
+      +'<div style="font-size:11px;color:#64748B">'+(m.type_machine||m.sous_famille||'-')+' — '+(PN[m.pays_id]||m.pays_id)+'</div></div>'
       +'<div style="font-size:12px;font-weight:600;color:#0F172A">'+(idx>0?idx.toLocaleString('fr-FR')+' '+unite:'--')+'</div>'
       +'</div>';
   }).join('');
@@ -5146,7 +5348,7 @@ function selectionnerMachine(machineId){
     var restant = se.restant;
     var couleur = se.statut==='du' ? '#DC2626' : se.statut==='alerte' ? '#D97706' : '#059669';
     prochainTxt = 'Prochain: <strong style="color:'+couleur+'">' + se.prochainType + '</strong>'
-      + ' &agrave; ' + se.prochainEcheance.toLocaleString('fr-FR') + ' ' + unite
+      + ' à ' + se.prochainEcheance.toLocaleString('fr-FR') + ' ' + unite
       + (restant < 0 ? ' <span style="color:#DC2626">&#128680; EN RETARD</span>' :
          ' <span style="color:#64748B">(' + restant.toLocaleString('fr-FR') + ' ' + unite + ' restant)</span>');
   }
