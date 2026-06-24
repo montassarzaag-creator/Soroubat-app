@@ -3585,7 +3585,12 @@ function goT(t, btn){
     const el = document.getElementById('t-'+x);
     if(el) el.style.display = x===t ? '' : 'none';
   });
-  if(t==='historique') affH();
+  if(t==='historique'){
+    affH();
+    // Connecter le bouton filtre si pas encore fait
+    var btnHf = document.getElementById('btn-appliquer-hf');
+    if(btnHf && !btnHf._connected){ btnHf._connected=true; btnHf.addEventListener('click', affH); }
+  }
   if(t==='dashboard'&&ses.admin) affD();
   if(t==='alertes') afficherAlertes();
   if(t==='interventions') chargerInterventions();
@@ -4306,8 +4311,18 @@ async function sauverIntervention(){
       await setDoc(doc(db,'machines',machineId),updates);
       await addDoc(collection(db,'historique'),{machine_id:machineId,code_machine:m.code_machine,pays_id:m.pays_id,ancien_statut:m.statut,nouveau_statut:apres,detail_statut:'Intervention: '+desc.slice(0,80),modifie_par:ses.user,modifie_le:now()});
     }
+    // Mettre à jour le cache local immédiatement
+    if(machineId && apres && m && m.statut !== apres){
+      var mL = all.find(function(x){ return x.id===machineId; });
+      if(mL){
+        mL.statut = apres;
+        mL.modifie_par = ses.user;
+        mL.modifie_le = now();
+      }
+    }
     cM('mod-interv');
-    toast('Intervention enregistree !','ok');
+    toast('Intervention enregistrée !','ok');
+    filt(); stat();
     chargerInterventions();
   }catch(e){ toast('Erreur: '+e.message,'ko'); }
 }
