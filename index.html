@@ -4576,7 +4576,8 @@ function ouvrirCorrection(histoId, items){
 
   // Champs corrigibles — tous les champs modifiables
   var champs = document.getElementById('corr-champs');
-  var m = all.find(function(x){ return x.id===h.machine_id; });
+  var m = all.find(function(x){ return x.id===h.machine_id; }) ||
+          all.find(function(x){ return x.code_machine===h.code_machine; });
   var isIdx = h._src==='index';
   var typeIdx = m ? getIndexType(m) : null;
   var uniteLabel = typeIdx ? (typeIdx.index==='horaire' ? 'h' : 'km') : '';
