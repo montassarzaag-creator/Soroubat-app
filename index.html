@@ -4578,6 +4578,7 @@ function ouvrirCorrection(histoId, items){
   var champs = document.getElementById('corr-champs');
   var m = all.find(function(x){ return x.id===h.machine_id; }) ||
           all.find(function(x){ return x.code_machine===h.code_machine; });
+  console.log('[CORR] h.machine_id='+h.machine_id+' h.code_machine='+h.code_machine+' m='+(m?m.code_machine:'NULL')+' all.length='+all.length);
   var isIdx = h._src==='index';
   var typeIdx = m ? getIndexType(m) : null;
   var uniteLabel = typeIdx ? (typeIdx.index==='horaire' ? 'h' : 'km') : '';
