@@ -4582,20 +4582,49 @@ function ouvrirCorrection(histoId, items){
   var uniteLabel = typeIdx ? (typeIdx.index==='horaire' ? 'h' : 'km') : '';
   document.getElementById('corr-type').value = isIdx ? 'index' : 'statut';
 
+  // Section machine commune (code, statut, chantier, index actuel)
+  var sectMachine = m ? (
+    '<div style="background:#F1F5F9;border-radius:8px;padding:10px;margin-bottom:10px;border-left:3px solid #1E3A5F">'+
+    '<div style="font-size:10px;font-weight:700;color:#1E3A5F;text-transform:uppercase;margin-bottom:8px">Données machine à corriger</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+    '<div class="fg"><label style="font-size:10px;font-weight:600;color:#374151">Statut machine</label>'+
+    '<select id="corr-statut-machine" style="margin-top:4px;padding:6px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:12px;width:100%">'+
+    '<option value="">-- Garder : '+(m.statut||'')+'  --</option>'+
+    '<option value="Fonctionnelle">Fonctionnelle</option>'+
+    '<option value="Disponible">Disponible</option>'+
+    '<option value="En panne">En panne</option>'+
+    '<option value="En réparation">En réparation</option>'+
+    '<option value="En Att. PDR">En Att. PDR</option>'+
+    '<option value="Transféré">Transféré</option>'+
+    '</select></div>'+
+    '<div class="fg"><label style="font-size:10px;font-weight:600;color:#374151">Index actuel machine</label>'+
+    '<input type="number" id="corr-index-machine" min="0" step="1" style="margin-top:4px;padding:6px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:12px;width:100%;text-align:center" value="'+(m.index_exploitation||0)+'" placeholder="Index actuel...">'+
+    '</div>'+
+    '<div class="fg"><label style="font-size:10px;font-weight:600;color:#374151">Chantier</label>'+
+    '<input type="text" id="corr-chantier-machine" style="margin-top:4px;padding:6px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:12px;width:100%" value="'+(m.chantier||'')+'" placeholder="Chantier...">'+
+    '</div>'+
+    '<div class="fg"><label style="font-size:10px;font-weight:600;color:#374151">Détail statut</label>'+
+    '<input type="text" id="corr-detail-machine" style="margin-top:4px;padding:6px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:12px;width:100%" value="'+(m.detail_statut||'')+'" placeholder="Détail...">'+
+    '</div>'+
+    '</div></div>'
+  ) : '';
+
   if(isIdx){
     // === CORRECTION INDEX (saisie ravitailleur) ===
-    champs.innerHTML =
+    champs.innerHTML = sectMachine +
+      '<div style="font-size:10px;font-weight:700;color:#1E3A5F;text-transform:uppercase;margin-bottom:6px">Corriger cette saisie d\'index</div>'+
       '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Index corrigé</label>'+
       '<div style="margin-top:6px;display:flex;align-items:center;gap:8px">'+
       '<input type="number" id="corr-nouvel-index" min="0" step="1" style="flex:1;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:14px;font-weight:700;text-align:center" value="'+(h.index_apres||0)+'">'+
       '<span style="color:#64748B;font-weight:600">'+uniteLabel+'</span>'+
-      '</div><small style="color:#64748B;margin-top:4px;display:block">Valeur saisie: '+(h.index_apres||0)+' '+uniteLabel+' — Précédent: '+(h.index_avant||0)+' '+uniteLabel+'</small></div>'+
+      '</div><small style="color:#64748B;margin-top:4px;display:block">Saisi: '+(h.index_apres||0)+' '+uniteLabel+' — Précédent: '+(h.index_avant||0)+' '+uniteLabel+'</small></div>'+
       '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Remarque corrigée</label>'+
       '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.remarque||'')+'" placeholder="Remarque..."></div>';
   } else {
     // === CORRECTION STATUT (responsable pays) — tous les champs ===
-    champs.innerHTML =
-      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Statut corrigé</label>'+
+    champs.innerHTML = sectMachine +
+      '<div style="font-size:10px;font-weight:700;color:#1E3A5F;text-transform:uppercase;margin-bottom:6px">Corriger cette entrée historique</div>'+
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Transition corrigée — Nouveau statut</label>'+
       '<select id="corr-nouveau-statut" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">'+
       '<option value="">-- Garder : '+(h.nouveau_statut||'')+'  --</option>'+
       '<option value="Fonctionnelle">Fonctionnelle</option>'+
@@ -4660,13 +4689,17 @@ document.getElementById('btn-confirmer-correction').addEventListener('click', as
         saisi_par: ses.user,
         saisi_le: maintenant
       });
-      // 3. Mettre à jour l'index de la machine
-      await updateDoc(doc(db,'machines',machineId),{
-        index_exploitation: nouvelIndex,
-        index_date: maintenant,
-        modifie_par: ses.user,
-        modifie_le: maintenant
-      });
+      // 3. Mettre à jour la machine (index + champs machine corrigés)
+      var mUpdates = { index_exploitation: nouvelIndex, index_date: maintenant, modifie_par: ses.user, modifie_le: maintenant };
+      var statutMachine = document.getElementById('corr-statut-machine') ? document.getElementById('corr-statut-machine').value : '';
+      var indexMachine = document.getElementById('corr-index-machine') ? parseFloat(document.getElementById('corr-index-machine').value) : null;
+      var chantierMachine = document.getElementById('corr-chantier-machine') ? document.getElementById('corr-chantier-machine').value.trim() : '';
+      var detailMachine = document.getElementById('corr-detail-machine') ? document.getElementById('corr-detail-machine').value.trim() : '';
+      if(statutMachine) mUpdates.statut = statutMachine;
+      if(indexMachine && !isNaN(indexMachine)) mUpdates.index_exploitation = indexMachine;
+      if(chantierMachine) mUpdates.chantier = chantierMachine;
+      if(detailMachine) mUpdates.detail_statut = detailMachine;
+      await updateDoc(doc(db,'machines',machineId), mUpdates);
       // Cache local
       var mL = all.find(function(x){ return x.id===machineId; });
       if(mL){ mL.index_exploitation = nouvelIndex; mL.modifie_par=ses.user; mL.modifie_le=maintenant; }
@@ -4701,15 +4734,22 @@ document.getElementById('btn-confirmer-correction').addEventListener('click', as
         motif_correction: motifCorrection,
         modifie_par: ses.user, modifie_le: maintenant, date_seule: maintenant.slice(0,10)
       });
-      // 3. Mettre à jour la machine si statut changé
-      if(nouveauStatut && machineId){
-        var m2 = all.find(function(x){ return x.id===machineId; });
-        if(m2 && m2.statut !== nouveauStatut){
-          await updateDoc(doc(db,'machines',machineId),{ statut: nouveauStatut, modifie_par: ses.user, modifie_le: maintenant });
-          var mL2 = all.find(function(x){ return x.id===machineId; });
-          if(mL2){ mL2.statut = nouveauStatut; }
-          filt(); stat();
-        }
+      // 3. Mettre à jour la machine (statut + champs machine corrigés)
+      var mUpdates2 = { modifie_par: ses.user, modifie_le: maintenant };
+      var statutMachine2 = document.getElementById('corr-statut-machine') ? document.getElementById('corr-statut-machine').value : '';
+      var indexMachine2 = document.getElementById('corr-index-machine') ? parseFloat(document.getElementById('corr-index-machine').value) : null;
+      var chantierMachine2 = document.getElementById('corr-chantier-machine') ? document.getElementById('corr-chantier-machine').value.trim() : '';
+      var detailMachine2 = document.getElementById('corr-detail-machine') ? document.getElementById('corr-detail-machine').value.trim() : '';
+      if(nouveauStatut) mUpdates2.statut = nouveauStatut;
+      else if(statutMachine2) mUpdates2.statut = statutMachine2;
+      if(indexMachine2 && !isNaN(indexMachine2)) mUpdates2.index_exploitation = indexMachine2;
+      if(chantierMachine2) mUpdates2.chantier = chantierMachine2;
+      if(detailMachine2) mUpdates2.detail_statut = detailMachine2;
+      if(Object.keys(mUpdates2).length > 2){
+        await updateDoc(doc(db,'machines',machineId), mUpdates2);
+        var mL2 = all.find(function(x){ return x.id===machineId; });
+        if(mL2){ Object.assign(mL2, mUpdates2); }
+        filt(); stat();
       }
     } // fin if/else corrType
 
