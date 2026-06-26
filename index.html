@@ -4699,12 +4699,22 @@ document.getElementById('btn-confirmer-correction').addEventListener('click', as
       var detailMachine = document.getElementById('corr-detail-machine') ? document.getElementById('corr-detail-machine').value.trim() : '';
       if(statutMachine) mUpdates.statut = statutMachine;
       if(indexMachine && !isNaN(indexMachine)) mUpdates.index_exploitation = indexMachine;
+      else mUpdates.index_exploitation = nouvelIndex; // Utiliser l'index corrigé de la saisie
       if(chantierMachine) mUpdates.chantier = chantierMachine;
       if(detailMachine) mUpdates.detail_statut = detailMachine;
       await updateDoc(doc(db,'machines',machineId), mUpdates);
-      // Cache local
-      var mL = all.find(function(x){ return x.id===machineId; });
-      if(mL){ mL.index_exploitation = nouvelIndex; mL.modifie_par=ses.user; mL.modifie_le=maintenant; }
+      // Cache local — mettre à jour toutes les valeurs corrigées
+      var mL = all.find(function(x){ return x.id===machineId; }) ||
+               all.find(function(x){ return x.code_machine===h.code_machine; });
+      if(mL){
+        mL.index_exploitation = mUpdates.index_exploitation;
+        if(mUpdates.statut) mL.statut = mUpdates.statut;
+        if(mUpdates.chantier) mL.chantier = mUpdates.chantier;
+        if(mUpdates.detail_statut) mL.detail_statut = mUpdates.detail_statut;
+        mL.modifie_par = ses.user;
+        mL.modifie_le = maintenant;
+      }
+      filt(); stat();
       if(window.chargerMaintenance) window.chargerMaintenance();
 
     } else {
