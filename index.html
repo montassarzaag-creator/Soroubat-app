@@ -4505,7 +4505,8 @@ function affH(){
         ? '<span style="background:#F59E0B;color:#fff;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-left:4px">CORRIGÉ</span>' : '';
       var badgeCorrection = h.type_entree==='correction'
         ? '<span style="background:#3B82F6;color:#fff;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-left:4px">CORRECTION</span>' : '';
-      var peutCorrecter = ses.admin || h.modifie_par===ses.user;
+      // Admin peut tout corriger; responsable pays peut corriger toutes les entrées de son pays
+      var peutCorrecter = ses.admin || (!ses.ravitailleur && h.pays_id===ses.pays);
       var btnCorr = (h.type_entree!=='correction') && peutCorrecter
         ? '<button class="bn" data-corr="'+h.id+'" style="background:#EFF6FF;color:#1E3A5F;border:1px solid #BFDBFE;font-size:10px;padding:3px 8px;border-radius:5px" onclick="event.stopPropagation()">✎ Corriger</button>' : '';
       return '<tr style="background:'+bg+';border-bottom:1px solid #E2E8F0;cursor:pointer" onclick="ouvrirFicheMachine(\''+h.machine_id+'\')">'+
@@ -4549,24 +4550,35 @@ function ouvrirCorrection(histoId, items){
   document.getElementById('corr-histo-id').value = histoId;
   document.getElementById('corr-machine-id').value = h.machine_id||'';
   // Détecter si c'est un index (historique_index) ou statut (historique)
-  var isIdx = h._src==='index' || (h.index_apres !== undefined && h.index_apres !== null);
+  // Détecter le type: index (ravitailleur) ou statut (responsable pays)
+  var isIdx = h._src==='index';
   document.getElementById('corr-type').value = isIdx ? 'index' : 'statut';
   document.getElementById('corr-subtitle').textContent = (h.code_machine||'') + ' — ' + ((h.modifie_le||'').slice(0,16).replace('T',' '));
   document.getElementById('corr-motif-type').value = '';
   document.getElementById('corr-motif-detail').value = '';
 
-  // Afficher les données originales
+  // Afficher les données originales selon le type
   var orig = document.getElementById('corr-original-content');
-  orig.innerHTML =
-    '<div><span style="color:#92400E;font-weight:600">Transition :</span> ' + (h.ancien_statut||'—') + ' → ' + (h.nouveau_statut||'—') + '</div>' +
-    '<div><span style="color:#92400E;font-weight:600">Motif :</span> ' + (h.motif||h.detail_statut||'—') + '</div>' +
-    '<div><span style="color:#92400E;font-weight:600">Intervenant :</span> ' + (h.intervenant||'—') + '</div>' +
-    '<div><span style="color:#92400E;font-weight:600">Par :</span> ' + (h.modifie_par||'—') + ' le ' + ((h.modifie_le||'').slice(0,16).replace('T',' ')) + '</div>';
+  var isIdxOrig = h._src==='index';
+  if(isIdxOrig){
+    orig.innerHTML =
+      '<div><span style="color:#92400E;font-weight:600">Index saisi :</span> ' + (h.index_apres||0) + ' ' + (h.unite||'') + '</div>' +
+      '<div><span style="color:#92400E;font-weight:600">Index précédent :</span> ' + (h.index_avant||0) + ' ' + (h.unite||'') + '</div>' +
+      '<div><span style="color:#92400E;font-weight:600">Remarque :</span> ' + (h.remarque||'—') + '</div>' +
+      '<div><span style="color:#92400E;font-weight:600">Saisi par :</span> ' + (h.saisi_par||h.modifie_par||'—') + ' le ' + ((h.saisi_le||h.modifie_le||'').slice(0,16).replace('T',' ')) + '</div>';
+  } else {
+    orig.innerHTML =
+      '<div><span style="color:#92400E;font-weight:600">Transition :</span> ' + (h.ancien_statut||'—') + ' → ' + (h.nouveau_statut||'—') + '</div>' +
+      '<div><span style="color:#92400E;font-weight:600">Motif :</span> ' + (h.motif||h.detail_statut||'—') + '</div>' +
+      '<div><span style="color:#92400E;font-weight:600">Intervenant :</span> ' + (h.intervenant||'—') + '</div>' +
+      '<div><span style="color:#92400E;font-weight:600">Par :</span> ' + (h.modifie_par||'—') + ' le ' + ((h.modifie_le||'').slice(0,16).replace('T',' ')) + '</div>';
+  }
 
   // Champs corrigibles selon le type d'entrée
   var champs = document.getElementById('corr-champs');
   var m = all.find(function(x){ return x.id===h.machine_id; });
-  var estIndex = !!(h.index_apres !== undefined && h.index_apres !== null) || h.action==='index';
+  // Détecter si c'est une entrée d'index (ravitailleur) ou de statut (responsable pays)
+  var estIndex = h._src==='index' || (h.index_apres !== undefined && h.index_apres !== null && h.index_apres !== '');
   var typeIdx = m ? getIndexType(m) : null;
   var uniteLabel = typeIdx ? (typeIdx.index==='horaire' ? 'h' : 'km') : '';
 
