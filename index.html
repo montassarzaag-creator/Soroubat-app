@@ -4574,43 +4574,43 @@ function ouvrirCorrection(histoId, items){
       '<div><span style="color:#92400E;font-weight:600">Par :</span> ' + (h.modifie_par||'—') + ' le ' + ((h.modifie_le||'').slice(0,16).replace('T',' ')) + '</div>';
   }
 
-  // Champs corrigibles selon le type d'entrée
+  // Champs corrigibles — tous les champs modifiables
   var champs = document.getElementById('corr-champs');
   var m = all.find(function(x){ return x.id===h.machine_id; });
-  // Détecter si c'est une entrée d'index (ravitailleur) ou de statut (responsable pays)
-  var estIndex = h._src==='index' || (h.index_apres !== undefined && h.index_apres !== null && h.index_apres !== '');
+  var isIdx = h._src==='index';
   var typeIdx = m ? getIndexType(m) : null;
   var uniteLabel = typeIdx ? (typeIdx.index==='horaire' ? 'h' : 'km') : '';
+  document.getElementById('corr-type').value = isIdx ? 'index' : 'statut';
 
-  if(estIndex){
+  if(isIdx){
+    // === CORRECTION INDEX (saisie ravitailleur) ===
     champs.innerHTML =
-      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#DC2626">Index corrigé *</label>' +
-      '<div style="margin-top:6px;display:flex;align-items:center;gap:8px">' +
-      '<input type="number" id="corr-nouvel-index" min="0" step="1" style="flex:1;padding:10px;border:2px solid #3B82F6;border-radius:8px;font-size:16px;font-weight:700;text-align:center" value="'+(h.index_apres||0)+'">' +
-      '<span style="font-size:13px;color:#64748B;font-weight:600">'+uniteLabel+'</span>' +
-      '</div>' +
-      '<small style="color:#64748B;margin-top:4px;display:block">Index saisi : '+(h.index_apres||0)+' '+uniteLabel+' — Index précédent : '+(h.index_avant||0)+' '+uniteLabel+'</small>' +
-      '</div>' +
-      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Remarque</label>' +
-      '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.remarque||'')+'" placeholder="Explication de la correction..."></div>';
-    document.getElementById('corr-type').value = 'index';
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Index corrigé</label>'+
+      '<div style="margin-top:6px;display:flex;align-items:center;gap:8px">'+
+      '<input type="number" id="corr-nouvel-index" min="0" step="1" style="flex:1;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:14px;font-weight:700;text-align:center" value="'+(h.index_apres||0)+'">'+
+      '<span style="color:#64748B;font-weight:600">'+uniteLabel+'</span>'+
+      '</div><small style="color:#64748B;margin-top:4px;display:block">Valeur saisie: '+(h.index_apres||0)+' '+uniteLabel+' — Précédent: '+(h.index_avant||0)+' '+uniteLabel+'</small></div>'+
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Remarque corrigée</label>'+
+      '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.remarque||'')+'" placeholder="Remarque..."></div>';
   } else {
+    // === CORRECTION STATUT (responsable pays) — tous les champs ===
     champs.innerHTML =
-      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Nouveau statut</label>' +
-      '<select id="corr-nouveau-statut" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">' +
-      '<option value="">-- Garder : '+( h.nouveau_statut||'')+'  --</option>' +
-      '<option value="Fonctionnelle">Fonctionnelle</option>' +
-      '<option value="Disponible">Disponible</option>' +
-      '<option value="En panne">En panne</option>' +
-      '<option value="En réparation">En réparation</option>' +
-      '<option value="En Att. PDR">En Att. PDR</option>' +
-      '<option value="Transféré">Transféré</option>' +
-      '</select></div>' +
-      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Motif corrigé</label>' +
-      '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.motif||h.detail_statut||'')+'" placeholder="Nouveau motif..."></div>' +
-      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Intervenant corrigé</label>' +
-      '<input type="text" id="corr-nouveau-intervenant" style="margin-top:6px" value="'+(h.intervenant||'')+'" placeholder="Nom du technicien..."></div>';
-    document.getElementById('corr-type').value = 'statut';
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Statut corrigé</label>'+
+      '<select id="corr-nouveau-statut" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">'+
+      '<option value="">-- Garder : '+(h.nouveau_statut||'')+'  --</option>'+
+      '<option value="Fonctionnelle">Fonctionnelle</option>'+
+      '<option value="Disponible">Disponible</option>'+
+      '<option value="En panne">En panne</option>'+
+      '<option value="En réparation">En réparation</option>'+
+      '<option value="En Att. PDR">En Att. PDR</option>'+
+      '<option value="Transféré">Transféré</option>'+
+      '</select></div>'+
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Motif corrigé</label>'+
+      '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.motif||h.detail_statut||'')+'" placeholder="Motif..."></div>'+
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Intervenant corrigé</label>'+
+      '<input type="text" id="corr-nouveau-intervenant" style="margin-top:6px" value="'+(h.intervenant||'')+'" placeholder="Technicien..."></div>'+
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Observations corrigées</label>'+
+      '<textarea id="corr-nouvelles-obs" rows="2" style="margin-top:6px" placeholder="Observations...">'+(h.observations||'')+'</textarea></div>';
   }
 
   oM('mod-correction');
@@ -4677,6 +4677,7 @@ document.getElementById('btn-confirmer-correction').addEventListener('click', as
       var nouveauStatut = document.getElementById('corr-nouveau-statut') ? document.getElementById('corr-nouveau-statut').value : '';
       var nouveauMotif = document.getElementById('corr-nouveau-motif') ? document.getElementById('corr-nouveau-motif').value.trim() : '';
       var nouveauIntervenant = document.getElementById('corr-nouveau-intervenant') ? document.getElementById('corr-nouveau-intervenant').value.trim() : '';
+      var nouvellesObs = document.getElementById('corr-nouvelles-obs') ? document.getElementById('corr-nouvelles-obs').value.trim() : '';
 
       // 1. Marquer l'entrée originale comme corrigée
       await updateDoc(doc(db,'historique',histoId),{
@@ -4696,6 +4697,7 @@ document.getElementById('btn-confirmer-correction').addEventListener('click', as
         nouveau_statut: nouveauStatut || (original ? original.nouveau_statut : ''),
         motif: nouveauMotif || (original ? (original.motif||original.detail_statut||'') : ''),
         intervenant: nouveauIntervenant || (original ? original.intervenant||'' : ''),
+        observations: nouvellesObs || (original ? original.observations||'' : ''),
         motif_correction: motifCorrection,
         modifie_par: ses.user, modifie_le: maintenant, date_seule: maintenant.slice(0,10)
       });
