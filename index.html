@@ -4063,8 +4063,7 @@ async function sauver(){
 
 async function del(id){
   if(!confirm('Supprimer cette machine ?'))return;
-  try{ await deleteDoc(doc(db,'machines',id)); toast('Supprimee','ok'); }
-  catch(e){ toast('Erreur','ko'); }
+  try{ await deleteDoc(doc(db,'machines',id)); toast('Supprimee','ok'); }catch(e){ toast('Erreur','ko'); }
 }
 
 // ── SORTIE DE FLOTTE ──────────────────────────────────────────────────────
@@ -4454,9 +4453,24 @@ function affH(){
   var dateDebut = document.getElementById('hf-date-debut') ? document.getElementById('hf-date-debut').value : '';
   var dateFin = document.getElementById('hf-date-fin') ? document.getElementById('hf-date-fin').value : '';
 
-  getDocs(collection(db,'historique')).then(function(snap){
+  // Charger historique (statuts) ET historique_index (index ravitailleurs)
+  Promise.all([
+    getDocs(collection(db,'historique')),
+    getDocs(collection(db,'historique_index'))
+  ]).then(function(results){
     var items=[];
-    snap.forEach(function(d){ items.push(Object.assign({id:d.id},d.data())); });
+    results[0].forEach(function(d){ items.push(Object.assign({id:d.id, _src:'statut'},d.data())); });
+    results[1].forEach(function(d){
+      var data = Object.assign({id:d.id, _src:'index'},d.data());
+      // Normaliser pour affichage unifié
+      if(!data.nouveau_statut) data.nouveau_statut = 'Index: '+(data.index_apres||0)+' '+(data.unite||'');
+      if(!data.ancien_statut) data.ancien_statut = 'Index: '+(data.index_avant||0)+' '+(data.unite||'');
+      if(!data.motif) data.motif = data.remarque||'';
+      if(!data.modifie_par) data.modifie_par = data.saisi_par||'';
+      if(!data.modifie_le) data.modifie_le = data.saisi_le||'';
+      if(!data.date_seule) data.date_seule = (data.saisi_le||'').slice(0,10);
+      items.push(data);
+    });
     if(!ses.admin) items = items.filter(function(h){ return h.pays_id===ses.pays; });
     if(py) items = items.filter(function(h){ return h.pays_id===py; });
     if(machineF) items = items.filter(function(h){ return (h.code_machine||'').toLowerCase().includes(machineF); });
@@ -4515,7 +4529,7 @@ function affH(){
 
   }).catch(function(e){
     if(loading) loading.style.display='none';
-    if(tbody) tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:red;padding:20px">Erreur: '+e.message+'</td></tr>';
+    if(tbody) tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:red;padding:20px">Erreur: '+e.message+'</td></tr>';
   });
 }
 
@@ -4534,7 +4548,9 @@ function ouvrirCorrection(histoId, items){
 
   document.getElementById('corr-histo-id').value = histoId;
   document.getElementById('corr-machine-id').value = h.machine_id||'';
-  document.getElementById('corr-type').value = h.motif ? 'statut' : 'index';
+  // Détecter si c'est un index (historique_index) ou statut (historique)
+  var isIdx = h._src==='index' || (h.index_apres !== undefined && h.index_apres !== null);
+  document.getElementById('corr-type').value = isIdx ? 'index' : 'statut';
   document.getElementById('corr-subtitle').textContent = (h.code_machine||'') + ' — ' + ((h.modifie_le||'').slice(0,16).replace('T',' '));
   document.getElementById('corr-motif-type').value = '';
   document.getElementById('corr-motif-detail').value = '';
@@ -4547,24 +4563,43 @@ function ouvrirCorrection(histoId, items){
     '<div><span style="color:#92400E;font-weight:600">Intervenant :</span> ' + (h.intervenant||'—') + '</div>' +
     '<div><span style="color:#92400E;font-weight:600">Par :</span> ' + (h.modifie_par||'—') + ' le ' + ((h.modifie_le||'').slice(0,16).replace('T',' ')) + '</div>';
 
-  // Champs corrigibles
+  // Champs corrigibles selon le type d'entrée
   var champs = document.getElementById('corr-champs');
   var m = all.find(function(x){ return x.id===h.machine_id; });
-  champs.innerHTML =
-    '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Nouveau statut</label>' +
-    '<select id="corr-nouveau-statut" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">' +
-    '<option value="">-- Garder : '+( h.nouveau_statut||'')+'  --</option>' +
-    '<option value="Fonctionnelle">Fonctionnelle</option>' +
-    '<option value="Disponible">Disponible</option>' +
-    '<option value="En panne">En panne</option>' +
-    '<option value="En réparation">En réparation</option>' +
-    '<option value="En Att. PDR">En Att. PDR</option>' +
-    '<option value="Transféré">Transféré</option>' +
-    '</select></div>' +
-    '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Motif corrigé</label>' +
-    '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.motif||h.detail_statut||'')+'" placeholder="Nouveau motif..."></div>' +
-    '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Intervenant corrigé</label>' +
-    '<input type="text" id="corr-nouveau-intervenant" style="margin-top:6px" value="'+(h.intervenant||'')+'" placeholder="Nom du technicien..."></div>';
+  var estIndex = !!(h.index_apres !== undefined && h.index_apres !== null) || h.action==='index';
+  var typeIdx = m ? getIndexType(m) : null;
+  var uniteLabel = typeIdx ? (typeIdx.index==='horaire' ? 'h' : 'km') : '';
+
+  if(estIndex){
+    champs.innerHTML =
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#DC2626">Index corrigé *</label>' +
+      '<div style="margin-top:6px;display:flex;align-items:center;gap:8px">' +
+      '<input type="number" id="corr-nouvel-index" min="0" step="1" style="flex:1;padding:10px;border:2px solid #3B82F6;border-radius:8px;font-size:16px;font-weight:700;text-align:center" value="'+(h.index_apres||0)+'">' +
+      '<span style="font-size:13px;color:#64748B;font-weight:600">'+uniteLabel+'</span>' +
+      '</div>' +
+      '<small style="color:#64748B;margin-top:4px;display:block">Index saisi : '+(h.index_apres||0)+' '+uniteLabel+' — Index précédent : '+(h.index_avant||0)+' '+uniteLabel+'</small>' +
+      '</div>' +
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Remarque</label>' +
+      '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.remarque||'')+'" placeholder="Explication de la correction..."></div>';
+    document.getElementById('corr-type').value = 'index';
+  } else {
+    champs.innerHTML =
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Nouveau statut</label>' +
+      '<select id="corr-nouveau-statut" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">' +
+      '<option value="">-- Garder : '+( h.nouveau_statut||'')+'  --</option>' +
+      '<option value="Fonctionnelle">Fonctionnelle</option>' +
+      '<option value="Disponible">Disponible</option>' +
+      '<option value="En panne">En panne</option>' +
+      '<option value="En réparation">En réparation</option>' +
+      '<option value="En Att. PDR">En Att. PDR</option>' +
+      '<option value="Transféré">Transféré</option>' +
+      '</select></div>' +
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Motif corrigé</label>' +
+      '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.motif||h.detail_statut||'')+'" placeholder="Nouveau motif..."></div>' +
+      '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Intervenant corrigé</label>' +
+      '<input type="text" id="corr-nouveau-intervenant" style="margin-top:6px" value="'+(h.intervenant||'')+'" placeholder="Nom du technicien..."></div>';
+    document.getElementById('corr-type').value = 'statut';
+  }
 
   oM('mod-correction');
 }
@@ -4574,11 +4609,9 @@ document.getElementById('cancel-mod-correction').addEventListener('click', funct
 document.getElementById('btn-confirmer-correction').addEventListener('click', async function(){
   var histoId = document.getElementById('corr-histo-id').value;
   var machineId = document.getElementById('corr-machine-id').value;
+  var corrType = document.getElementById('corr-type').value;
   var motifType = document.getElementById('corr-motif-type').value;
   var motifDetail = document.getElementById('corr-motif-detail').value.trim();
-  var nouveauStatut = document.getElementById('corr-nouveau-statut') ? document.getElementById('corr-nouveau-statut').value : '';
-  var nouveauMotif = document.getElementById('corr-nouveau-motif') ? document.getElementById('corr-nouveau-motif').value.trim() : '';
-  var nouveauIntervenant = document.getElementById('corr-nouveau-intervenant') ? document.getElementById('corr-nouveau-intervenant').value.trim() : '';
 
   if(!motifType){ toast('Veuillez sélectionner un motif de correction','ko'); return; }
 
@@ -4586,49 +4619,85 @@ document.getElementById('btn-confirmer-correction').addEventListener('click', as
   var motifCorrection = motifType + (motifDetail ? ' — ' + motifDetail : '');
 
   try{
-    // 1. Marquer l'entrée originale comme corrigée
-    await updateDoc(doc(db,'historique',histoId),{
-      corrige: true,
-      corrige_par: ses.user,
-      corrige_le: maintenant,
-      motif_correction: motifCorrection
-    });
-
-    // 2. Ajouter une nouvelle entrée "correction" dans l'historique
-    var snap = await getDocs(collection(db,'historique'));
-    var original = null;
-    snap.forEach(function(d){ if(d.id===histoId) original = d.data(); });
-
-    await addDoc(collection(db,'historique'),{
-      type_entree: 'correction',
-      histo_id_original: histoId,
-      machine_id: machineId,
-      code_machine: original ? original.code_machine : '',
-      pays_id: original ? original.pays_id : '',
-      ancien_statut: original ? original.nouveau_statut : '',
-      nouveau_statut: nouveauStatut || (original ? original.nouveau_statut : ''),
-      motif: nouveauMotif || (original ? (original.motif||original.detail_statut||'') : ''),
-      intervenant: nouveauIntervenant || (original ? original.intervenant||'' : ''),
-      motif_correction: motifCorrection,
-      modifie_par: ses.user,
-      modifie_le: maintenant,
-      date_seule: maintenant.slice(0,10)
-    });
-
-    // 3. Mettre à jour la machine si le statut a changé
-    if(nouveauStatut && machineId){
+    if(corrType === 'index'){
+      // === CORRECTION D'INDEX ===
+      var nouvelIndex = parseFloat(document.getElementById('corr-nouvel-index') ? document.getElementById('corr-nouvel-index').value : 0);
+      var remarque = document.getElementById('corr-nouveau-motif') ? document.getElementById('corr-nouveau-motif').value.trim() : '';
+      if(isNaN(nouvelIndex)||nouvelIndex<0){ toast('Index invalide','ko'); return; }
       var m = all.find(function(x){ return x.id===machineId; });
-      if(m && m.statut !== nouveauStatut){
-        await updateDoc(doc(db,'machines',machineId),{
-          statut: nouveauStatut,
-          modifie_par: ses.user,
-          modifie_le: maintenant
-        });
-        var mL = all.find(function(x){ return x.id===machineId; });
-        if(mL){ mL.statut = nouveauStatut; }
-        filt(); stat();
+      var typeIdx = m ? getIndexType(m) : null;
+      var unite = typeIdx ? (typeIdx.index==='horaire'?'h':'km') : '';
+      var ancienIndex = m ? parseFloat(m.index_exploitation||0) : 0;
+
+      // 1. Marquer l'entrée originale dans historique_index comme corrigée
+      await updateDoc(doc(db,'historique_index',histoId),{
+        corrige: true, corrige_par: ses.user, corrige_le: maintenant, motif_correction: motifCorrection
+      });
+      // 2. Nouvelle entrée correction dans historique_index
+      await addDoc(collection(db,'historique_index'),{
+        type_entree: 'correction',
+        histo_id_original: histoId,
+        machine_id: machineId,
+        code_machine: m ? m.code_machine : '',
+        pays_id: m ? m.pays_id : '',
+        index_avant: ancienIndex,
+        index_apres: nouvelIndex,
+        unite: unite,
+        remarque: remarque || motifCorrection,
+        motif_correction: motifCorrection,
+        saisi_par: ses.user,
+        saisi_le: maintenant
+      });
+      // 3. Mettre à jour l'index de la machine
+      await updateDoc(doc(db,'machines',machineId),{
+        index_exploitation: nouvelIndex,
+        index_date: maintenant,
+        modifie_par: ses.user,
+        modifie_le: maintenant
+      });
+      // Cache local
+      var mL = all.find(function(x){ return x.id===machineId; });
+      if(mL){ mL.index_exploitation = nouvelIndex; mL.modifie_par=ses.user; mL.modifie_le=maintenant; }
+      if(window.chargerMaintenance) window.chargerMaintenance();
+
+    } else {
+      // === CORRECTION DE STATUT ===
+      var nouveauStatut = document.getElementById('corr-nouveau-statut') ? document.getElementById('corr-nouveau-statut').value : '';
+      var nouveauMotif = document.getElementById('corr-nouveau-motif') ? document.getElementById('corr-nouveau-motif').value.trim() : '';
+      var nouveauIntervenant = document.getElementById('corr-nouveau-intervenant') ? document.getElementById('corr-nouveau-intervenant').value.trim() : '';
+
+      // 1. Marquer l'entrée originale comme corrigée
+      await updateDoc(doc(db,'historique',histoId),{
+        corrige: true, corrige_par: ses.user, corrige_le: maintenant, motif_correction: motifCorrection
+      });
+      // 2. Nouvelle entrée correction dans historique
+      var snap = await getDocs(collection(db,'historique'));
+      var original = null;
+      snap.forEach(function(d){ if(d.id===histoId) original = d.data(); });
+      await addDoc(collection(db,'historique'),{
+        type_entree: 'correction',
+        histo_id_original: histoId,
+        machine_id: machineId,
+        code_machine: original ? original.code_machine : '',
+        pays_id: original ? original.pays_id : '',
+        ancien_statut: original ? original.nouveau_statut : '',
+        nouveau_statut: nouveauStatut || (original ? original.nouveau_statut : ''),
+        motif: nouveauMotif || (original ? (original.motif||original.detail_statut||'') : ''),
+        intervenant: nouveauIntervenant || (original ? original.intervenant||'' : ''),
+        motif_correction: motifCorrection,
+        modifie_par: ses.user, modifie_le: maintenant, date_seule: maintenant.slice(0,10)
+      });
+      // 3. Mettre à jour la machine si statut changé
+      if(nouveauStatut && machineId){
+        var m2 = all.find(function(x){ return x.id===machineId; });
+        if(m2 && m2.statut !== nouveauStatut){
+          await updateDoc(doc(db,'machines',machineId),{ statut: nouveauStatut, modifie_par: ses.user, modifie_le: maintenant });
+          var mL2 = all.find(function(x){ return x.id===machineId; });
+          if(mL2){ mL2.statut = nouveauStatut; }
+          filt(); stat();
+        }
       }
-    }
+    } // fin if/else corrType
 
     cM('mod-correction');
     toast('✓ Correction enregistrée et tracée dans l\'historique','ok');
