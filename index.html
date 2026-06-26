@@ -345,6 +345,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
                 <th style="padding:10px 8px;text-align:left">Intervenant</th>
                 <th style="padding:10px 8px;text-align:left">Dur&#233;e phase</th>
                 <th style="padding:10px 8px;text-align:left">Par</th>
+                <th style="padding:10px 8px;text-align:center">Action</th>
               </tr>
             </thead>
             <tbody id="histo-tbody"></tbody>
@@ -597,6 +598,62 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#F8FAFC;}
     <button class="bn" style="background:var(--gr)" id="cancel-mod-sortie">Annuler</button>
     <button class="bn" style="background:#991B1B;color:#fff" id="btn-confirmer-sortie">
       &#9940; Confirmer la sortie de flotte
+    </button>
+  </div>
+</div></div>
+
+<!-- MODAL CORRECTION HISTORIQUE -->
+<div class="mo" id="mod-correction"><div class="md" style="max-width:520px">
+  <div class="mh" style="background:#1E3A5F;border-radius:10px 10px 0 0">
+    <div>
+      <h3 style="color:#fff;font-size:15px">&#9998; Correction d'une action</h3>
+      <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px" id="corr-subtitle"></div>
+    </div>
+    <button class="mx" id="close-mod-correction" style="color:#fff">&#215;</button>
+  </div>
+  <div class="mb" style="padding:16px">
+    <input type="hidden" id="corr-histo-id">
+    <input type="hidden" id="corr-machine-id">
+    <input type="hidden" id="corr-type">
+
+    <!-- Données originales (lecture seule) -->
+    <div style="background:#FFF7ED;border-radius:8px;padding:12px;margin-bottom:16px;border:1px solid #FED7AA">
+      <div style="font-size:10px;font-weight:600;color:#92400E;text-transform:uppercase;margin-bottom:8px">&#128274; Données originales (non modifiables)</div>
+      <div id="corr-original-content" style="font-size:12px;color:#475569;display:flex;flex-direction:column;gap:4px"></div>
+    </div>
+
+    <!-- Champs corrigibles -->
+    <div id="corr-champs" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px"></div>
+
+    <!-- Motif obligatoire -->
+    <div class="fg fu" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:600;color:#DC2626">Motif de la correction *</label>
+      <select id="corr-motif-type" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">
+        <option value="">-- Sélectionner un motif --</option>
+        <option value="Erreur de saisie">Erreur de saisie</option>
+        <option value="Confusion de machine">Confusion de machine</option>
+        <option value="Valeur incorrecte">Valeur incorrecte</option>
+        <option value="Statut saisi par erreur">Statut saisi par erreur</option>
+        <option value="Technicien incorrect">Technicien incorrect</option>
+        <option value="Date incorrecte">Date incorrecte</option>
+        <option value="Autre erreur">Autre erreur (préciser ci-dessous)</option>
+      </select>
+    </div>
+    <div class="fg fu" style="margin-bottom:4px">
+      <label style="font-size:11px;font-weight:600;color:#374151">Précisions sur la correction</label>
+      <textarea id="corr-motif-detail" rows="2" style="margin-top:6px" placeholder="Expliquez pourquoi cette correction est nécessaire..."></textarea>
+    </div>
+
+    <!-- Avertissement traçabilité -->
+    <div style="background:#EFF6FF;border-radius:8px;padding:10px 12px;margin-top:12px;border-left:3px solid #3B82F6;font-size:11px;color:#1E40AF">
+      &#128203; Cette correction sera tracée dans l'historique avec votre identifiant et la date.
+      Les données originales restent conservées.
+    </div>
+  </div>
+  <div class="mf">
+    <button class="bn" style="background:var(--gr)" id="cancel-mod-correction">Annuler</button>
+    <button class="bn" style="background:#1E3A5F;color:#fff" id="btn-confirmer-correction">
+      &#10003; Confirmer la correction
     </button>
   </div>
 </div></div>
@@ -4426,23 +4483,33 @@ function affH(){
 
     var couleurs = {'En panne':'#FEF2F2','En réparation':'#FFF7ED','En Att. PDR':'#EFF6FF','Fonctionnelle':'#F0FDF4','Disponible':'#F0FDF4','Transféré':'#F5F3FF'};
     tbody.innerHTML = items.slice(0,200).map(function(h){
-      var bg = couleurs[h.nouveau_statut]||'#F8FAFC';
+      var bg = h.corrige ? '#FDF4FF' : (couleurs[h.nouveau_statut]||'#F8FAFC');
       var transition = (h.ancien_statut&&h.ancien_statut!==h.nouveau_statut)
         ? h.ancien_statut+' → <strong>'+h.nouveau_statut+'</strong>'
         : '<strong>'+h.nouveau_statut+'</strong>';
-      return '<tr style="background:'+bg+';border-bottom:1px solid #E2E8F0;cursor:pointer" onclick="ouvrirFicheMachine(\''+h.machine_id+'\')" >'+
+      var badgeCorrige = h.corrige
+        ? '<span style="background:#F59E0B;color:#fff;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-left:4px">CORRIGÉ</span>' : '';
+      var badgeCorrection = h.type_entree==='correction'
+        ? '<span style="background:#3B82F6;color:#fff;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-left:4px">CORRECTION</span>' : '';
+      var peutCorrecter = ses.admin || h.modifie_par===ses.user;
+      var btnCorr = (h.type_entree!=='correction') && peutCorrecter
+        ? '<button class="bn" data-corr="'+h.id+'" style="background:#EFF6FF;color:#1E3A5F;border:1px solid #BFDBFE;font-size:10px;padding:3px 8px;border-radius:5px" onclick="event.stopPropagation()">✎ Corriger</button>' : '';
+      return '<tr style="background:'+bg+';border-bottom:1px solid #E2E8F0;cursor:pointer" onclick="ouvrirFicheMachine(\''+h.machine_id+'\')">'+
         '<td style="padding:10px 8px;font-size:11px;color:#64748B;white-space:nowrap">'+((h.modifie_le||'').slice(0,16).replace('T',' '))+'</td>'+
-        '<td style="padding:10px 8px;font-weight:700;color:#0369A1">'+( h.code_machine||'')+'</td>'+
-        '<td style="padding:10px 8px;font-size:11px">'+( PN[h.pays_id]||h.pays_id||'')+'</td>'+
-        '<td style="padding:10px 8px;font-size:12px">'+transition+'</td>'+
+        '<td style="padding:10px 8px;font-weight:700;color:#0369A1">'+(h.code_machine||'')+'</td>'+
+        '<td style="padding:10px 8px;font-size:11px">'+(PN[h.pays_id]||h.pays_id||'')+'</td>'+
+        '<td style="padding:10px 8px;font-size:12px">'+transition+badgeCorrige+badgeCorrection+'</td>'+
         '<td style="padding:10px 8px;font-size:11px;color:#475569;max-width:180px">'+(h.motif||h.detail_statut||'—')+'</td>'+
         '<td style="padding:10px 8px;font-size:11px;color:#64748B">'+(h.intervenant||'—')+'</td>'+
         '<td style="padding:10px 8px;font-size:11px;font-weight:600;color:#7C3AED">'+(h.duree_phase_texte||'—')+'</td>'+
         '<td style="padding:10px 8px;font-size:11px;color:#64748B">'+(h.modifie_par||'')+'</td>'+
+        '<td style="padding:10px 8px;text-align:center">'+btnCorr+'</td>'+
       '</tr>';
     }).join('');
-
-    // Listener filtre
+    // Listeners boutons correction
+    tbody.querySelectorAll('[data-corr]').forEach(function(btn){
+      btn.addEventListener('click', function(){ ouvrirCorrection(btn.dataset.corr, items); });
+    });
     var btnF = document.getElementById('btn-appliquer-hf');
     if(btnF && !btnF._hlistener){ btnF._hlistener=true; btnF.addEventListener('click', affH); }
 
@@ -4457,6 +4524,118 @@ function ouvrirFicheMachine(machineId){
   var m = all.find(function(x){ return x.id===machineId; });
   if(m) det(m.id);
 }
+
+// ============================================================
+// CORRECTION D'UNE ACTION HISTORIQUE
+// ============================================================
+function ouvrirCorrection(histoId, items){
+  var h = items.find(function(x){ return x.id===histoId; });
+  if(!h) return;
+
+  document.getElementById('corr-histo-id').value = histoId;
+  document.getElementById('corr-machine-id').value = h.machine_id||'';
+  document.getElementById('corr-type').value = h.motif ? 'statut' : 'index';
+  document.getElementById('corr-subtitle').textContent = (h.code_machine||'') + ' — ' + ((h.modifie_le||'').slice(0,16).replace('T',' '));
+  document.getElementById('corr-motif-type').value = '';
+  document.getElementById('corr-motif-detail').value = '';
+
+  // Afficher les données originales
+  var orig = document.getElementById('corr-original-content');
+  orig.innerHTML =
+    '<div><span style="color:#92400E;font-weight:600">Transition :</span> ' + (h.ancien_statut||'—') + ' → ' + (h.nouveau_statut||'—') + '</div>' +
+    '<div><span style="color:#92400E;font-weight:600">Motif :</span> ' + (h.motif||h.detail_statut||'—') + '</div>' +
+    '<div><span style="color:#92400E;font-weight:600">Intervenant :</span> ' + (h.intervenant||'—') + '</div>' +
+    '<div><span style="color:#92400E;font-weight:600">Par :</span> ' + (h.modifie_par||'—') + ' le ' + ((h.modifie_le||'').slice(0,16).replace('T',' ')) + '</div>';
+
+  // Champs corrigibles
+  var champs = document.getElementById('corr-champs');
+  var m = all.find(function(x){ return x.id===h.machine_id; });
+  champs.innerHTML =
+    '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Nouveau statut</label>' +
+    '<select id="corr-nouveau-statut" style="margin-top:6px;padding:8px;border:1.5px solid #E2E8F0;border-radius:7px;font-size:13px;width:100%">' +
+    '<option value="">-- Garder : '+( h.nouveau_statut||'')+'  --</option>' +
+    '<option value="Fonctionnelle">Fonctionnelle</option>' +
+    '<option value="Disponible">Disponible</option>' +
+    '<option value="En panne">En panne</option>' +
+    '<option value="En réparation">En réparation</option>' +
+    '<option value="En Att. PDR">En Att. PDR</option>' +
+    '<option value="Transféré">Transféré</option>' +
+    '</select></div>' +
+    '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Motif corrigé</label>' +
+    '<input type="text" id="corr-nouveau-motif" style="margin-top:6px" value="'+(h.motif||h.detail_statut||'')+'" placeholder="Nouveau motif..."></div>' +
+    '<div class="fg"><label style="font-size:11px;font-weight:600;color:#374151">Intervenant corrigé</label>' +
+    '<input type="text" id="corr-nouveau-intervenant" style="margin-top:6px" value="'+(h.intervenant||'')+'" placeholder="Nom du technicien..."></div>';
+
+  oM('mod-correction');
+}
+
+document.getElementById('close-mod-correction').addEventListener('click', function(){ cM('mod-correction'); });
+document.getElementById('cancel-mod-correction').addEventListener('click', function(){ cM('mod-correction'); });
+document.getElementById('btn-confirmer-correction').addEventListener('click', async function(){
+  var histoId = document.getElementById('corr-histo-id').value;
+  var machineId = document.getElementById('corr-machine-id').value;
+  var motifType = document.getElementById('corr-motif-type').value;
+  var motifDetail = document.getElementById('corr-motif-detail').value.trim();
+  var nouveauStatut = document.getElementById('corr-nouveau-statut') ? document.getElementById('corr-nouveau-statut').value : '';
+  var nouveauMotif = document.getElementById('corr-nouveau-motif') ? document.getElementById('corr-nouveau-motif').value.trim() : '';
+  var nouveauIntervenant = document.getElementById('corr-nouveau-intervenant') ? document.getElementById('corr-nouveau-intervenant').value.trim() : '';
+
+  if(!motifType){ toast('Veuillez sélectionner un motif de correction','ko'); return; }
+
+  var maintenant = now();
+  var motifCorrection = motifType + (motifDetail ? ' — ' + motifDetail : '');
+
+  try{
+    // 1. Marquer l'entrée originale comme corrigée
+    await updateDoc(doc(db,'historique',histoId),{
+      corrige: true,
+      corrige_par: ses.user,
+      corrige_le: maintenant,
+      motif_correction: motifCorrection
+    });
+
+    // 2. Ajouter une nouvelle entrée "correction" dans l'historique
+    var snap = await getDocs(collection(db,'historique'));
+    var original = null;
+    snap.forEach(function(d){ if(d.id===histoId) original = d.data(); });
+
+    await addDoc(collection(db,'historique'),{
+      type_entree: 'correction',
+      histo_id_original: histoId,
+      machine_id: machineId,
+      code_machine: original ? original.code_machine : '',
+      pays_id: original ? original.pays_id : '',
+      ancien_statut: original ? original.nouveau_statut : '',
+      nouveau_statut: nouveauStatut || (original ? original.nouveau_statut : ''),
+      motif: nouveauMotif || (original ? (original.motif||original.detail_statut||'') : ''),
+      intervenant: nouveauIntervenant || (original ? original.intervenant||'' : ''),
+      motif_correction: motifCorrection,
+      modifie_par: ses.user,
+      modifie_le: maintenant,
+      date_seule: maintenant.slice(0,10)
+    });
+
+    // 3. Mettre à jour la machine si le statut a changé
+    if(nouveauStatut && machineId){
+      var m = all.find(function(x){ return x.id===machineId; });
+      if(m && m.statut !== nouveauStatut){
+        await updateDoc(doc(db,'machines',machineId),{
+          statut: nouveauStatut,
+          modifie_par: ses.user,
+          modifie_le: maintenant
+        });
+        var mL = all.find(function(x){ return x.id===machineId; });
+        if(mL){ mL.statut = nouveauStatut; }
+        filt(); stat();
+      }
+    }
+
+    cM('mod-correction');
+    toast('✓ Correction enregistrée et tracée dans l\'historique','ok');
+    affH();
+
+  }catch(e){ toast('Erreur: '+e.message,'ko'); }
+});
 
 // DASHBOARD
 function affD(){
