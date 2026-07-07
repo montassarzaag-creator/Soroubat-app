@@ -3630,7 +3630,7 @@ function start(){
   });
   document.getElementById('btn-sauver-interv').addEventListener('click',sauverIntervention);
   filt(); stat();
-  setTimeout(function(){ verifierAlertes(); }, 2000);
+  setTimeout(function(){ verifierAlertes(); }, 300);
   setInterval(function(){ verifierAlertes(); }, 300000);
 }
 
@@ -3649,7 +3649,16 @@ function goT(t, btn){
     if(btnHf && !btnHf._connected){ btnHf._connected=true; btnHf.addEventListener('click', affH); }
   }
   if(t==='dashboard'&&ses.admin) affD();
-  if(t==='alertes') afficherAlertes();
+  if(t==='alertes'){
+    afficherAlertes();
+    // Si les alertes n'ont pas encore été calculées (juste après connexion), on force le calcul puis on réaffiche
+    if(!window._alertes){
+      verifierAlertes().then(function(){
+        var btnAl = document.getElementById('tab-alertes');
+        if(btnAl && btnAl.classList.contains('ac')) afficherAlertes();
+      });
+    }
+  }
   if(t==='interventions') chargerInterventions();
   if(t==='maintenance') window.chargerMaintenance();
   if(t==='sorties') affSorties();
