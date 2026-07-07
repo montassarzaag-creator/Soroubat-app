@@ -4853,6 +4853,7 @@ async function verifierAlertes(){
     // Ajouter alertes maintenance (index proche du seuil)
     all.forEach(function(m){
       if(!ses.admin&&m.pays_id!==ses.pays)return;
+      if(estSortieFlotte(m))return; // machine vendue/réformée : exclue, comme dans le bandeau
       const typeIdx = getIndexType(m);
       if(!typeIdx) return;
       const indexActuel = parseFloat(m.index_exploitation||0);
